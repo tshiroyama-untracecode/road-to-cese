@@ -1704,7 +1704,7 @@ function setTheme(theme){
   document.querySelector(`.${theme}-btn`)?.classList.add('active');
 }
 function initTheme(){
-  const saved=localStorage.getItem('tr_theme')||'dark';
+  const saved=localStorage.getItem('tr_theme')||'light';
   setTheme(saved);
 }
 
