@@ -1,0 +1,932 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lab 4: Windows 365 Cloud PC をプロビジョニングする</title>
+<style>
+:root{--bg:#1e1e1e;--panel:#252526;--sidebar-bg:#333333;--border:#3e3e3e;--fg:#cccccc;--fg-bright:#ffffff;--fg-muted:#858585;--blue:#0078D4;--blue-hover:#1a8ad4;--blue-bg:rgba(0,120,212,.12);--green:#107C10;--green-bg:rgba(16,124,16,.15);--yellow:#FFB900;--yellow-bg:rgba(255,185,0,.12);--red:#D13438;--input-bg:#3c3c3c;--input-border:#555;--breadcrumb:#858585;--selected-bg:rgba(0,120,212,.15);}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:"Segoe UI","Meiryo UI",system-ui,sans-serif;background:#09090b;color:#a1a1a1;line-height:1.5;}
+
+/* Layout */
+.lab-layout{display:flex;height:100vh;}
+
+/* Left: Instructions */
+.instructions{width:380px;background:#18181b;border-right:1px solid #27272a;display:flex;flex-direction:column;flex-shrink:0;}
+.inst-header{padding:16px 20px;border-bottom:1px solid #27272a;background:#09090b;}
+.inst-header h1{font-size:15px;color:#fff;font-weight:600;}
+.inst-header .lab-badge{display:inline-block;background:var(--blue-bg);color:var(--blue);font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;margin-left:8px;}
+.inst-body{flex:1;overflow-y:auto;padding:20px;}
+.inst-body .back-link{display:inline-flex;align-items:center;gap:4px;font-size:12px;color:var(--blue);text-decoration:none;margin-bottom:12px;}
+.inst-body .back-link:hover{text-decoration:underline;}
+.inst-body h2{font-size:18px;color:#fff;margin-bottom:6px;}
+.inst-body .subtitle{font-size:13px;color:#858585;margin-bottom:16px;}
+
+/* Steps */
+.step{padding:14px 16px;margin-bottom:8px;border-radius:8px;border:1px solid #27272a;cursor:pointer;transition:all .15s;position:relative;}
+.step:hover{border-color:#3f3f46;}
+.step.active{border-color:var(--blue);background:var(--blue-bg);}
+.step.completed{border-color:rgba(16,124,16,.5);background:var(--green-bg);}
+.step-num{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;font-size:11px;font-weight:700;margin-right:8px;flex-shrink:0;}
+.step:not(.completed) .step-num{background:#27272a;color:#a1a1a1;}
+.step.completed .step-num{background:var(--green);color:#fff;}
+.step-title{font-size:13px;font-weight:600;color:#e4e4e7;}
+.step-desc{font-size:12px;color:#858585;margin-top:4px;margin-left:30px;}
+.step-hint{display:none;margin-top:8px;margin-left:30px;padding:8px 12px;background:rgba(255,185,0,.08);border:1px solid rgba(255,185,0,.2);border-radius:6px;font-size:11px;color:var(--yellow);}
+.step.active .step-hint{display:block;}
+
+/* Progress */
+.progress-bar{margin:16px 0;height:4px;background:#27272a;border-radius:2px;overflow:hidden;}
+.progress-fill{height:100%;background:var(--green);transition:width .3s;border-radius:2px;}
+
+/* Completion */
+.completion{display:none;text-align:center;padding:24px;background:var(--green-bg);border:1px solid rgba(16,124,16,.3);border-radius:12px;margin-top:16px;}
+.completion.show{display:block;}
+.completion h3{color:var(--green);font-size:16px;margin-bottom:4px;}
+.completion p{font-size:12px;color:#a1a1a1;}
+
+/* Right: Simulator */
+.simulator{flex:1;display:flex;flex-direction:column;background:var(--bg);}
+
+/* Azure-like top bar */
+.azure-bar{display:flex;align-items:center;padding:8px 16px;background:#1b1b1f;border-bottom:1px solid var(--border);gap:12px;}
+.azure-bar .az-logo{font-size:14px;font-weight:700;color:var(--blue);}
+.azure-bar .az-search{flex:1;max-width:400px;padding:6px 12px;background:var(--input-bg);border:1px solid var(--input-border);border-radius:4px;color:var(--fg);font-size:12px;font-family:inherit;}
+.azure-bar .az-icons{margin-left:auto;display:flex;gap:12px;font-size:14px;color:var(--fg-muted);}
+.azure-bar .az-user{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--fg);}
+.azure-bar .az-avatar{width:24px;height:24px;border-radius:50%;background:var(--blue);color:#fff;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;}
+
+/* Azure content area */
+.azure-content{flex:1;display:flex;overflow:hidden;}
+
+/* Azure sidebar */
+.az-sidebar{width:220px;background:var(--sidebar-bg);border-right:1px solid var(--border);overflow-y:auto;padding:8px 0;}
+.az-nav-item{padding:8px 16px;font-size:12px;color:var(--fg);cursor:pointer;display:flex;align-items:center;gap:8px;transition:background .1s;}
+.az-nav-item:hover{background:rgba(255,255,255,.05);}
+.az-nav-item.active{background:var(--selected-bg);color:var(--blue);font-weight:600;border-left:2px solid var(--blue);}
+.az-nav-item .nav-icon{font-size:14px;width:20px;text-align:center;}
+.az-nav-sub{padding-left:28px;font-size:11px;}
+.az-nav-section{padding:8px 16px 4px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--fg-muted);}
+
+/* Azure main panel */
+.az-main{flex:1;overflow-y:auto;background:var(--bg);position:relative;}
+
+/* Breadcrumb */
+.az-breadcrumb{padding:12px 24px;font-size:12px;color:var(--breadcrumb);}
+.az-breadcrumb a{color:var(--blue);text-decoration:none;}
+
+/* Page header */
+.az-page-header{padding:0 24px 16px;border-bottom:1px solid var(--border);}
+.az-page-header h2{font-size:20px;color:var(--fg-bright);font-weight:600;}
+.az-page-header .desc{font-size:13px;color:var(--fg-muted);margin-top:2px;}
+
+/* Toolbar */
+.az-toolbar{padding:10px 24px;display:flex;gap:8px;border-bottom:1px solid var(--border);}
+.az-btn{padding:6px 14px;border-radius:4px;font-size:12px;font-family:inherit;cursor:pointer;border:1px solid var(--border);background:transparent;color:var(--fg);display:inline-flex;align-items:center;gap:6px;transition:all .12s;}
+.az-btn:hover{background:rgba(255,255,255,.05);}
+.az-btn.primary{background:var(--blue);color:#fff;border-color:var(--blue);}
+.az-btn.primary:hover{background:var(--blue-hover);}
+.az-btn.highlight{animation:pulse 1.5s infinite;}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(0,120,212,.4);}50%{box-shadow:0 0 0 6px rgba(0,120,212,0);}}
+
+/* Table */
+.az-table{width:100%;border-collapse:collapse;font-size:12px;}
+.az-table th{text-align:left;padding:10px 24px;color:var(--fg-muted);font-weight:600;border-bottom:1px solid var(--border);background:rgba(255,255,255,.02);}
+.az-table td{padding:10px 24px;border-bottom:1px solid var(--border);color:var(--fg);}
+.az-table tr:hover{background:rgba(255,255,255,.03);}
+.az-table .link{color:var(--blue);cursor:pointer;}
+
+/* Status badges */
+.status-badge{display:inline-flex;align-items:center;gap:4px;padding:2px 10px;border-radius:12px;font-size:11px;font-weight:600;}
+.status-badge.success{background:var(--green-bg);color:var(--green);}
+.status-badge.pending{background:var(--yellow-bg);color:var(--yellow);}
+.status-badge.error{background:rgba(209,52,56,.12);color:var(--red);}
+
+/* Form panel (slide-in) */
+.form-panel{position:absolute;top:0;right:0;width:100%;height:100%;background:var(--bg);z-index:10;display:none;flex-direction:column;}
+.form-panel.open{display:flex;}
+.form-header{padding:16px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.form-header h3{font-size:18px;color:var(--fg-bright);}
+.form-close{background:none;border:none;color:var(--fg-muted);font-size:18px;cursor:pointer;}
+.form-body{flex:1;overflow-y:auto;padding:24px;}
+.form-group{margin-bottom:16px;}
+.form-group label{display:block;font-size:12px;font-weight:600;color:var(--fg);margin-bottom:4px;}
+.form-group label .required{color:var(--red);}
+.form-input{width:100%;padding:8px 12px;background:var(--input-bg);border:1px solid var(--input-border);border-radius:4px;color:var(--fg-bright);font-size:13px;font-family:inherit;}
+.form-input:focus{outline:none;border-color:var(--blue);}
+.form-select{width:100%;padding:8px 12px;background:var(--input-bg);border:1px solid var(--input-border);border-radius:4px;color:var(--fg-bright);font-size:13px;font-family:inherit;appearance:auto;}
+.form-hint{font-size:11px;color:var(--fg-muted);margin-top:4px;}
+.form-footer{padding:12px 24px;border-top:1px solid var(--border);display:flex;gap:8px;}
+
+/* Wizard tabs */
+.wizard-tabs{display:flex;border-bottom:1px solid var(--border);padding:0 24px;background:rgba(255,255,255,.02);}
+.wizard-tab{padding:12px 20px;font-size:12px;color:var(--fg-muted);cursor:pointer;border-bottom:2px solid transparent;transition:all .15s;}
+.wizard-tab:hover{color:var(--fg);}
+.wizard-tab.active{color:var(--blue);border-bottom-color:var(--blue);font-weight:600;}
+.wizard-tab.completed{color:var(--green);}
+.wizard-tab.disabled{opacity:.4;cursor:not-allowed;}
+.wizard-page{display:none;padding:24px;}
+.wizard-page.active{display:block;}
+
+/* Image selector */
+.image-list{display:flex;flex-direction:column;gap:8px;}
+.image-item{padding:12px 16px;border:1px solid var(--border);border-radius:6px;cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:12px;}
+.image-item:hover{border-color:var(--blue);background:var(--blue-bg);}
+.image-item.selected{border-color:var(--blue);background:var(--blue-bg);}
+.image-item .img-radio{width:16px;height:16px;border-radius:50%;border:2px solid var(--input-border);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.image-item.selected .img-radio{border-color:var(--blue);}
+.image-item.selected .img-radio::after{content:'';width:8px;height:8px;border-radius:50%;background:var(--blue);}
+.image-item .img-icon{font-size:24px;flex-shrink:0;}
+.image-item .img-info{flex:1;}
+.image-item .img-name{font-size:13px;color:var(--fg-bright);font-weight:600;}
+.image-item .img-desc{font-size:11px;color:var(--fg-muted);margin-top:2px;}
+
+/* Group selector */
+.group-search{margin-bottom:12px;}
+.group-list{border:1px solid var(--border);border-radius:6px;overflow:hidden;}
+.group-item{display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .1s;}
+.group-item:last-child{border-bottom:none;}
+.group-item:hover{background:rgba(255,255,255,.05);}
+.group-item.selected{background:var(--blue-bg);}
+.group-item .g-icon{width:28px;height:28px;border-radius:4px;background:var(--blue);color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;}
+.group-item .g-name{font-size:13px;color:var(--fg-bright);}
+.group-item .g-type{font-size:11px;color:var(--fg-muted);}
+.group-item .g-check{margin-left:auto;font-size:14px;color:var(--blue);display:none;}
+.group-item.selected .g-check{display:block;}
+
+/* Summary card */
+.summary-section{margin-bottom:16px;}
+.summary-section h4{font-size:13px;color:var(--fg-muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px;}
+.summary-row{display:flex;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.05);font-size:13px;}
+.summary-row .s-label{width:180px;color:var(--fg-muted);}
+.summary-row .s-value{color:var(--fg-bright);font-weight:500;}
+
+/* Provisioning animation */
+.provision-overlay{position:absolute;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.85);display:none;flex-direction:column;align-items:center;justify-content:center;z-index:20;}
+.provision-overlay.active{display:flex;}
+.provision-spinner{width:48px;height:48px;border:3px solid var(--border);border-top-color:var(--blue);border-radius:50%;animation:spin 1s linear infinite;margin-bottom:20px;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.provision-status{font-size:15px;color:var(--fg-bright);margin-bottom:8px;font-weight:600;}
+.provision-sub{font-size:12px;color:var(--fg-muted);margin-bottom:24px;}
+.provision-steps{list-style:none;width:340px;}
+.provision-steps li{padding:8px 0;font-size:12px;color:var(--fg-muted);display:flex;align-items:center;gap:8px;transition:color .3s;}
+.provision-steps li.done{color:var(--green);}
+.provision-steps li.active{color:var(--fg-bright);}
+.provision-steps li .p-icon{width:18px;text-align:center;}
+
+/* Stats cards */
+.stats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;padding:24px;}
+.stat-card{padding:20px;background:var(--panel);border:1px solid var(--border);border-radius:8px;}
+.stat-card .stat-value{font-size:28px;font-weight:700;color:var(--fg-bright);}
+.stat-card .stat-label{font-size:12px;color:var(--fg-muted);margin-top:4px;}
+.stat-card.highlight .stat-value{color:var(--blue);}
+
+/* Member section */
+.member-section{margin-top:12px;padding:12px;background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:6px;}
+.member-item{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:4px;font-size:12px;color:var(--fg);}
+.member-item:hover{background:rgba(255,255,255,.05);}
+.member-item .m-avatar{width:24px;height:24px;border-radius:50%;background:var(--blue);color:#fff;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;}
+input[type=checkbox]{accent-color:var(--blue);}
+
+/* Toast */
+.toast{position:fixed;bottom:20px;right:20px;padding:12px 20px;background:var(--green);color:#fff;border-radius:8px;font-size:13px;font-weight:600;z-index:100;display:none;animation:slideUp .3s;}
+.toast.show{display:block;}
+@keyframes slideUp{from{transform:translateY(20px);opacity:0;}to{transform:translateY(0);opacity:1;}}
+
+/* Responsive */
+@media(max-width:900px){.instructions{width:100%;position:fixed;bottom:0;height:40vh;z-index:20;border-top:1px solid #27272a;border-right:none;}.simulator{height:60vh;}}
+</style>
+</head>
+<body>
+
+<div class="lab-layout">
+  <!-- Instructions Panel -->
+  <div class="instructions">
+    <div class="inst-header">
+      <h1>Lab 4 <span class="lab-badge">ハンズオン</span></h1>
+    </div>
+    <div class="inst-body">
+      <a class="back-link" href="../index.html">← トレーニングに戻る</a>
+      <h2>Windows 365 Cloud PC をプロビジョニングする</h2>
+      <p class="subtitle">プロビジョニングポリシーを作成し、ユーザーグループに Cloud PC を割り当てます。所要時間: 約15分</p>
+
+      <div class="progress-bar"><div class="progress-fill" id="labProgress" style="width:0%"></div></div>
+
+      <div class="step active" id="step1" onclick="goStep(1)">
+        <span class="step-num">1</span>
+        <span class="step-title">Intune 管理センターにアクセス</span>
+        <div class="step-desc">サイドバーで「デバイス」→「Windows 365」をクリック</div>
+        <div class="step-hint">💡 ヒント: 左メニューの「デバイス」を展開し、「Windows 365」をクリック</div>
+      </div>
+
+      <div class="step" id="step2" onclick="goStep(2)">
+        <span class="step-num">2</span>
+        <span class="step-title">プロビジョニングポリシーを確認</span>
+        <div class="step-desc">既存のポリシー一覧を確認します</div>
+        <div class="step-hint">💡 ヒント: サイドバーの「プロビジョニングポリシー」をクリック</div>
+      </div>
+
+      <div class="step" id="step3" onclick="goStep(3)">
+        <span class="step-num">3</span>
+        <span class="step-title">「ポリシーの作成」をクリック</span>
+        <div class="step-desc">新しいプロビジョニングポリシーを作成します</div>
+        <div class="step-hint">💡 ヒント: ツールバーの青い「+ ポリシーの作成」ボタンをクリック</div>
+      </div>
+
+      <div class="step" id="step4" onclick="goStep(4)">
+        <span class="step-num">4</span>
+        <span class="step-title">基本設定を入力</span>
+        <div class="step-desc">ポリシー名「PP-Standard-4vCPU」、参加の種類、ネットワークを設定</div>
+        <div class="step-hint">💡 ヒント: ポリシー名を入力し、「Microsoft Entra 参加」と「Microsoft ホステッド ネットワーク」を選択</div>
+      </div>
+
+      <div class="step" id="step5" onclick="goStep(5)">
+        <span class="step-num">5</span>
+        <span class="step-title">イメージを選択</span>
+        <div class="step-desc">「Windows 11 Enterprise + Microsoft 365 Apps」ギャラリーイメージを選択</div>
+        <div class="step-hint">💡 ヒント: 「Windows 11 Enterprise + Microsoft 365 Apps」をクリックして選択</div>
+      </div>
+
+      <div class="step" id="step6" onclick="goStep(6)">
+        <span class="step-num">6</span>
+        <span class="step-title">対象グループを割り当て</span>
+        <div class="step-desc">「SG-W365-Users」グループを選択します</div>
+        <div class="step-hint">💡 ヒント: グループ一覧から「SG-W365-Users」をクリック</div>
+      </div>
+
+      <div class="step" id="step7" onclick="goStep(7)">
+        <span class="step-num">7</span>
+        <span class="step-title">「作成」をクリック</span>
+        <div class="step-desc">設定を確認して「作成」ボタンをクリック → プロビジョニング開始</div>
+        <div class="step-hint">💡 ヒント: 確認+作成タブで内容を確認し、「作成」をクリック</div>
+      </div>
+
+      <div class="completion" id="completion">
+        <h3>🎉 Lab 4 完了！</h3>
+        <p>プロビジョニングポリシー「PP-Standard-4vCPU」を作成し、<br>Cloud PC のプロビジョニングが正常に完了しました。</p>
+        <p style="margin-top:8px;"><a class="back-link" href="../index.html">← トレーニングに戻る</a></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Simulator -->
+  <div class="simulator" style="position:relative;">
+    <!-- Azure top bar -->
+    <div class="azure-bar">
+      <span class="az-logo">Microsoft Intune 管理センター</span>
+      <input class="az-search" type="text" placeholder="🔍 リソース、サービス、ドキュメントの検索" readonly>
+      <div class="az-icons">⚙️ 🔔 ❓</div>
+      <div class="az-user">
+        <div class="az-avatar">T</div>
+        training@contoso.com
+      </div>
+    </div>
+
+    <!-- Azure content -->
+    <div class="azure-content">
+      <!-- Sidebar -->
+      <div class="az-sidebar">
+        <div class="az-nav-section">お気に入り</div>
+        <div class="az-nav-item" onclick="navClick('dashboard')"><span class="nav-icon">📊</span>ダッシュボード</div>
+        <div class="az-nav-item" id="navDevices" onclick="navClick('devices')"><span class="nav-icon">💻</span>デバイス</div>
+        <div class="az-nav-item az-nav-sub" id="navOverview" onclick="navClick('devices')" style="display:none;"><span class="nav-icon">📋</span>概要</div>
+        <div class="az-nav-item az-nav-sub" id="navW365" onclick="navClick('w365')" style="display:none;"><span class="nav-icon">☁️</span>Windows 365</div>
+        <div class="az-nav-item az-nav-sub" id="navCloudPCs" onclick="navClick('cloudpcs')" style="display:none;"><span class="nav-icon">🖥️</span>Cloud PC 一覧</div>
+        <div class="az-nav-item az-nav-sub" id="navProvPolicy" onclick="navClick('provpolicy')" style="display:none;"><span class="nav-icon">📄</span>プロビジョニングポリシー</div>
+        <div class="az-nav-section">管理</div>
+        <div class="az-nav-item"><span class="nav-icon">📱</span>アプリ</div>
+        <div class="az-nav-item"><span class="nav-icon">🛡️</span>エンドポイント セキュリティ</div>
+        <div class="az-nav-item"><span class="nav-icon">👤</span>ユーザー</div>
+        <div class="az-nav-item"><span class="nav-icon">👥</span>グループ</div>
+        <div class="az-nav-item"><span class="nav-icon">📊</span>レポート</div>
+      </div>
+
+      <!-- Main content -->
+      <div class="az-main" id="azMain">
+        <!-- Dashboard (initial) -->
+        <div id="page-dashboard">
+          <div class="az-breadcrumb">ホーム > ダッシュボード</div>
+          <div class="az-page-header">
+            <h2>Microsoft Intune</h2>
+            <div class="desc">contoso.onmicrosoft.com</div>
+          </div>
+          <div style="padding:24px;color:var(--fg-muted);font-size:13px;">
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;">
+              <div style="padding:20px;background:var(--panel);border:1px solid var(--border);border-radius:8px;">
+                <div style="font-size:24px;font-weight:700;color:var(--fg-bright);">312</div>
+                <div>管理デバイス</div>
+              </div>
+              <div style="padding:20px;background:var(--panel);border:1px solid var(--border);border-radius:8px;">
+                <div style="font-size:24px;font-weight:700;color:var(--fg-bright);">45</div>
+                <div>Cloud PC</div>
+              </div>
+              <div style="padding:20px;background:var(--panel);border:1px solid var(--border);border-radius:8px;">
+                <div style="font-size:24px;font-weight:700;color:var(--fg-bright);">18</div>
+                <div>ポリシー</div>
+              </div>
+            </div>
+            <p style="margin-top:20px;">← 左メニューの<b style="color:var(--blue);">「デバイス」</b>を展開して「Windows 365」をクリックしましょう</p>
+          </div>
+        </div>
+
+        <!-- Windows 365 Overview page -->
+        <div id="page-w365" style="display:none;">
+          <div class="az-breadcrumb"><a href="#">ホーム</a> > <a href="#">デバイス</a> > Windows 365</div>
+          <div class="az-page-header">
+            <h2>Windows 365</h2>
+            <div class="desc">Cloud PC の管理とプロビジョニング</div>
+          </div>
+          <div class="stats-grid">
+            <div class="stat-card highlight">
+              <div class="stat-value" id="statProvisioned">45</div>
+              <div class="stat-label">プロビジョニング済み</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-value" id="statProvisioning">0</div>
+              <div class="stat-label">プロビジョニング中</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-value">0</div>
+              <div class="stat-label">失敗</div>
+            </div>
+          </div>
+          <div style="padding:0 24px 16px;font-size:13px;color:var(--fg-muted);">
+            <p>← サイドバーの<b style="color:var(--blue);">「プロビジョニングポリシー」</b>をクリックしてポリシーを管理</p>
+          </div>
+        </div>
+
+        <!-- Provisioning Policy page -->
+        <div id="page-provpolicy" style="display:none;">
+          <div class="az-breadcrumb"><a href="#">ホーム</a> > <a href="#">デバイス</a> > <a href="#">Windows 365</a> > プロビジョニングポリシー</div>
+          <div class="az-page-header">
+            <h2>プロビジョニングポリシー</h2>
+            <div class="desc">Cloud PC のプロビジョニング設定を管理します</div>
+          </div>
+          <div class="az-toolbar">
+            <button class="az-btn primary" id="btnNewPolicy" onclick="clickNewPolicy()">+ ポリシーの作成</button>
+            <button class="az-btn">🔄 最新の情報に更新</button>
+            <button class="az-btn">⬇️ エクスポート</button>
+          </div>
+          <table class="az-table" id="policyTable">
+            <thead>
+              <tr><th>☐</th><th>ポリシー名</th><th>参加の種類</th><th>ネットワーク</th><th>イメージ</th><th>状態</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>☐</td><td class="link">PP-Developer-8vCPU</td><td>Microsoft Entra 参加</td><td>Microsoft ホステッド ネットワーク</td><td>Windows 11 Enterprise + M365 Apps</td><td><span class="status-badge success">アクティブ</span></td></tr>
+              <tr><td>☐</td><td class="link">PP-Sales-2vCPU</td><td>ハイブリッド Entra 参加</td><td>Azure ネットワーク接続</td><td>Windows 11 Enterprise</td><td><span class="status-badge success">アクティブ</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Cloud PC list page -->
+        <div id="page-cloudpcs" style="display:none;">
+          <div class="az-breadcrumb"><a href="#">ホーム</a> > <a href="#">デバイス</a> > <a href="#">Windows 365</a> > Cloud PC 一覧</div>
+          <div class="az-page-header">
+            <h2>Cloud PC 一覧</h2>
+          </div>
+          <table class="az-table" id="cloudpcTable">
+            <thead>
+              <tr><th>☐</th><th>デバイス名</th><th>ユーザー</th><th>ポリシー</th><th>スペック</th><th>状態</th></tr>
+            </thead>
+            <tbody id="cloudpcBody">
+              <tr><td>☐</td><td class="link">CPC-Tanaka-01</td><td>田中太郎</td><td>PP-Developer-8vCPU</td><td>8vCPU / 32GB / 256GB</td><td><span class="status-badge success">プロビジョニング済み</span></td></tr>
+              <tr><td>☐</td><td class="link">CPC-Sato-01</td><td>佐藤花子</td><td>PP-Developer-8vCPU</td><td>8vCPU / 32GB / 256GB</td><td><span class="status-badge success">プロビジョニング済み</span></td></tr>
+              <tr><td>☐</td><td class="link">CPC-Suzuki-01</td><td>鈴木一郎</td><td>PP-Sales-2vCPU</td><td>2vCPU / 8GB / 128GB</td><td><span class="status-badge success">プロビジョニング済み</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Create Policy Wizard -->
+        <div id="page-wizard" style="display:none;">
+          <div class="az-breadcrumb"><a href="#">ホーム</a> > <a href="#">デバイス</a> > <a href="#">Windows 365</a> > <a href="#">プロビジョニングポリシー</a> > 作成</div>
+          <div class="az-page-header">
+            <h2>プロビジョニングポリシーの作成</h2>
+          </div>
+          <div class="wizard-tabs">
+            <div class="wizard-tab active" id="wtab-basic" onclick="wizardTab('basic')">1. 基本</div>
+            <div class="wizard-tab disabled" id="wtab-image" onclick="wizardTab('image')">2. イメージ</div>
+            <div class="wizard-tab disabled" id="wtab-assign" onclick="wizardTab('assign')">3. 割り当て</div>
+            <div class="wizard-tab disabled" id="wtab-review" onclick="wizardTab('review')">4. 確認+作成</div>
+          </div>
+
+          <!-- Basic tab -->
+          <div class="wizard-page active" id="wpage-basic">
+            <div class="form-group">
+              <label>ポリシー名 <span class="required">*</span></label>
+              <input class="form-input" id="policyName" type="text" placeholder="例: PP-Standard-4vCPU" oninput="checkStep4()">
+            </div>
+            <div class="form-group">
+              <label>説明</label>
+              <input class="form-input" id="policyDesc" type="text" placeholder="例: 標準ユーザー向け 4vCPU Cloud PC">
+            </div>
+            <div class="form-group">
+              <label>参加の種類 <span class="required">*</span></label>
+              <select class="form-select" id="joinType" onchange="checkStep4()">
+                <option value="">選択してください</option>
+                <option value="entra">Microsoft Entra 参加</option>
+                <option value="hybrid">ハイブリッド Microsoft Entra 参加</option>
+              </select>
+              <div class="form-hint">Entra 参加: クラウドネイティブ / ハイブリッド: オンプレ AD と連携</div>
+            </div>
+            <div class="form-group">
+              <label>ネットワーク <span class="required">*</span></label>
+              <select class="form-select" id="networkType" onchange="checkStep4()">
+                <option value="">選択してください</option>
+                <option value="mhn">Microsoft ホステッド ネットワーク</option>
+                <option value="anc">Azure ネットワーク接続 (ANC)</option>
+              </select>
+              <div class="form-hint">MHN: Microsoft管理のネットワーク / ANC: 自社VNetに接続</div>
+            </div>
+            <div class="form-group">
+              <label>地理</label>
+              <select class="form-select" id="geoRegion">
+                <option value="japan">日本</option>
+                <option value="us">米国</option>
+                <option value="eu">ヨーロッパ</option>
+                <option value="apac">アジア太平洋</option>
+              </select>
+            </div>
+            <div style="margin-top:16px;">
+              <button class="az-btn primary" id="btnNextImage" onclick="wizardNext('image')" style="opacity:.5;pointer-events:none;">次へ: イメージ →</button>
+            </div>
+          </div>
+
+          <!-- Image tab -->
+          <div class="wizard-page" id="wpage-image">
+            <div class="form-group">
+              <label>イメージの種類</label>
+              <select class="form-select">
+                <option>ギャラリー イメージ</option>
+                <option>カスタム イメージ</option>
+              </select>
+              <div class="form-hint">ギャラリー: Microsoft 提供の標準イメージ / カスタム: 独自作成イメージ</div>
+            </div>
+            <div class="form-group">
+              <label>ギャラリー イメージの選択 <span class="required">*</span></label>
+              <div class="image-list" id="imageList">
+                <div class="image-item" onclick="selectImage(this,'win11ent')">
+                  <div class="img-radio"></div>
+                  <div class="img-icon">🖥️</div>
+                  <div class="img-info">
+                    <div class="img-name">Windows 11 Enterprise</div>
+                    <div class="img-desc">Windows 11 Enterprise 23H2 - OS のみ</div>
+                  </div>
+                </div>
+                <div class="image-item" onclick="selectImage(this,'win11m365')">
+                  <div class="img-radio"></div>
+                  <div class="img-icon">📦</div>
+                  <div class="img-info">
+                    <div class="img-name">Windows 11 Enterprise + Microsoft 365 Apps</div>
+                    <div class="img-desc">Windows 11 Enterprise 23H2 + Microsoft 365 Apps for enterprise</div>
+                  </div>
+                </div>
+                <div class="image-item" onclick="selectImage(this,'win11m365teams')">
+                  <div class="img-radio"></div>
+                  <div class="img-icon">📦</div>
+                  <div class="img-info">
+                    <div class="img-name">Windows 11 Enterprise + M365 Apps + Teams</div>
+                    <div class="img-desc">Windows 11 Enterprise 23H2 + Microsoft 365 Apps + Teams 最適化済み</div>
+                  </div>
+                </div>
+                <div class="image-item" onclick="selectImage(this,'win10ent')">
+                  <div class="img-radio"></div>
+                  <div class="img-icon">🖥️</div>
+                  <div class="img-info">
+                    <div class="img-name">Windows 10 Enterprise</div>
+                    <div class="img-desc">Windows 10 Enterprise 22H2 - レガシー互換</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div style="margin-top:16px;display:flex;gap:8px;">
+              <button class="az-btn" onclick="wizardTab('basic')">← 戻る</button>
+              <button class="az-btn primary" id="btnNextAssign" onclick="wizardNext('assign')" style="opacity:.5;pointer-events:none;">次へ: 割り当て →</button>
+            </div>
+          </div>
+
+          <!-- Assignment tab -->
+          <div class="wizard-page" id="wpage-assign">
+            <div class="form-group">
+              <label>対象グループの選択 <span class="required">*</span></label>
+              <div class="form-hint" style="margin-bottom:8px;">このポリシーを適用するグループを選択してください</div>
+              <div class="group-search">
+                <input class="form-input" type="text" placeholder="🔍 グループを検索..." readonly>
+              </div>
+              <div class="group-list" id="groupList">
+                <div class="group-item" onclick="selectGroup(this,'it-admins')">
+                  <div class="g-icon">👥</div>
+                  <div>
+                    <div class="g-name">IT-Admins</div>
+                    <div class="g-type">セキュリティ - 5 メンバー</div>
+                  </div>
+                  <span class="g-check">✓</span>
+                </div>
+                <div class="group-item" onclick="selectGroup(this,'sg-w365')">
+                  <div class="g-icon">👥</div>
+                  <div>
+                    <div class="g-name">SG-W365-Users</div>
+                    <div class="g-type">セキュリティ - 12 メンバー</div>
+                  </div>
+                  <span class="g-check">✓</span>
+                </div>
+                <div class="group-item" onclick="selectGroup(this,'sales')">
+                  <div class="g-icon">👥</div>
+                  <div>
+                    <div class="g-name">営業部</div>
+                    <div class="g-type">セキュリティ - 28 メンバー</div>
+                  </div>
+                  <span class="g-check">✓</span>
+                </div>
+                <div class="group-item" onclick="selectGroup(this,'factory')">
+                  <div class="g-icon">👥</div>
+                  <div>
+                    <div class="g-name">工場スタッフ</div>
+                    <div class="g-type">セキュリティ - 45 メンバー</div>
+                  </div>
+                  <span class="g-check">✓</span>
+                </div>
+              </div>
+            </div>
+            <div style="margin-top:16px;display:flex;gap:8px;">
+              <button class="az-btn" onclick="wizardTab('image')">← 戻る</button>
+              <button class="az-btn primary" id="btnNextReview" onclick="wizardNext('review')" style="opacity:.5;pointer-events:none;">次へ: 確認+作成 →</button>
+            </div>
+          </div>
+
+          <!-- Review tab -->
+          <div class="wizard-page" id="wpage-review">
+            <div class="summary-section">
+              <h4>基本設定</h4>
+              <div class="summary-row"><span class="s-label">ポリシー名</span><span class="s-value" id="sumName">-</span></div>
+              <div class="summary-row"><span class="s-label">参加の種類</span><span class="s-value" id="sumJoin">-</span></div>
+              <div class="summary-row"><span class="s-label">ネットワーク</span><span class="s-value" id="sumNetwork">-</span></div>
+              <div class="summary-row"><span class="s-label">地理</span><span class="s-value" id="sumGeo">-</span></div>
+            </div>
+            <div class="summary-section">
+              <h4>イメージ</h4>
+              <div class="summary-row"><span class="s-label">選択イメージ</span><span class="s-value" id="sumImage">-</span></div>
+            </div>
+            <div class="summary-section">
+              <h4>割り当て</h4>
+              <div class="summary-row"><span class="s-label">対象グループ</span><span class="s-value" id="sumGroup">-</span></div>
+            </div>
+            <div style="margin-top:20px;display:flex;gap:8px;">
+              <button class="az-btn" onclick="wizardTab('assign')">← 戻る</button>
+              <button class="az-btn primary" id="btnCreatePolicy" onclick="createPolicy()">作成</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Provisioning overlay -->
+      <div class="provision-overlay" id="provisionOverlay">
+        <div class="provision-spinner" id="provSpinner"></div>
+        <div class="provision-status" id="provStatus">Cloud PC をプロビジョニング中...</div>
+        <div class="provision-sub" id="provSub">ポリシー: PP-Standard-4vCPU</div>
+        <ul class="provision-steps" id="provSteps">
+          <li id="pstep1"><span class="p-icon">⏳</span>プロビジョニングポリシーを検証中...</li>
+          <li id="pstep2"><span class="p-icon">⏳</span>Azure リソースを割り当て中...</li>
+          <li id="pstep3"><span class="p-icon">⏳</span>OS イメージを展開中...</li>
+          <li id="pstep4"><span class="p-icon">⏳</span>Entra ID にデバイスを登録中...</li>
+          <li id="pstep5"><span class="p-icon">⏳</span>展開ポリシーを適用中...</li>
+          <li id="pstep6"><span class="p-icon">⏳</span>Cloud PC を最終構成中...</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Toast -->
+    <div class="toast" id="toast"></div>
+  </div>
+</div>
+
+<script>
+let currentStep = 1;
+const totalSteps = 7;
+let devicesExpanded = false;
+let selectedImage = '';
+let selectedGroup = '';
+
+function goStep(n) {
+  if (n > currentStep) return;
+  document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+  document.getElementById(`step${n}`).classList.add('active');
+}
+
+function completeStep(n) {
+  const stepEl = document.getElementById(`step${n}`);
+  stepEl.classList.remove('active');
+  stepEl.classList.add('completed');
+
+  if (n < totalSteps) {
+    currentStep = n + 1;
+    const nextStep = document.getElementById(`step${currentStep}`);
+    nextStep.classList.add('active');
+  }
+
+  const pct = Math.round((n / totalSteps) * 100);
+  document.getElementById('labProgress').style.width = pct + '%';
+
+  if (n === totalSteps) {
+    document.getElementById('completion').classList.add('show');
+  }
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+// Hide all pages
+function hideAllPages() {
+  document.getElementById('page-dashboard').style.display = 'none';
+  document.getElementById('page-w365').style.display = 'none';
+  document.getElementById('page-provpolicy').style.display = 'none';
+  document.getElementById('page-cloudpcs').style.display = 'none';
+  document.getElementById('page-wizard').style.display = 'none';
+}
+
+// Sidebar expand devices sub-items
+function expandDevices() {
+  if (!devicesExpanded) {
+    devicesExpanded = true;
+    document.getElementById('navOverview').style.display = 'flex';
+    document.getElementById('navW365').style.display = 'flex';
+    document.getElementById('navCloudPCs').style.display = 'flex';
+    document.getElementById('navProvPolicy').style.display = 'flex';
+  }
+}
+
+// Sidebar navigation
+function navClick(page) {
+  document.querySelectorAll('.az-nav-item').forEach(i => i.classList.remove('active'));
+
+  if (page === 'devices') {
+    expandDevices();
+    document.getElementById('navDevices').classList.add('active');
+  }
+
+  if (page === 'w365') {
+    expandDevices();
+    document.getElementById('navW365').classList.add('active');
+    hideAllPages();
+    document.getElementById('page-w365').style.display = 'block';
+
+    if (currentStep === 1) {
+      completeStep(1);
+    }
+  }
+
+  if (page === 'provpolicy') {
+    expandDevices();
+    document.getElementById('navProvPolicy').classList.add('active');
+    hideAllPages();
+    document.getElementById('page-provpolicy').style.display = 'block';
+
+    if (currentStep === 2) {
+      completeStep(2);
+      setTimeout(() => {
+        document.getElementById('btnNewPolicy').classList.add('highlight');
+      }, 500);
+    }
+  }
+
+  if (page === 'cloudpcs') {
+    expandDevices();
+    document.getElementById('navCloudPCs').classList.add('active');
+    hideAllPages();
+    document.getElementById('page-cloudpcs').style.display = 'block';
+  }
+
+  if (page === 'dashboard') {
+    document.querySelectorAll('.az-nav-item').forEach(i => i.classList.remove('active'));
+    hideAllPages();
+    document.getElementById('page-dashboard').style.display = 'block';
+  }
+}
+
+// Step 3: Click new policy button
+function clickNewPolicy() {
+  document.getElementById('btnNewPolicy').classList.remove('highlight');
+  hideAllPages();
+  document.getElementById('page-wizard').style.display = 'block';
+
+  if (currentStep === 3) {
+    completeStep(3);
+  }
+}
+
+// Wizard tab navigation
+function wizardTab(tab) {
+  const tabEl = document.getElementById(`wtab-${tab}`);
+  if (tabEl.classList.contains('disabled')) return;
+
+  document.querySelectorAll('.wizard-tab').forEach(t => t.classList.remove('active'));
+  tabEl.classList.add('active');
+
+  document.querySelectorAll('.wizard-page').forEach(p => p.classList.remove('active'));
+  document.getElementById(`wpage-${tab}`).classList.add('active');
+
+  if (tab === 'review') {
+    populateSummary();
+  }
+}
+
+function wizardNext(tab) {
+  // Enable the tab
+  document.getElementById(`wtab-${tab}`).classList.remove('disabled');
+  document.getElementById(`wtab-${tab}`).classList.add('completed');
+  wizardTab(tab);
+}
+
+// Step 4: Basic settings
+function checkStep4() {
+  const name = document.getElementById('policyName').value.trim();
+  const join = document.getElementById('joinType').value;
+  const network = document.getElementById('networkType').value;
+
+  if (name && join && network) {
+    document.getElementById('btnNextImage').style.opacity = '1';
+    document.getElementById('btnNextImage').style.pointerEvents = 'auto';
+
+    if (currentStep === 4) {
+      completeStep(4);
+    }
+  } else {
+    document.getElementById('btnNextImage').style.opacity = '.5';
+    document.getElementById('btnNextImage').style.pointerEvents = 'none';
+  }
+}
+
+// Step 5: Image selection
+function selectImage(el, value) {
+  document.querySelectorAll('.image-item').forEach(i => i.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedImage = value;
+
+  document.getElementById('btnNextAssign').style.opacity = '1';
+  document.getElementById('btnNextAssign').style.pointerEvents = 'auto';
+
+  if (currentStep === 5 && value === 'win11m365') {
+    completeStep(5);
+  }
+}
+
+// Step 6: Group assignment
+function selectGroup(el, value) {
+  document.querySelectorAll('.group-item').forEach(i => i.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedGroup = value;
+
+  document.getElementById('btnNextReview').style.opacity = '1';
+  document.getElementById('btnNextReview').style.pointerEvents = 'auto';
+
+  if (currentStep === 6 && value === 'sg-w365') {
+    completeStep(6);
+  }
+}
+
+// Populate summary
+function populateSummary() {
+  document.getElementById('sumName').textContent = document.getElementById('policyName').value || 'PP-Standard-4vCPU';
+
+  const joinMap = { entra: 'Microsoft Entra 参加', hybrid: 'ハイブリッド Microsoft Entra 参加' };
+  document.getElementById('sumJoin').textContent = joinMap[document.getElementById('joinType').value] || '-';
+
+  const netMap = { mhn: 'Microsoft ホステッド ネットワーク', anc: 'Azure ネットワーク接続 (ANC)' };
+  document.getElementById('sumNetwork').textContent = netMap[document.getElementById('networkType').value] || '-';
+
+  const geoMap = { japan: '日本', us: '米国', eu: 'ヨーロッパ', apac: 'アジア太平洋' };
+  document.getElementById('sumGeo').textContent = geoMap[document.getElementById('geoRegion').value] || '日本';
+
+  const imgMap = {
+    win11ent: 'Windows 11 Enterprise',
+    win11m365: 'Windows 11 Enterprise + Microsoft 365 Apps',
+    win11m365teams: 'Windows 11 Enterprise + M365 Apps + Teams',
+    win10ent: 'Windows 10 Enterprise'
+  };
+  document.getElementById('sumImage').textContent = imgMap[selectedImage] || '-';
+
+  const grpMap = { 'it-admins': 'IT-Admins', 'sg-w365': 'SG-W365-Users', sales: '営業部', factory: '工場スタッフ' };
+  document.getElementById('sumGroup').textContent = grpMap[selectedGroup] || '-';
+}
+
+// Step 7: Create policy
+function createPolicy() {
+  const name = document.getElementById('policyName').value.trim() || 'PP-Standard-4vCPU';
+
+  if (!document.getElementById('joinType').value || !document.getElementById('networkType').value || !selectedImage || !selectedGroup) {
+    alert('すべての必須項目を入力してください');
+    return;
+  }
+
+  if (currentStep === 7) {
+    completeStep(7);
+  }
+
+  // Show provisioning overlay
+  const overlay = document.getElementById('provisionOverlay');
+  overlay.classList.add('active');
+
+  // Animate provisioning steps
+  const psteps = [
+    { id: 'pstep1', delay: 800 },
+    { id: 'pstep2', delay: 1800 },
+    { id: 'pstep3', delay: 3000 },
+    { id: 'pstep4', delay: 4200 },
+    { id: 'pstep5', delay: 5400 },
+    { id: 'pstep6', delay: 6600 }
+  ];
+
+  psteps.forEach((ps, idx) => {
+    // Set active
+    setTimeout(() => {
+      document.getElementById(ps.id).classList.add('active');
+      document.getElementById(ps.id).querySelector('.p-icon').textContent = '⏳';
+    }, ps.delay);
+
+    // Set done
+    setTimeout(() => {
+      document.getElementById(ps.id).classList.remove('active');
+      document.getElementById(ps.id).classList.add('done');
+      document.getElementById(ps.id).querySelector('.p-icon').textContent = '✅';
+    }, ps.delay + 900);
+  });
+
+  // Update status text
+  setTimeout(() => {
+    document.getElementById('provStatus').textContent = 'Azure リソースを準備中...';
+  }, 1800);
+
+  setTimeout(() => {
+    document.getElementById('provStatus').textContent = 'OS イメージを展開中...';
+  }, 3000);
+
+  setTimeout(() => {
+    document.getElementById('provStatus').textContent = '展開ポリシーを適用中...';
+  }, 5400);
+
+  // Final: complete
+  setTimeout(() => {
+    document.getElementById('provSpinner').style.animation = 'none';
+    document.getElementById('provSpinner').style.borderColor = 'var(--green)';
+    document.getElementById('provSpinner').style.borderTopColor = 'var(--green)';
+    document.getElementById('provStatus').textContent = '完了！';
+    document.getElementById('provStatus').style.color = 'var(--green)';
+    document.getElementById('provSub').textContent = 'Cloud PC が正常にプロビジョニングされました';
+  }, 7500);
+
+  // After animation, go to policy page with new row
+  setTimeout(() => {
+    overlay.classList.remove('active');
+    // Reset overlay styles for potential replay
+    document.getElementById('provSpinner').style.animation = '';
+    document.getElementById('provSpinner').style.borderColor = '';
+    document.getElementById('provSpinner').style.borderTopColor = '';
+    document.getElementById('provStatus').style.color = '';
+    document.getElementById('provStatus').textContent = 'Cloud PC をプロビジョニング中...';
+    document.getElementById('provSub').textContent = 'ポリシー: PP-Standard-4vCPU';
+    document.querySelectorAll('#provSteps li').forEach(li => {
+      li.classList.remove('active', 'done');
+      li.querySelector('.p-icon').textContent = '⏳';
+    });
+
+    // Show policy page with new entry
+    hideAllPages();
+    document.getElementById('page-provpolicy').style.display = 'block';
+    document.querySelectorAll('.az-nav-item').forEach(i => i.classList.remove('active'));
+    document.getElementById('navProvPolicy').classList.add('active');
+
+    const joinMap = { entra: 'Microsoft Entra 参加', hybrid: 'ハイブリッド Microsoft Entra 参加' };
+    const netMap = { mhn: 'Microsoft ホステッド ネットワーク', anc: 'Azure ネットワーク接続 (ANC)' };
+    const imgMap = {
+      win11ent: 'Windows 11 Enterprise',
+      win11m365: 'Win 11 Ent + M365 Apps',
+      win11m365teams: 'Win 11 Ent + M365 + Teams',
+      win10ent: 'Windows 10 Enterprise'
+    };
+
+    const tbody = document.querySelector('#policyTable tbody');
+    const newRow = document.createElement('tr');
+    newRow.innerHTML = `<td>☐</td><td class="link" style="color:var(--green);font-weight:600;">${name}</td><td>${joinMap[document.getElementById('joinType').value] || '-'}</td><td>${netMap[document.getElementById('networkType').value] || '-'}</td><td>${imgMap[selectedImage] || '-'}</td><td><span class="status-badge success">アクティブ</span></td>`;
+    newRow.style.background = 'var(--green-bg)';
+    tbody.insertBefore(newRow, tbody.firstChild);
+
+    // Update stats
+    document.getElementById('statProvisioned').textContent = '46';
+
+    // Add new Cloud PC to list
+    const cpBody = document.getElementById('cloudpcBody');
+    const cpRow = document.createElement('tr');
+    cpRow.innerHTML = `<td>☐</td><td class="link" style="color:var(--green);font-weight:600;">CPC-NewUser-01</td><td>新規ユーザー</td><td>${name}</td><td>4vCPU / 16GB / 128GB</td><td><span class="status-badge success">プロビジョニング済み</span></td>`;
+    cpRow.style.background = 'var(--green-bg)';
+    cpBody.insertBefore(cpRow, cpBody.firstChild);
+
+    showToast('✅ プロビジョニングポリシー「' + name + '」が正常に作成されました');
+  }, 9000);
+}
+</script>
+</body>
+</html>

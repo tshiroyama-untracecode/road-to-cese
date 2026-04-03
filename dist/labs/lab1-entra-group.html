@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lab 1: Entra ID でセキュリティグループを作成する</title>
+<style>
+:root{--bg:#1e1e1e;--panel:#252526;--sidebar-bg:#333333;--border:#3e3e3e;--fg:#cccccc;--fg-bright:#ffffff;--fg-muted:#858585;--blue:#0078D4;--blue-hover:#1a8ad4;--blue-bg:rgba(0,120,212,.12);--green:#107C10;--green-bg:rgba(16,124,16,.15);--yellow:#FFB900;--yellow-bg:rgba(255,185,0,.12);--red:#D13438;--input-bg:#3c3c3c;--input-border:#555;--breadcrumb:#858585;--selected-bg:rgba(0,120,212,.15);}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:"Segoe UI","Meiryo UI",system-ui,sans-serif;background:#09090b;color:#a1a1a1;line-height:1.5;}
+
+/* Layout */
+.lab-layout{display:flex;height:100vh;}
+
+/* Left: Instructions */
+.instructions{width:380px;background:#18181b;border-right:1px solid #27272a;display:flex;flex-direction:column;flex-shrink:0;}
+.inst-header{padding:16px 20px;border-bottom:1px solid #27272a;background:#09090b;}
+.inst-header h1{font-size:15px;color:#fff;font-weight:600;}
+.inst-header .lab-badge{display:inline-block;background:var(--blue-bg);color:var(--blue);font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;margin-left:8px;}
+.inst-body{flex:1;overflow-y:auto;padding:20px;}
+.inst-body .back-link{display:inline-flex;align-items:center;gap:4px;font-size:12px;color:var(--blue);text-decoration:none;margin-bottom:12px;}
+.inst-body .back-link:hover{text-decoration:underline;}
+.inst-body h2{font-size:18px;color:#fff;margin-bottom:6px;}
+.inst-body .subtitle{font-size:13px;color:#858585;margin-bottom:16px;}
+
+/* Steps */
+.step{padding:14px 16px;margin-bottom:8px;border-radius:8px;border:1px solid #27272a;cursor:pointer;transition:all .15s;position:relative;}
+.step:hover{border-color:#3f3f46;}
+.step.active{border-color:var(--blue);background:var(--blue-bg);}
+.step.completed{border-color:rgba(16,124,16,.5);background:var(--green-bg);}
+.step-num{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;font-size:11px;font-weight:700;margin-right:8px;flex-shrink:0;}
+.step:not(.completed) .step-num{background:#27272a;color:#a1a1a1;}
+.step.completed .step-num{background:var(--green);color:#fff;}
+.step-title{font-size:13px;font-weight:600;color:#e4e4e7;}
+.step-desc{font-size:12px;color:#858585;margin-top:4px;margin-left:30px;}
+.step-hint{display:none;margin-top:8px;margin-left:30px;padding:8px 12px;background:rgba(255,185,0,.08);border:1px solid rgba(255,185,0,.2);border-radius:6px;font-size:11px;color:var(--yellow);}
+.step.active .step-hint{display:block;}
+
+/* Progress */
+.progress-bar{margin:16px 0;height:4px;background:#27272a;border-radius:2px;overflow:hidden;}
+.progress-fill{height:100%;background:var(--green);transition:width .3s;border-radius:2px;}
+
+/* Completion */
+.completion{display:none;text-align:center;padding:24px;background:var(--green-bg);border:1px solid rgba(16,124,16,.3);border-radius:12px;margin-top:16px;}
+.completion.show{display:block;}
+.completion h3{color:var(--green);font-size:16px;margin-bottom:4px;}
+.completion p{font-size:12px;color:#a1a1a1;}
+
+/* Right: Simulator */
+.simulator{flex:1;display:flex;flex-direction:column;background:var(--bg);}
+
+/* Azure-like top bar */
+.azure-bar{display:flex;align-items:center;padding:8px 16px;background:#1b1b1f;border-bottom:1px solid var(--border);gap:12px;}
+.azure-bar .az-logo{font-size:14px;font-weight:700;color:var(--blue);}
+.azure-bar .az-search{flex:1;max-width:400px;padding:6px 12px;background:var(--input-bg);border:1px solid var(--input-border);border-radius:4px;color:var(--fg);font-size:12px;font-family:inherit;}
+.azure-bar .az-icons{margin-left:auto;display:flex;gap:12px;font-size:14px;color:var(--fg-muted);}
+.azure-bar .az-user{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--fg);}
+.azure-bar .az-avatar{width:24px;height:24px;border-radius:50%;background:var(--blue);color:#fff;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;}
+
+/* Azure content area */
+.azure-content{flex:1;display:flex;overflow:hidden;}
+
+/* Azure sidebar */
+.az-sidebar{width:220px;background:var(--sidebar-bg);border-right:1px solid var(--border);overflow-y:auto;padding:8px 0;}
+.az-nav-item{padding:8px 16px;font-size:12px;color:var(--fg);cursor:pointer;display:flex;align-items:center;gap:8px;transition:background .1s;}
+.az-nav-item:hover{background:rgba(255,255,255,.05);}
+.az-nav-item.active{background:var(--selected-bg);color:var(--blue);font-weight:600;border-left:2px solid var(--blue);}
+.az-nav-item .nav-icon{font-size:14px;width:20px;text-align:center;}
+.az-nav-section{padding:8px 16px 4px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--fg-muted);}
+
+/* Azure main panel */
+.az-main{flex:1;overflow-y:auto;background:var(--bg);}
+
+/* Breadcrumb */
+.az-breadcrumb{padding:12px 24px;font-size:12px;color:var(--breadcrumb);}
+.az-breadcrumb a{color:var(--blue);text-decoration:none;}
+
+/* Page header */
+.az-page-header{padding:0 24px 16px;border-bottom:1px solid var(--border);}
+.az-page-header h2{font-size:20px;color:var(--fg-bright);font-weight:600;}
+.az-page-header .desc{font-size:13px;color:var(--fg-muted);margin-top:2px;}
+
+/* Toolbar */
+.az-toolbar{padding:10px 24px;display:flex;gap:8px;border-bottom:1px solid var(--border);}
+.az-btn{padding:6px 14px;border-radius:4px;font-size:12px;font-family:inherit;cursor:pointer;border:1px solid var(--border);background:transparent;color:var(--fg);display:inline-flex;align-items:center;gap:6px;transition:all .12s;}
+.az-btn:hover{background:rgba(255,255,255,.05);}
+.az-btn.primary{background:var(--blue);color:#fff;border-color:var(--blue);}
+.az-btn.primary:hover{background:var(--blue-hover);}
+.az-btn.highlight{animation:pulse 1.5s infinite;}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(0,120,212,.4);}50%{box-shadow:0 0 0 6px rgba(0,120,212,0);}}
+
+/* Table */
+.az-table{width:100%;border-collapse:collapse;font-size:12px;}
+.az-table th{text-align:left;padding:10px 24px;color:var(--fg-muted);font-weight:600;border-bottom:1px solid var(--border);background:rgba(255,255,255,.02);}
+.az-table td{padding:10px 24px;border-bottom:1px solid var(--border);color:var(--fg);}
+.az-table tr:hover{background:rgba(255,255,255,.03);}
+.az-table .link{color:var(--blue);cursor:pointer;}
+
+/* Form panel (slide-in) */
+.form-panel{position:absolute;top:0;right:0;width:450px;height:100%;background:var(--panel);border-left:1px solid var(--border);z-index:10;display:none;flex-direction:column;box-shadow:-4px 0 16px rgba(0,0,0,.3);}
+.form-panel.open{display:flex;}
+.form-header{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.form-header h3{font-size:16px;color:var(--fg-bright);}
+.form-close{background:none;border:none;color:var(--fg-muted);font-size:18px;cursor:pointer;}
+.form-body{flex:1;overflow-y:auto;padding:20px;}
+.form-group{margin-bottom:16px;}
+.form-group label{display:block;font-size:12px;font-weight:600;color:var(--fg);margin-bottom:4px;}
+.form-group label .required{color:var(--red);}
+.form-input{width:100%;padding:8px 12px;background:var(--input-bg);border:1px solid var(--input-border);border-radius:4px;color:var(--fg-bright);font-size:13px;font-family:inherit;}
+.form-input:focus{outline:none;border-color:var(--blue);}
+.form-select{width:100%;padding:8px 12px;background:var(--input-bg);border:1px solid var(--input-border);border-radius:4px;color:var(--fg-bright);font-size:13px;font-family:inherit;appearance:auto;}
+.form-hint{font-size:11px;color:var(--fg-muted);margin-top:4px;}
+.form-footer{padding:12px 20px;border-top:1px solid var(--border);display:flex;gap:8px;}
+
+/* Members section */
+.member-section{margin-top:12px;padding:12px;background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:6px;}
+.member-item{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:4px;font-size:12px;color:var(--fg);}
+.member-item:hover{background:rgba(255,255,255,.05);}
+.member-item .m-avatar{width:24px;height:24px;border-radius:50%;background:var(--blue);color:#fff;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;}
+.member-item .m-check{margin-left:auto;}
+input[type=checkbox]{accent-color:var(--blue);}
+
+/* Toast */
+.toast{position:fixed;bottom:20px;right:20px;padding:12px 20px;background:var(--green);color:#fff;border-radius:8px;font-size:13px;font-weight:600;z-index:100;display:none;animation:slideUp .3s;}
+.toast.show{display:block;}
+@keyframes slideUp{from{transform:translateY(20px);opacity:0;}to{transform:translateY(0);opacity:1;}}
+
+/* Responsive */
+@media(max-width:900px){.instructions{width:100%;position:fixed;bottom:0;height:40vh;z-index:20;border-top:1px solid #27272a;border-right:none;}.simulator{height:60vh;}}
+</style>
+</head>
+<body>
+
+<div class="lab-layout">
+  <!-- Instructions Panel -->
+  <div class="instructions">
+    <div class="inst-header">
+      <h1>Lab 1 <span class="lab-badge">ハンズオン</span></h1>
+    </div>
+    <div class="inst-body">
+      <a class="back-link" href="../index.html">← トレーニングに戻る</a>
+      <h2>Entra ID でセキュリティグループを作成する</h2>
+      <p class="subtitle">条件付きアクセスや Intune ポリシーの適用対象となるグループを作成します。所要時間: 約10分</p>
+
+      <div class="progress-bar"><div class="progress-fill" id="labProgress" style="width:0%"></div></div>
+
+      <div class="step active" id="step1" onclick="goStep(1)">
+        <span class="step-num">1</span>
+        <span class="step-title">Entra 管理センターにアクセス</span>
+        <div class="step-desc">左のサイドバーで「グループ」→「すべてのグループ」をクリック</div>
+        <div class="step-hint">💡 ヒント: 左メニューの「グループ」をクリックしてみましょう</div>
+      </div>
+
+      <div class="step" id="step2" onclick="goStep(2)">
+        <span class="step-num">2</span>
+        <span class="step-title">「新しいグループ」をクリック</span>
+        <div class="step-desc">ツールバーの「+ 新しいグループ」ボタンをクリック</div>
+        <div class="step-hint">💡 ヒント: 上部の青い「+ 新しいグループ」ボタンをクリック</div>
+      </div>
+
+      <div class="step" id="step3" onclick="goStep(3)">
+        <span class="step-num">3</span>
+        <span class="step-title">グループの種類を選択</span>
+        <div class="step-desc">「セキュリティ」を選択します</div>
+        <div class="step-hint">💡 ヒント: ドロップダウンから「セキュリティ」を選んでください</div>
+      </div>
+
+      <div class="step" id="step4" onclick="goStep(4)">
+        <span class="step-num">4</span>
+        <span class="step-title">グループ名と説明を入力</span>
+        <div class="step-desc">グループ名「SG-W365-Users」、説明を入力</div>
+        <div class="step-hint">💡 ヒント: グループ名に「SG-W365-Users」と入力してみましょう</div>
+      </div>
+
+      <div class="step" id="step5" onclick="goStep(5)">
+        <span class="step-num">5</span>
+        <span class="step-title">メンバーを追加</span>
+        <div class="step-desc">グループにユーザーを追加します</div>
+        <div class="step-hint">💡 ヒント: メンバーセクションでユーザーにチェックを入れましょう</div>
+      </div>
+
+      <div class="step" id="step6" onclick="goStep(6)">
+        <span class="step-num">6</span>
+        <span class="step-title">「作成」をクリックして完了</span>
+        <div class="step-desc">設定を確認して「作成」ボタンをクリック</div>
+        <div class="step-hint">💡 ヒント: フォーム下部の「作成」ボタンをクリック</div>
+      </div>
+
+      <div class="completion" id="completion">
+        <h3>🎉 Lab 1 完了！</h3>
+        <p>セキュリティグループ「SG-W365-Users」を作成しました。<br>このグループは条件付きアクセスや Intune ポリシーの適用対象に使えます。</p>
+        <p style="margin-top:8px;"><a class="back-link" href="../index.html">← トレーニングに戻る</a></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Simulator -->
+  <div class="simulator" style="position:relative;">
+    <!-- Azure top bar -->
+    <div class="azure-bar">
+      <span class="az-logo">Microsoft Entra 管理センター</span>
+      <input class="az-search" type="text" placeholder="🔍 リソース、サービス、ドキュメントの検索" readonly>
+      <div class="az-icons">⚙️ 🔔 ❓</div>
+      <div class="az-user">
+        <div class="az-avatar">T</div>
+        training@contoso.com
+      </div>
+    </div>
+
+    <!-- Azure content -->
+    <div class="azure-content">
+      <!-- Sidebar -->
+      <div class="az-sidebar">
+        <div class="az-nav-section">お気に入り</div>
+        <div class="az-nav-item" onclick="navClick('dashboard')"><span class="nav-icon">📊</span>ダッシュボード</div>
+        <div class="az-nav-item" onclick="navClick('users')"><span class="nav-icon">👤</span>ユーザー</div>
+        <div class="az-nav-item" id="navGroups" onclick="navClick('groups')"><span class="nav-icon">👥</span>グループ</div>
+        <div class="az-nav-item"><span class="nav-icon">📱</span>デバイス</div>
+        <div class="az-nav-item"><span class="nav-icon">🔒</span>アプリの登録</div>
+        <div class="az-nav-section">管理</div>
+        <div class="az-nav-item"><span class="nav-icon">🛡️</span>条件付きアクセス</div>
+        <div class="az-nav-item"><span class="nav-icon">🔑</span>認証方法</div>
+        <div class="az-nav-item"><span class="nav-icon">⚡</span>ID Protection</div>
+        <div class="az-nav-item"><span class="nav-icon">👑</span>ロールと管理者</div>
+      </div>
+
+      <!-- Main content -->
+      <div class="az-main" id="azMain">
+        <!-- Dashboard (initial) -->
+        <div id="page-dashboard">
+          <div class="az-breadcrumb">ホーム > ダッシュボード</div>
+          <div class="az-page-header">
+            <h2>Microsoft Entra ID</h2>
+            <div class="desc">contoso.onmicrosoft.com</div>
+          </div>
+          <div style="padding:24px;color:var(--fg-muted);font-size:13px;">
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;">
+              <div style="padding:20px;background:var(--panel);border:1px solid var(--border);border-radius:8px;">
+                <div style="font-size:24px;font-weight:700;color:var(--fg-bright);">142</div>
+                <div>ユーザー</div>
+              </div>
+              <div style="padding:20px;background:var(--panel);border:1px solid var(--border);border-radius:8px;">
+                <div style="font-size:24px;font-weight:700;color:var(--fg-bright);">8</div>
+                <div>グループ</div>
+              </div>
+              <div style="padding:20px;background:var(--panel);border:1px solid var(--border);border-radius:8px;">
+                <div style="font-size:24px;font-weight:700;color:var(--fg-bright);">12</div>
+                <div>アプリケーション</div>
+              </div>
+            </div>
+            <p style="margin-top:20px;">← 左メニューの<b style="color:var(--blue);">「グループ」</b>をクリックして始めましょう</p>
+          </div>
+        </div>
+
+        <!-- Groups page -->
+        <div id="page-groups" style="display:none;">
+          <div class="az-breadcrumb"><a href="#">ホーム</a> > <a href="#">グループ</a> > すべてのグループ</div>
+          <div class="az-page-header">
+            <h2>すべてのグループ</h2>
+          </div>
+          <div class="az-toolbar">
+            <button class="az-btn primary" id="btnNewGroup" onclick="clickNewGroup()">+ 新しいグループ</button>
+            <button class="az-btn">🔄 最新の情報に更新</button>
+            <button class="az-btn">⬇️ エクスポート</button>
+            <button class="az-btn">🗑️ 削除</button>
+          </div>
+          <table class="az-table" id="groupTable">
+            <thead>
+              <tr><th>☐</th><th>表示名</th><th>グループの種類</th><th>メンバーシップの種類</th><th>メール</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>☐</td><td class="link">All Company</td><td>Microsoft 365</td><td>割り当て済み</td><td>allcompany@contoso.com</td></tr>
+              <tr><td>☐</td><td class="link">IT-Admins</td><td>セキュリティ</td><td>割り当て済み</td><td>—</td></tr>
+              <tr><td>☐</td><td class="link">営業部</td><td>セキュリティ</td><td>動的ユーザー</td><td>—</td></tr>
+              <tr><td>☐</td><td class="link">工場スタッフ</td><td>セキュリティ</td><td>割り当て済み</td><td>—</td></tr>
+              <tr><td>☐</td><td class="link">ゲストユーザー</td><td>セキュリティ</td><td>動的ユーザー</td><td>—</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Form panel (new group) -->
+      <div class="form-panel" id="formPanel">
+        <div class="form-header">
+          <h3>新しいグループ</h3>
+          <button class="form-close" onclick="closeForm()">×</button>
+        </div>
+        <div class="form-body">
+          <div class="form-group">
+            <label>グループの種類 <span class="required">*</span></label>
+            <select class="form-select" id="groupType" onchange="checkStep3()">
+              <option value="">選択してください</option>
+              <option value="microsoft365">Microsoft 365</option>
+              <option value="security">セキュリティ</option>
+            </select>
+            <div class="form-hint">セキュリティ: アクセス制御に使用 / Microsoft 365: コラボレーション用</div>
+          </div>
+          <div class="form-group">
+            <label>グループ名 <span class="required">*</span></label>
+            <input class="form-input" id="groupName" type="text" placeholder="例: SG-W365-Users" oninput="checkStep4()">
+          </div>
+          <div class="form-group">
+            <label>グループの説明</label>
+            <input class="form-input" id="groupDesc" type="text" placeholder="例: Windows 365 利用者グループ" oninput="checkStep4()">
+          </div>
+          <div class="form-group">
+            <label>メンバーシップの種類</label>
+            <select class="form-select">
+              <option>割り当て済み</option>
+              <option>動的ユーザー</option>
+              <option>動的デバイス</option>
+            </select>
+            <div class="form-hint">割り当て済み: 手動でメンバーを追加 / 動的: ルールで自動追加</div>
+          </div>
+          <div class="form-group">
+            <label>所有者</label>
+            <div class="member-section">
+              <div class="member-item"><div class="m-avatar">T</div>田中太郎 (training@contoso.com)</div>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>メンバー</label>
+            <div class="member-section" id="memberSection">
+              <div class="member-item"><div class="m-avatar">S</div>佐藤花子<span class="m-check"><input type="checkbox" onchange="checkStep5()"></span></div>
+              <div class="member-item"><div class="m-avatar">T</div>高橋美咲<span class="m-check"><input type="checkbox" onchange="checkStep5()"></span></div>
+              <div class="member-item"><div class="m-avatar">W</div>渡辺健太<span class="m-check"><input type="checkbox" onchange="checkStep5()"></span></div>
+              <div class="member-item"><div class="m-avatar">Y</div>山本洋介<span class="m-check"><input type="checkbox" onchange="checkStep5()"></span></div>
+              <div class="member-item"><div class="m-avatar">K</div>小林真理<span class="m-check"><input type="checkbox" onchange="checkStep5()"></span></div>
+            </div>
+          </div>
+        </div>
+        <div class="form-footer">
+          <button class="az-btn primary" id="btnCreate" onclick="createGroup()">作成</button>
+          <button class="az-btn" onclick="closeForm()">キャンセル</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Toast -->
+    <div class="toast" id="toast">✅ グループ「SG-W365-Users」が正常に作成されました</div>
+  </div>
+</div>
+
+<script>
+let currentStep = 1;
+const totalSteps = 6;
+
+function goStep(n) {
+  // Can only go to completed steps or current step
+  if (n > currentStep) return;
+  document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+  document.getElementById(`step${n}`).classList.add('active');
+}
+
+function completeStep(n) {
+  const stepEl = document.getElementById(`step${n}`);
+  stepEl.classList.remove('active');
+  stepEl.classList.add('completed');
+
+  if (n < totalSteps) {
+    currentStep = n + 1;
+    const nextStep = document.getElementById(`step${currentStep}`);
+    nextStep.classList.add('active');
+  }
+
+  // Update progress
+  const pct = Math.round((n / totalSteps) * 100);
+  document.getElementById('labProgress').style.width = pct + '%';
+
+  if (n === totalSteps) {
+    document.getElementById('completion').classList.add('show');
+  }
+}
+
+// Step 1: Click Groups in sidebar
+function navClick(page) {
+  document.querySelectorAll('.az-nav-item').forEach(i => i.classList.remove('active'));
+
+  if (page === 'groups') {
+    document.getElementById('navGroups').classList.add('active');
+    document.getElementById('page-dashboard').style.display = 'none';
+    document.getElementById('page-groups').style.display = 'block';
+
+    if (currentStep === 1) {
+      completeStep(1);
+      // Highlight new group button
+      setTimeout(() => {
+        document.getElementById('btnNewGroup').classList.add('highlight');
+      }, 500);
+    }
+  }
+}
+
+// Step 2: Click New Group
+function clickNewGroup() {
+  document.getElementById('formPanel').classList.add('open');
+  document.getElementById('btnNewGroup').classList.remove('highlight');
+
+  if (currentStep === 2) {
+    completeStep(2);
+  }
+}
+
+function closeForm() {
+  document.getElementById('formPanel').classList.remove('open');
+}
+
+// Step 3: Select Security
+function checkStep3() {
+  if (document.getElementById('groupType').value === 'security' && currentStep === 3) {
+    completeStep(3);
+  }
+}
+
+// Step 4: Enter group name
+function checkStep4() {
+  const name = document.getElementById('groupName').value.trim();
+  const desc = document.getElementById('groupDesc').value.trim();
+  if (name.length > 0 && currentStep === 4) {
+    completeStep(4);
+  }
+}
+
+// Step 5: Add members
+function checkStep5() {
+  const checked = document.querySelectorAll('#memberSection input[type=checkbox]:checked');
+  if (checked.length > 0 && currentStep === 5) {
+    completeStep(5);
+  }
+}
+
+// Step 6: Create
+function createGroup() {
+  const name = document.getElementById('groupName').value.trim() || 'SG-W365-Users';
+  const type = document.getElementById('groupType').value;
+
+  if (!type || !name) {
+    alert('グループの種類と名前を入力してください');
+    return;
+  }
+
+  // Close form
+  closeForm();
+
+  // Add to table
+  const tbody = document.querySelector('#groupTable tbody');
+  const newRow = document.createElement('tr');
+  newRow.innerHTML = `<td>☐</td><td class="link" style="color:var(--green);font-weight:600;">${name}</td><td>セキュリティ</td><td>割り当て済み</td><td>—</td>`;
+  newRow.style.background = 'var(--green-bg)';
+  tbody.insertBefore(newRow, tbody.firstChild);
+
+  // Toast
+  document.getElementById('toast').textContent = `✅ グループ「${name}」が正常に作成されました`;
+  document.getElementById('toast').classList.add('show');
+  setTimeout(() => document.getElementById('toast').classList.remove('show'), 3000);
+
+  if (currentStep === 6) {
+    completeStep(6);
+  }
+}
+</script>
+</body>
+</html>

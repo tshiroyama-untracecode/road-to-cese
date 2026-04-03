@@ -1,0 +1,1738 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cloud Endpoint SE への道</title>
+<style>
+/* === Theme: Dark (default) === */
+:root, [data-theme="dark"] {
+  --azure:#0078D4;--azure-dark:#106EBE;--azure-light:rgba(0,120,212,.12);
+  --green:#107C10;--green-bg:rgba(16,124,16,.12);
+  --purple:#742774;--purple-bg:rgba(116,39,116,.12);
+  --red:#D83B01;--red-bg:rgba(216,59,1,.12);
+  --yellow:#FFB900;--yellow-bg:rgba(255,185,0,.12);
+  --teal:#008B8B;--teal-bg:rgba(0,139,139,.12);
+  --bg:#09090b;--card-bg:#18181b;--card-border:#27272a;
+  --fg:#ffffff;--fg-sub:#a1a1a1;--fg-muted:#52525b;
+  --header-bg:rgba(9,9,11,.85);--sb-hover:rgba(0,120,212,.12);
+  --input-bg:rgba(255,255,255,.05);--row-hover:rgba(255,255,255,.03);
+  --radius:12px;--radius-full:9999px;
+}
+/* === Theme: Light === */
+[data-theme="light"] {
+  --bg:#F3F2F1;--card-bg:#FFFFFF;--card-border:#E1DFDD;
+  --fg:#323130;--fg-sub:#605E5C;--fg-muted:#A19F9D;
+  --header-bg:rgba(255,255,255,.9);--sb-hover:rgba(0,120,212,.08);
+  --input-bg:rgba(0,0,0,.03);--row-hover:rgba(0,0,0,.02);
+  --azure-light:rgba(0,120,212,.08);--green-bg:rgba(16,124,16,.08);
+  --purple-bg:rgba(116,39,116,.08);--red-bg:rgba(216,59,1,.08);
+  --yellow-bg:rgba(255,185,0,.1);--teal-bg:rgba(0,139,139,.08);
+}
+/* === Theme: Blue === */
+[data-theme="blue"] {
+  --bg:#001B3D;--card-bg:#002050;--card-border:#003380;
+  --fg:#DEECF9;--fg-sub:#8CBAE8;--fg-muted:#4A7FB5;
+  --header-bg:rgba(0,27,61,.9);--sb-hover:rgba(0,120,212,.15);
+  --input-bg:rgba(255,255,255,.06);--row-hover:rgba(255,255,255,.04);
+  --azure-light:rgba(0,120,212,.18);--green-bg:rgba(16,124,16,.15);
+  --purple-bg:rgba(116,39,116,.15);--red-bg:rgba(216,59,1,.12);
+  --yellow-bg:rgba(255,185,0,.12);--teal-bg:rgba(0,139,139,.12);
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:"Segoe UI","Meiryo UI",system-ui,sans-serif;background:var(--bg);color:var(--fg);line-height:1.6;-webkit-font-smoothing:antialiased;}
+
+/* Header */
+.header{position:sticky;top:0;z-index:50;background:var(--header-bg);backdrop-filter:blur(12px);border-bottom:1px solid var(--card-border);}
+.header-inner{max-width:1100px;margin:0 auto;display:flex;align-items:center;padding:14px 24px;gap:14px;}
+.header .logo{display:flex;align-items:center;gap:8px;}
+.header .logo-grid{width:16px;height:16px;display:grid;grid-template-columns:1fr 1fr;gap:2px;}
+.header .logo-grid span{background:var(--azure);border-radius:1px;}
+.header h1{font-size:15px;font-weight:600;}
+.header .progress-wrap{margin-left:auto;display:flex;align-items:center;gap:10px;}
+.header .prog-bar{width:140px;height:5px;background:var(--card-border);border-radius:3px;overflow:hidden;}
+.header .prog-fill{height:100%;background:var(--green);border-radius:3px;transition:width .4s;}
+.header .prog-text{font-size:12px;color:var(--fg-sub);}
+
+/* Layout */
+.layout{display:flex;max-width:1100px;margin:0 auto;min-height:calc(100vh - 50px);}
+
+/* Sidebar */
+.sidebar{width:260px;border-right:1px solid var(--card-border);overflow-y:auto;position:sticky;top:50px;height:calc(100vh - 50px);flex-shrink:0;padding:16px 0;}
+.sb-section{padding:8px 16px;margin-bottom:4px;}
+.sb-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--fg-muted);margin-bottom:6px;}
+.sb-item{display:flex;align-items:center;gap:8px;padding:7px 12px;margin-bottom:2px;border-radius:8px;font-size:12px;cursor:pointer;color:var(--fg-sub);transition:all .12s;}
+.sb-item:hover{background:var(--azure-light);color:var(--fg);}
+.sb-item.active{background:var(--azure-light);color:var(--azure);font-weight:600;}
+.sb-item.done{color:var(--green);}
+.sb-item .dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
+.sb-item .check{font-size:10px;width:16px;text-align:center;}
+
+/* Main */
+.main{flex:1;padding:28px 36px;overflow-y:auto;}
+
+/* Hero welcome */
+.hero{text-align:center;padding:48px 20px 32px;}
+.hero h2{font-size:36px;font-weight:700;margin-bottom:8px;background:linear-gradient(135deg,var(--azure),#50a0e8);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.hero p{font-size:16px;color:var(--fg-sub);max-width:560px;margin:0 auto 28px;}
+.hero-stat{font-size:48px;font-weight:700;color:var(--fg);}
+.hero-stat-label{font-size:13px;color:var(--fg-muted);}
+
+.month-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;max-width:780px;margin:24px auto 0;}
+.month-card{background:var(--card-bg);border:1px solid var(--card-border);border-radius:var(--radius);padding:20px;cursor:pointer;transition:transform .15s,border-color .15s;}
+.month-card:hover{transform:translateY(-2px);border-color:var(--azure);}
+.month-card .mc-num{font-size:32px;font-weight:700;margin-bottom:4px;}
+.month-card h3{font-size:14px;font-weight:600;margin-bottom:2px;}
+.month-card p{font-size:11px;color:var(--fg-muted);}
+.month-card .mc-prog{margin-top:8px;height:4px;background:var(--card-border);border-radius:2px;overflow:hidden;}
+.month-card .mc-prog-fill{height:100%;border-radius:2px;transition:width .3s;}
+
+/* Topic view */
+.topic-view{display:none;}.topic-view.active{display:block;}
+.breadcrumb{font-size:12px;color:var(--fg-muted);margin-bottom:4px;}
+.topic-title{font-size:26px;font-weight:700;margin-bottom:6px;}
+.key-msg{font-size:14px;color:var(--fg-sub);padding:10px 16px;background:var(--azure-light);border-left:3px solid var(--azure);border-radius:0 8px 8px 0;margin-bottom:20px;}
+
+/* Block */
+.block{background:var(--card-bg);border:1px solid var(--card-border);border-radius:var(--radius);padding:20px 24px;margin-bottom:14px;}
+.block h3{font-size:16px;font-weight:600;margin-bottom:12px;display:flex;align-items:center;gap:8px;}
+.block h3 .icon{font-size:20px;}
+
+/* List items */
+.block ul{list-style:none;padding:0;}
+.block ul li{padding:10px 14px;margin-bottom:5px;background:rgba(255,255,255,.04);border:1px solid var(--card-border);border-radius:8px;font-size:13px;color:var(--fg-sub);border-left:3px solid var(--azure);}
+.block ul li.green{border-left-color:var(--green);}
+.block ul li.red{border-left-color:var(--red);}
+
+/* Card grid */
+.card-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px;}
+.card{background:rgba(255,255,255,.03);border:1px solid var(--card-border);border-radius:var(--radius);padding:16px 18px;}
+.card h4{font-size:13px;font-weight:600;margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid var(--card-border);}
+.card ul{list-style:none;padding:0;}
+.card ul li{font-size:12px;padding:3px 0;color:var(--fg-sub);border:none;background:none;margin:0;border-left:none;}
+.card ul li::before{content:"→ ";color:var(--azure);font-weight:600;}
+
+/* Table */
+.cmp-table{width:100%;border-collapse:collapse;font-size:12px;margin-top:8px;}
+.cmp-table th{background:rgba(0,120,212,.15);color:var(--azure);padding:9px 10px;text-align:center;font-weight:600;border-bottom:1px solid var(--card-border);}
+.cmp-table th:first-child{text-align:left;}
+.cmp-table td{padding:8px 10px;border-bottom:1px solid var(--card-border);color:var(--fg-sub);}
+.cmp-table tr:hover{background:rgba(255,255,255,.03);}
+
+/* Flow diagram */
+.diagram{display:flex;align-items:center;justify-content:center;gap:0;padding:14px 0;overflow-x:auto;flex-wrap:nowrap;}
+.diagram-step{text-align:center;min-width:110px;}
+.diagram-box{border:1px solid var(--card-border);border-radius:10px;padding:14px 10px;margin:0 6px;background:var(--card-bg);}
+.diagram-box.blue{border-color:var(--azure);background:var(--azure-light);}
+.diagram-box.green{border-color:var(--green);background:var(--green-bg);}
+.diagram-box .d-icon{font-size:22px;margin-bottom:4px;}
+.diagram-box h5{font-size:11px;font-weight:600;color:var(--fg);}
+.diagram-box p{font-size:10px;color:var(--fg-muted);}
+.diagram-arrow{font-size:16px;color:var(--azure);font-weight:700;}
+
+/* Pillars */
+.pillar-row{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin:12px 0;}
+.pillar{text-align:center;padding:16px 6px;border-radius:10px;color:white;font-size:12px;font-weight:600;}
+
+/* Links */
+.link-box{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;background:var(--azure-light);border:1px solid rgba(0,120,212,.3);border-radius:var(--radius-full);font-size:12px;color:var(--azure);text-decoration:none;margin:4px 4px 4px 0;transition:background .12s;}
+.link-box:hover{background:rgba(0,120,212,.2);}
+
+/* Complete bar */
+.complete-bar{display:flex;align-items:center;gap:12px;padding:16px 20px;background:var(--card-bg);border:1px solid var(--card-border);border-radius:var(--radius);margin-top:16px;}
+.btn{padding:10px 24px;border:none;border-radius:var(--radius-full);font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .15s;}
+.btn-green{background:var(--green);color:white;}
+.btn-green:hover{opacity:.85;}
+.btn-outline{background:transparent;border:1px solid var(--card-border);color:var(--fg-sub);}
+.btn-outline:hover{background:rgba(255,255,255,.05);color:var(--fg);}
+.btn-azure{background:var(--azure);color:white;}
+.btn-azure:hover{background:var(--azure-dark);}
+
+/* Quiz */
+.quiz-q{background:var(--card-bg);border:1px solid var(--card-border);border-radius:var(--radius);padding:18px 22px;margin-bottom:12px;border-left:3px solid var(--azure);}
+.quiz-q.scenario{border-left-color:var(--purple);}
+.quiz-q h4{font-size:14px;font-weight:600;margin-bottom:8px;}
+.quiz-answer{width:100%;padding:10px 14px;background:rgba(255,255,255,.05);border:1px solid var(--card-border);border-radius:8px;font-size:13px;font-family:inherit;color:var(--fg);resize:vertical;min-height:56px;}
+.quiz-answer:focus{outline:none;border-color:var(--azure);}
+.quiz-hint{display:none;margin-top:8px;padding:10px 14px;background:var(--green-bg);border:1px solid rgba(16,124,16,.3);border-radius:8px;font-size:12px;color:var(--green);}
+.quiz-hint.active{display:block;}
+.hint-btn{background:none;border:1px solid var(--card-border);border-radius:var(--radius-full);padding:4px 12px;font-size:11px;cursor:pointer;color:var(--fg-muted);margin-top:6px;font-family:inherit;}
+.hint-btn:hover{border-color:var(--fg-muted);color:var(--fg-sub);}
+
+.section-divider{margin:20px 0 12px;padding:8px 0;border-bottom:1px solid var(--card-border);}
+.section-divider h3{font-size:14px;font-weight:600;color:var(--fg-muted);}
+
+/* Theme switcher */
+.theme-switcher{display:flex;gap:4px;align-items:center;margin-right:8px;}
+.theme-btn{width:22px;height:22px;border-radius:50%;border:2px solid var(--card-border);cursor:pointer;transition:transform .15s,border-color .15s;position:relative;}
+.theme-btn:hover{transform:scale(1.15);}
+.theme-btn.active{border-color:var(--azure);box-shadow:0 0 0 2px rgba(0,120,212,.3);}
+.theme-btn.dark-btn{background:#18181b;}
+.theme-btn.light-btn{background:#F3F2F1;}
+.theme-btn.blue-btn{background:#002050;}
+
+/* Save indicator */
+.save-indicator{font-size:10px;color:var(--green);opacity:0;transition:opacity .3s;margin-left:4px;}
+.save-indicator.show{opacity:1;}
+
+@media(max-width:800px){
+  .sidebar{display:none;}
+  .month-cards{grid-template-columns:1fr;}
+  .card-grid{grid-template-columns:1fr;}
+  .pillar-row{grid-template-columns:repeat(3,1fr);}
+  .main{padding:20px 16px;}
+}
+</style>
+</head>
+<body>
+
+<header class="header">
+  <div class="header-inner">
+    <div class="logo">
+      <div class="logo-grid"><span></span><span></span><span></span><span></span></div>
+      <h1>Cloud Endpoint SE への道</h1>
+    </div>
+    <div class="theme-switcher">
+      <div class="theme-btn dark-btn" title="Dark" onclick="setTheme('dark')"></div>
+      <div class="theme-btn light-btn" title="Light" onclick="setTheme('light')"></div>
+      <div class="theme-btn blue-btn" title="Blue" onclick="setTheme('blue')"></div>
+    </div>
+    <div class="progress-wrap">
+      <div class="prog-bar"><div class="prog-fill" id="progFill"></div></div>
+      <span class="prog-text" id="progText">0%</span>
+      <span class="save-indicator" id="saveInd">✓ 保存済み</span>
+    </div>
+  </div>
+</header>
+
+<div class="layout">
+  <aside class="sidebar" id="sidebar"></aside>
+  <main class="main" id="main"></main>
+</div>
+
+<script>
+const T=[{month:1,title:"基礎固め",color:"#0078D4",period:"Week 1-4",topics:[
+
+// ═══════════════════════════════════════════════════════
+// Topic 1: ゼロトラスト
+// ═══════════════════════════════════════════════════════
+{id:"zt",title:"ゼロトラスト",week:"Week 1",time:"3h",keyMsg:"「社内は安全」を捨て、全アクセスを常に検証するモデル",content:[
+{type:"cards",title:"3つの原則 — 具体例で理解する",icon:"🛡️",cards:[
+{title:"原則1: 明示的に検証する",color:"red",items:[
+"全てのアクセス要求で認証・認可を実施する",
+"ユーザーID・デバイス状態・場所・アプリ・データ感度を総合評価",
+"実例: 社内LANからのアクセスでも毎回MFAを要求",
+"実例: 管理者がAzure Portalにアクセスする際、フィッシング耐性MFA(FIDO2)を要求",
+"従来型: VPN接続済み=信頼→社内リソース全てアクセス可能だった",
+"ゼロトラスト: VPN接続済みでも、アクセス先ごとに条件を再評価",
+"ポイント: 「一度認証したから安全」という考えを排除する"]},
+{title:"原則2: 最小特権アクセス",color:"yellow",items:[
+"業務に必要な最小限の権限のみを付与する",
+"JIT (Just-In-Time): 必要な時だけ権限を昇格させる",
+"実例: Global Adminは常時付与せず、PIMで申請→承認→時間制限付き昇格",
+"実例: 開発者にはDevサブスクリプションのContributor権限のみ、Prodには読み取りのみ",
+"データ分類: 機密データにアクセスできるユーザーを限定(DLP連携)",
+"セグメンテーション: ネットワークを分割し横方向移動を防止",
+"ポイント: 「必要十分」を常に問い直す文化が重要"]},
+{title:"原則3: 侵害を前提とする",color:"",items:[
+"攻撃者は既にネットワーク内にいると仮定して設計する",
+"ブラストラジアス(被害範囲)を最小化する設計",
+"実例: ランサムウェアが1台に感染しても他デバイスに拡散しない設計",
+"実例: 管理者アカウント侵害時、影響範囲を1サービスに限定",
+"マイクロセグメンテーション: アプリ間の通信も制御",
+"EDR/XDR: 侵害後の検知・対応を自動化(Defender)",
+"暗号化: データは保存時も転送中も常に暗号化",
+"ポイント: 「侵入されないこと」ではなく「侵入されても大丈夫」を目指す"]}]},
+{type:"diagram",title:"ゼロトラストの6つの柱",icon:"🏛️",pillars:[
+{label:"ID",color:"#0078D4",desc:"本人確認"},{label:"デバイス",color:"#5C2D91",desc:"端末検証"},
+{label:"NW",color:"#008B8B",desc:"通信保護"},{label:"アプリ",color:"#107C10",desc:"権限管理"},
+{label:"データ",color:"#FFB900",desc:"分類・保護"},{label:"インフラ",color:"#D83B01",desc:"構成管理"}]},
+{type:"table",title:"従来型セキュリティ vs ゼロトラスト比較",icon:"⚖️",headers:["比較軸","従来型(境界防御)","ゼロトラスト"],rows:[
+["信頼モデル","社内NW=信頼、社外=不信頼","全てのアクセスを検証、信頼しない"],
+["NW境界","ファイアウォール/VPNが防御線","境界の概念なし、ID中心の制御"],
+["認証頻度","VPN接続時に1回","毎回の要求で継続的に評価"],
+["横方向移動","NW内で自由に移動可能","マイクロセグメンテーションで制限"],
+["リモートアクセス","VPN経由で社内NWに接続","どこからでもIDベースで直接アクセス"],
+["デバイス信頼","社内NW接続=信頼","デバイス正常性を毎回チェック"],
+["データ保護","NW境界内に保管","データ自体を分類・暗号化・DLP"],
+["インシデント対応","境界突破後は検知困難","EDR/XDRで内部の脅威も検知"],
+["クラウド対応","VPN経由で回り道","クラウドネイティブに直接アクセス"],
+["運用コスト","VPN/FW機器の維持管理","クラウドサービスで運用軽減"]]},
+{type:"cards",title:"DaaS/VDIとゼロトラストの関係",icon:"☁️",cards:[
+{title:"DaaSがゼロトラストに貢献する理由",color:"green",items:[
+"データがクラウドに留まり端末に残らない→情報漏洩リスク大幅減",
+"条件付きアクセスで「誰が・どこから・何で」を制御",
+"デバイス紛失時もデータ流出なし(端末にデータなし)",
+"W365/AVDはゼロトラストアーキテクチャと完全に整合",
+"リモートワーカーにもオフィスと同等のセキュリティ",
+"画面転送プロトコルのみ→データ転送なし",
+"提案時: 「ゼロトラストの一環としてDaaS導入を位置づける」"]},
+{title:"ゼロトラスト×DaaSの実装例",color:"",items:[
+"Entra ID: ユーザー認証の一元管理(IDの柱)",
+"条件付きアクセス: Cloud PCへのアクセス条件を制御",
+"Intune: Cloud PCのコンプライアンス(デバイスの柱)",
+"Defender for Endpoint: Cloud PCのEDR(検知の柱)",
+"GSA/SASE: Cloud PCのNWアクセス制御(NWの柱)",
+"Purview: Cloud PC上のデータ保護(データの柱)",
+"全てMicrosoft統合で管理画面が1つ→運用効率最大化"]}]},
+{type:"list",title:"顧客会話のヒント — よくある反論と対応",icon:"💬",items:[
+"顧客:「うちは社内システムだからセキュリティは大丈夫」→ 回答: ランサムウェアの80%は社内NW侵入後に拡散。境界の中が安全という前提が最大のリスク",
+"顧客:「VPNがあるからリモートも安全」→ 回答: VPN認証情報の漏洩が急増。VPN=NW全体へのアクセス権付与と同じ。ゼロトラストなら必要なアプリだけにアクセス",
+"顧客:「ゼロトラストは大企業向けでは？」→ 回答: M365 E3/E5の標準機能で実現可能。追加投資なしで始められる部分が多い",
+"顧客:「導入コストが心配」→ 回答: 段階的に導入可能。まずMFA+条件付きアクセスから開始し、効果を実感してから拡張",
+"顧客:「ユーザーの利便性が下がるのでは？」→ 回答: SSO+パスワードレスで逆に利便性向上。Windows Hello+条件付きアクセスで安全かつ快適",
+"実際のインシデント例: 2023年某製造業でVPN装置の脆弱性を突かれランサムウェア感染。社内NW全体に拡散し2週間の業務停止。ゼロトラストなら被害は限定的だった",
+"実際のインシデント例: 2024年某金融機関で退職者のADアカウント未削除→不正アクセス。Entra ID+PIMなら退職時の自動無効化と権限のJIT管理で防止可能",
+"提案のコツ: 「ゼロトラスト」という言葉より「どこでも安全に働ける環境」と表現すると経営層に響く"]
+}],
+links:[{title:"MS Learn: ゼロトラストとは",url:"https://learn.microsoft.com/ja-jp/security/zero-trust/"},{title:"MS Learn: M365 ゼロトラスト展開",url:"https://learn.microsoft.com/ja-jp/security/zero-trust/microsoft-365-zero-trust"}]},
+
+// ═══════════════════════════════════════════════════════
+// Topic 2: Entra ID
+// ═══════════════════════════════════════════════════════
+{id:"eid",title:"Entra ID",week:"Week 1",time:"4h",keyMsg:"Microsoft のクラウド ID 管理基盤。W365/AVDの認証・認可の中核",content:[
+{type:"list",title:"基本概念 — 詳細解説",icon:"🔑",items:[
+"テナント: 組織のID管理の単位（1社=1テナント）。Azure ADからEntra IDに名称変更(2023年7月)",
+"ユーザーオブジェクト: 社員(メンバー)とゲスト(B2Bコラボレーション)の2種類。それぞれ権限が異なる",
+"グループ: ポリシー適用の対象をまとめる単位。セキュリティグループ/M365グループ/配布リストの3種類",
+"ロール(RBAC): Global Admin/User Admin/Intune Admin等。最小特権の原則で割り当てる",
+"アプリ登録: 外部アプリとのSSO・API連携定義。エンタープライズアプリケーションとして管理",
+"サービスプリンシパル: アプリがEntra IDと通信するための「アプリのID」。人ではなくアプリの認証に使用",
+"マネージドID: Azure上のサービスに自動的にIDを付与。パスワード管理不要でセキュリティ向上",
+"カスタムドメイン: 既定は xxx.onmicrosoft.com。自社ドメイン(例: contoso.com)を追加して使用",
+"ディレクトリ同期: オンプレADとEntra IDをEntra Connectで同期。ハイブリッド環境の基盤"]},
+{type:"table",title:"ライセンスと機能の詳細比較",icon:"📋",headers:["機能","Free","P1 (M365 E3)","P2 (M365 E5)"],rows:[
+["基本ユーザー管理","○","○","○"],
+["SSO (制限なし)","○","○","○"],
+["MFA","セキュリティデフォルト","条件付きアクセスで制御","条件付きアクセスで制御"],
+["条件付きアクセス","×","○","○"],
+["動的グループ","×","○","○"],
+["セルフサービスパスワードリセット","×","○","○"],
+["アプリプロキシ","×","○","○"],
+["ID Protection","×","×","○"],
+["PIM (特権管理)","×","×","○"],
+["アクセスレビュー","×","×","○"],
+["エンタイトルメント管理","×","×","○"],
+["リスクベースCA","×","×","○"],
+["認証コンテキスト","×","○","○"],
+["Workload ID","×","プレミアム","プレミアム"]]},
+{type:"flow",title:"認証フロー — ユーザーがアプリにアクセスするまで",icon:"🔄",steps:[
+{icon:"👤",label:"ユーザー",desc:"アプリにアクセス",style:"blue"},
+{icon:"🔑",label:"Entra ID",desc:"認証要求を受信",style:""},
+{icon:"📋",label:"CA評価",desc:"条件付きアクセス",style:""},
+{icon:"🔐",label:"MFA",desc:"追加認証(必要時)",style:""},
+{icon:"🎫",label:"トークン発行",desc:"アクセストークン",style:"green"}]},
+{type:"cards",title:"グループの種類と使い分け",icon:"👥",cards:[
+{title:"セキュリティグループ",color:"",items:[
+"最も一般的なグループ種類",
+"条件付きアクセスポリシーの適用対象に使用",
+"Intuneの構成プロファイル・コンプライアンスの対象",
+"アプリのアクセス許可割り当て",
+"Azure RBACのロール割り当て",
+"動的メンバーシップ: ユーザー属性(部署/役職等)で自動追加",
+"例: 「SG-CA-MFA-AllUsers」「SG-Intune-Win11-Config」"]},
+{title:"Microsoft 365グループ",color:"purple",items:[
+"Teams/SharePoint/Plannerのバックエンド",
+"グループ作成=Teamsチーム+SharePointサイト+共有メールボックス",
+"所有者が自分でメンバー管理可能",
+"ゲストユーザーもメンバーに追加可能",
+"有効期限ポリシーで未使用グループを自動削除",
+"命名規則ポリシーで統一的な名前を強制",
+"例: 「M365-ProjectAlpha」「M365-営業部」"]},
+{title:"動的グループ(P1以上)",color:"green",items:[
+"ユーザー/デバイスの属性に基づき自動的にメンバー追加/削除",
+"ルール例: user.department -eq 営業部 → 営業部全員が自動追加",
+"ルール例: user.jobTitle -contains マネージャー → 管理職全員",
+"デバイス動的グループ: device.deviceOSType -eq Windows → 全Windowsデバイス",
+"Intuneとの連携: 動的デバイスグループに構成プロファイルを適用",
+"W365: プロビジョニングポリシーの対象に動的グループを使用",
+"注意: 反映に最大24時間かかる場合あり(通常は数分)"]}]},
+{type:"flow",title:"関連サービスの連携図",icon:"🔗",steps:[
+{icon:"🔑",label:"Entra ID",desc:"ID管理・認証",style:"blue"},
+{icon:"📋",label:"条件付きアクセス",desc:"アクセス制御",style:""},
+{icon:"📱",label:"Intune",desc:"デバイス管理",style:""},
+{icon:"🖥️",label:"W365/AVD",desc:"Cloud PC配信",style:"green"}]},
+{type:"list",title:"顧客からよくある質問と回答",icon:"💬",items:[
+"Q: Active DirectoryとEntra IDの違いは？ → A: ADはオンプレミスのディレクトリサービス(LDAP/Kerberos)。Entra IDはクラウドネイティブのIDaaS(OAuth/OIDC/SAML)。プロトコルが根本的に異なる",
+"Q: オンプレADは廃止できる？ → A: 完全クラウド移行なら可能。ただしオンプレアプリがKerberos/NTLM依存の場合はADが必要。段階的な移行を推奨",
+"Q: ゲストユーザーのセキュリティは？ → A: 条件付きアクセスでゲスト専用ポリシー作成可能。MFA強制+アクセスレビューで定期的に棚卸し",
+"Q: マルチテナント構成は？ → A: グループ企業で複数テナントの場合、Entra ID B2Bコラボレーションまたはクロステナント同期で連携",
+"Q: Entra ID Connectの同期はリアルタイム？ → A: デフォルト30分間隔。パスワード変更はパスワードハッシュ同期なら約2分で反映",
+"Q: ライセンスはどう割り当てる？ → A: グループベースのライセンス割当を推奨。動的グループ+ライセンスグループで自動化",
+"提案のコツ: 「Entra IDはMicrosoft製品の全てのセキュリティの起点」と説明すると、投資の重要性が伝わる",
+"提案のコツ: P1→P2へのアップグレードは「ID Protectionによるリスク自動検知」が最大の訴求ポイント"]
+},
+{type:"flow",title:"Entra ID を中心としたサービス連携フロー",icon:"🔗",steps:[
+{icon:"👤",label:"ユーザー",desc:"認証を開始",style:"blue"},
+{icon:"🔑",label:"Entra ID",desc:"ID管理・SSO基盤",style:"blue"},
+{icon:"📋",label:"条件付きアクセス",desc:"ポリシー評価・制御",style:""},
+{icon:"📱",label:"Intune",desc:"デバイス準拠判定",style:""},
+{icon:"🖥️",label:"W365 / AVD",desc:"Cloud PC接続",style:"green"}]}],
+links:[{title:"MS Learn: Entra IDの基礎",url:"https://learn.microsoft.com/ja-jp/entra/fundamentals/"}]},
+
+// ═══════════════════════════════════════════════════════
+// Topic 3: 条件付きアクセス
+// ═══════════════════════════════════════════════════════
+{id:"ca",title:"条件付きアクセス",week:"Week 1-2",time:"4h",keyMsg:"「もし〜なら〜を要求する」ルールベースのアクセス制御。ゼロトラストの要",content:[
+{type:"flow",title:"評価フロー — アクセス要求から判定まで",icon:"🔄",steps:[
+{icon:"👤",label:"アクセス要求",desc:"アプリへサインイン",style:"blue"},
+{icon:"🔍",label:"シグナル収集",desc:"ユーザー/デバイス/場所",style:""},
+{icon:"📋",label:"ポリシー評価",desc:"条件一致を AND 結合",style:""},
+{icon:"✅",label:"許可 or ブロック",desc:"MFA/準拠/ブロック",style:"green"}]},
+{type:"cards",title:"3つの構成要素 — 詳細解説",icon:"⚡",cards:[
+{title:"シグナル（条件）",color:"yellow",items:[
+"ユーザー/グループ: 特定のセキュリティグループやロールを対象に指定",
+"場所(Named Location): 社内IP(信頼済み)/国/不明な場所を条件に使用",
+"デバイスプラットフォーム: Windows/iOS/Android/macOS/Linux別に条件設定",
+"デバイス状態: Intune準拠/Entra参加済み/管理対象外を判定",
+"クライアントアプリ: ブラウザ/モバイルアプリ/デスクトップアプリ/レガシー認証",
+"サインインリスク(P2): ID Protectionのリスクレベル(低/中/高)を条件に使用",
+"ユーザーリスク(P2): 認証情報漏洩等のユーザーレベルリスク",
+"認証コンテキスト: アプリ内の特定操作(ダウンロード等)に追加認証を要求"]},
+{title:"制御（アクション）",color:"green",items:[
+"MFAを要求: 追加の認証要素を要求する(最も基本的な制御)",
+"認証強度: フィッシング耐性MFA/パスワードレスMFA等のレベルを指定(2023年GA)",
+"準拠デバイスを要求: Intuneのコンプライアンスポリシーを満たしたデバイスのみ許可",
+"Entra参加デバイスを要求: 組織に参加済みのデバイスのみ許可",
+"承認済みクライアントアプリを要求: Intune管理下のアプリのみ(MAM対応)",
+"アプリ保護ポリシーを要求: Intuneアプリ保護ポリシー適用済みアプリのみ",
+"アクセスをブロック: 条件に合致したらアクセスを完全にブロック",
+"セッション制御: サインイン頻度/永続ブラウザセッション/CASBによるリアルタイム制御"]},
+{title:"W365/AVDでの活用例",color:"",items:[
+"Cloud PCへのアクセスにMFAを強制(全ユーザー対象)",
+"社外からはフィッシング耐性MFA(FIDO2/Passkey)を要求",
+"管理者にはフィッシング耐性MFAを常に要求(認証強度)",
+"非準拠デバイスからのCloud PCアクセスをブロック",
+"レガシー認証プロトコルを完全ブロック",
+"高リスクサインインを自動ブロック(P2)",
+"セッション制御: 8時間でサインインを再要求",
+"RDPクライアント以外からのアクセスを制限(条件付き)"]}]},
+{type:"table",title:"推奨ポリシーパターン — すぐ使える10選",icon:"📋",headers:["#","ポリシー名","対象","条件","制御"],rows:[
+["1","全ユーザーMFA","全ユーザー","全てのクラウドアプリ","MFAを要求"],
+["2","管理者フィッシング耐性MFA","管理者ロール","全てのクラウドアプリ","認証強度: フィッシング耐性"],
+["3","レガシー認証ブロック","全ユーザー","レガシー認証クライアント","アクセスをブロック"],
+["4","高リスクサインインブロック","全ユーザー","サインインリスク: 高","アクセスをブロック"],
+["5","中リスクMFA強制","全ユーザー","サインインリスク: 中","MFAを要求"],
+["6","ユーザーリスク修復","全ユーザー","ユーザーリスク: 高","パスワード変更を要求"],
+["7","デバイス準拠要求","全ユーザー","Windows/macOS","準拠デバイスを要求"],
+["8","国外アクセスブロック","全ユーザー","許可国以外","アクセスをブロック"],
+["9","W365専用MFA","Cloud PCユーザー","W365アプリ","MFA+準拠デバイス"],
+["10","ゲストアクセス制限","ゲストユーザー","全てのアプリ","MFA+セッション制御"]]},
+{type:"list",title:"設計ベストプラクティス",icon:"🏗️",items:[
+"命名規則を統一する: 例「CA-[対象]-[条件]-[制御]」→ CA-AllUsers-AllApps-RequireMFA",
+"必ずレポート専用モードでテストしてから有効化する(本番影響を事前確認)",
+"除外グループ(ブレイクグラス)を必ず作成: 緊急時にCAをバイパスする管理者アカウント",
+"ブレイクグラスアカウントは2つ以上作成し、物理的に保管(金庫等)",
+"ポリシーは「包括的に許可→例外をブロック」ではなく「デフォルトブロック→条件付き許可」で設計",
+"ポリシーの評価順序: 全ポリシーが評価され、1つでもブロックがあればブロック(ブロック優先)",
+"グラントコントロールのAND/OR: 「MFA AND 準拠デバイス」vs「MFA OR 準拠デバイス」を意識",
+"What Ifツール: 特定ユーザー×条件でどのポリシーが適用されるかシミュレーション可能",
+"サインインログの確認: CA結果(成功/失敗/レポート専用)がログに記録される"]},
+{type:"cards",title:"必須ポリシーテンプレート5選 — 全組織で有効化すべき設定",icon:"🛡️",cards:[
+{title:"1. 全ユーザーMFA必須",color:"red",items:[
+"対象: 全ユーザー (除外: ブレイクグラスアカウント)",
+"クラウドアプリ: すべてのクラウドアプリ",
+"制御: MFAを要求",
+"認証強度: 任意のMFA方法 (推奨: Authenticator以上)",
+"効果: パスワード攻撃の99.9%を防御"]},
+{title:"2. 管理者フィッシング耐性MFA",color:"purple",items:[
+"対象: Global Admin / Security Admin / Exchange Admin 等の特権ロール",
+"クラウドアプリ: すべてのクラウドアプリ",
+"制御: 認証強度「フィッシング耐性MFA」を要求",
+"認証方法: FIDO2セキュリティキー / Windows Hello / Passkey",
+"効果: AiTM攻撃からの管理者アカウント保護"]},
+{title:"3. レガシー認証ブロック",color:"yellow",items:[
+"対象: 全ユーザー",
+"条件: クライアントアプリ「レガシー認証クライアント」",
+"制御: アクセスをブロック",
+"対象プロトコル: IMAP / POP3 / SMTP / ActiveSync (基本認証)",
+"効果: パスワードスプレー攻撃の主要な入口を遮断"]},
+{title:"4. 高リスクサインインブロック",color:"red",items:[
+"対象: 全ユーザー (要: Entra ID P2)",
+"条件: サインインリスク「高」",
+"制御: アクセスをブロック",
+"検知例: 匿名IP / 特殊な移動 / マルウェアIP",
+"効果: AIによるリアルタイム脅威検知で自動防御"]},
+{title:"5. デバイス準拠要求",color:"green",items:[
+"対象: 全ユーザー",
+"条件: デバイスプラットフォーム Windows / macOS",
+"制御: 準拠デバイスを要求 (Intune連携)",
+"前提: Intuneコンプライアンスポリシーが設定済み",
+"効果: 管理外デバイスからのアクセスを排除"]}]},
+{type:"list",title:"トラブルシューティングTips",icon:"🔧",items:[
+"「MFAを要求したのに通過してしまう」→ 対象アプリが正しく選択されているか確認。「全てのクラウドアプリ」の範囲を理解する",
+"「特定ユーザーだけブロックされる」→ サインインログでCA結果を確認。複数ポリシーの競合を確認",
+"「準拠デバイスを要求したがエラー」→ Intuneのコンプライアンスポリシーが正しく割り当てられているか確認。猶予期間の設定も確認",
+"「レガシー認証がブロックできない」→ レガシー認証ブロックポリシーの「クライアントアプリ」条件で正しくレガシーが選択されているか確認",
+"「ゲストユーザーにポリシーが効かない」→ 対象に「全てのゲストと外部ユーザー」が含まれているか確認",
+"診断ツール: Entra管理センター > サインインログ > 条件付きアクセスタブで詳細を確認",
+"What Ifツール: トラブル前のシミュレーションに最適。ユーザー/アプリ/場所を指定して結果を予測",
+"W365固有: Cloud PCへのCA適用はWindows 365アプリ(App ID)を対象に指定する"]
+}],
+links:[{title:"MS Learn: 条件付きアクセス概要",url:"https://learn.microsoft.com/ja-jp/entra/identity/conditional-access/overview"}]},
+
+// ═══════════════════════════════════════════════════════
+// Topic 4: MFA / パスワードレス
+// ═══════════════════════════════════════════════════════
+{id:"mfa",title:"MFA / パスワードレス",week:"Week 2",time:"2h",keyMsg:"パスワードだけでは不十分。管理者にはフィッシング耐性MFAを強く推奨",content:[
+{type:"table",title:"認証方法の詳細比較",icon:"🔐",headers:["方法","フィッシング耐性","利便性","コスト","推奨対象","備考"],rows:[
+["FIDO2セキュリティキー","最高(耐性あり)","中(物理キー必要)","キー購入¥5,000-10,000/個","管理者・特権アカウント","YubiKey等。紛失リスクあり→2本登録推奨"],
+["Passkey(デバイスバウンド)","最高(耐性あり)","高(生体認証)","なし","全ユーザー(今後の標準)","Windows Hello/Touch ID/Face IDと連携"],
+["Windows Hello for Business","高(耐性あり)","高(顔/指紋)","なし(W10/11標準)","社内PCユーザー","TPM必須。Cloud Trust/Key Trustの2方式"],
+["Microsoft Authenticator","中(プッシュ通知)","高(スマホ操作)","なし(無料アプリ)","一般ユーザー","番号一致+場所表示でセキュリティ向上"],
+["Authenticator(パスワードレス)","中-高","高(スマホ操作)","なし","一般ユーザー","パスワード入力不要。番号一致で認証"],
+["SMS/電話","低(傍受リスク)","高(操作簡単)","通信費","非推奨(緊急用のみ)","SIMスワップ/SS7攻撃に脆弱"],
+["メールOTP","低(傍受リスク)","中","なし","ゲスト用途のみ","メール侵害時に無力化"],
+["証明書ベース(CBA)","最高(耐性あり)","中(証明書管理)","PKI運用コスト","高セキュリティ要件","スマートカード/仮想スマートカード"]]},
+{type:"cards",title:"展開戦略 — 段階的ロールアウト",icon:"📊",cards:[
+{title:"Phase 1: 管理者(即座に)",color:"red",items:[
+"Global Admin/Security Adminにフィッシング耐性MFA(FIDO2)を義務化",
+"ブレイクグラスアカウントは除外(ただし強力なパスワード+物理保管)",
+"認証強度ポリシーで「フィッシング耐性MFA」を指定",
+"管理者特権操作時にPIMでJIT昇格+追加認証",
+"2つ以上の認証方法を登録(バックアップ)"]},
+{title:"Phase 2: パイロット(1-2ヶ月)",color:"yellow",items:[
+"IT部門+協力的な部署(50-100名)でAuthenticatorパスワードレスを展開",
+"セキュリティデフォルトを無効化→条件付きアクセスに移行",
+"認証方法ポリシーでAuthenticatorの番号一致を有効化",
+"ユーザー教育: 登録手順のセルフサービスポータル活用",
+"フィードバック収集と手順の改善"]},
+{title:"Phase 3: 全社展開(2-4ヶ月)",color:"green",items:[
+"全ユーザーにMFAを要求する条件付きアクセスポリシーを有効化",
+"段階的にAuthenticatorパスワードレスを推奨",
+"Windows Hello for Businessを全社PC展開",
+"SMS/電話認証を新規登録不可に設定",
+"認証方法の移行: レガシーMFA→認証方法ポリシーに統合"]},
+{title:"Phase 4: パスワードレス(6-12ヶ月)",color:"",items:[
+"Passkey(FIDO2)を全社標準認証として展開",
+"パスワード認証を段階的に無効化",
+"Temporary Access Pass(TAP)でパスワードレスオンボーディング",
+"パスワードスプレー/ブルートフォース攻撃のリスクをゼロに",
+"最終目標: パスワードに依存しない組織"]}]},
+{type:"list",title:"AiTMフィッシング攻撃 — なぜSMSは危険か",icon:"⚠️",items:[
+"AiTM(Adversary-in-the-Middle)攻撃: 攻撃者が偽サイトを中継し、ユーザーのMFAトークンをリアルタイムで窃取",
+"攻撃の流れ: フィッシングメール→偽ログインページ→ユーザーが正規認証情報+MFA入力→攻撃者がセッションクッキーを横取り",
+"SMS/電話MFAはAiTMに対して完全に無力: 攻撃者がリアルタイムで中継するため、ワンタイムコードも傍受される",
+"SIMスワップ攻撃: 攻撃者がキャリアを騙して被害者の電話番号を乗っ取り→SMSを受信",
+"SS7プロトコル攻撃: 通信プロトコルの脆弱性を突いてSMSを傍受する高度な攻撃",
+"フィッシング耐性MFA(FIDO2/Passkey)はAiTMに有効: オリジンバインディングにより偽サイトでは認証が成立しない",
+"実例: 2022年大規模AiTM攻撃キャンペーンで10,000+組織が標的に。SMS-MFAでは防げなかった",
+"Microsoftの推奨: 管理者はフィッシング耐性MFA必須。一般ユーザーもAuthenticator(番号一致)以上を強く推奨"]},
+{type:"list",title:"顧客FAQ — よく聞かれる質問",icon:"💬",items:[
+"Q: スマホを持っていない社員はどうする？ → A: FIDO2セキュリティキー(USB)を配布。またはTelephone(固定電話)を暫定利用",
+"Q: MFA導入後にロックアウトされたら？ → A: Temporary Access Pass(TAP)を管理者が発行して一時的にアクセス。ブレイクグラスアカウントも用意",
+"Q: オフライン時にMFAできない？ → A: Authenticatorのワンタイムコードはオフラインでも生成可能。FIDO2もオフライン対応",
+"Q: 費用はかかる？ → A: Authenticatorアプリは無料。FIDO2キーは¥5,000-10,000/個。ライセンスはM365 E3(P1)以上で条件付きアクセスが使える",
+"Q: ユーザーの抵抗が心配 → A: パスワードレス(Windows Hello)は「パスワード入力が不要になる」ので逆に利便性UP。体験させると納得する",
+"Q: 既存のRSA SecurIDから移行したい → A: Entra IDの認証方法に段階的に移行。外部認証方法(EAM)でRSA連携も一時的に可能"]
+}],
+links:[{title:"MS Learn: 認証方法",url:"https://learn.microsoft.com/ja-jp/entra/identity/authentication/"}]},
+
+// ═══════════════════════════════════════════════════════
+// Topic 5: Entra ID Protection
+// ═══════════════════════════════════════════════════════
+{id:"idp",title:"Entra ID Protection",week:"Week 2",time:"2h",keyMsg:"AIがサインインリスクをリアルタイム評価し、怪しいアクセスを自動ブロック",content:[
+{type:"cards",title:"リスク検知の種類と具体例",icon:"🛡️",cards:[
+{title:"サインインリスク検知",color:"red",items:[
+"匿名IPアドレス: Tor/VPN経由のサインインを検知",
+"特殊な移動(Atypical travel): 東京→ニューヨーク間30分でサインイン→物理的に不可能",
+"マルウェアリンクIPアドレス: 既知のマルウェアC2サーバーIPからのアクセス",
+"不審なブラウザ: 通常と異なるブラウザ/OS/デバイスからのアクセス",
+"パスワードスプレー: 同一IPから多数のアカウントに対してよくあるパスワードを試行",
+"不審な受信トレイ操作: サインイン後にメール転送ルール作成→情報窃取の兆候",
+"管理者確認: リアルタイムでアラートを受信しMicrosoft Entra管理センターで確認"]},
+{title:"ユーザーリスク検知",color:"yellow",items:[
+"漏洩した認証情報: ダークウェブ等でユーザーのパスワードが発見された場合",
+"異常なユーザーアクティビティ: 通常のパターンと大きく異なる操作",
+"疑わしいAPI呼び出し: 自動化ツールによる大量のAPI操作",
+"ユーザーリスクは「アカウント自体が侵害されている可能性」を示す",
+"サインインリスクとは独立して評価される",
+"高リスク時の推奨対応: パスワード変更+MFA再登録を強制",
+"セキュリティ管理者による手動確認・却下も可能"]}]},
+{type:"list",title:"設定手順と推奨構成",icon:"⚙️",items:[
+"前提: Entra ID P2ライセンス(M365 E5に含む)が必要",
+"Step 1: Entra管理センター > 保護 > ID Protection > リスクポリシーを開く",
+"Step 2: サインインリスクポリシーを構成 — 対象: 全ユーザー、リスク: 中以上、制御: MFAを要求",
+"Step 3: ユーザーリスクポリシーを構成 — 対象: 全ユーザー、リスク: 高、制御: パスワード変更を要求",
+"Step 4: ただし上記レガシーポリシーではなく、条件付きアクセスにリスク条件を統合する方法を推奨(2024年以降の推奨)",
+"推奨: CA-AllUsers-HighSignInRisk-Block(サインインリスク高→ブロック)",
+"推奨: CA-AllUsers-MediumSignInRisk-RequireMFA(サインインリスク中→MFA要求)",
+"推奨: CA-AllUsers-HighUserRisk-RequirePasswordChange(ユーザーリスク高→パスワード変更)",
+"注意: セルフサービスパスワードリセット(SSPR)を有効にしないとパスワード変更制御が機能しない"]},
+{type:"table",title:"条件付きアクセスとの統合パターン",icon:"🔗",headers:["シナリオ","サインインリスク","ユーザーリスク","CA制御","効果"],rows:[
+["通常アクセス","なし","なし","MFA要求","標準セキュリティ"],
+["やや怪しい","中","なし","MFA+準拠デバイス","追加検証で安全確認"],
+["危険なサインイン","高","なし","ブロック","即座にアクセス拒否"],
+["認証情報漏洩","なし","中","MFA+パスワード変更","アカウント回復"],
+["アカウント侵害","なし","高","ブロック+管理者通知","即座に隔離"],
+["複合リスク","高","高","ブロック+インシデント対応","SOC連携"]]},
+{type:"list",title:"ダッシュボード・モニタリング",icon:"📊",items:[
+"ID Protection概要ダッシュボード: リスクユーザー数/リスクサインイン数をリアルタイム表示",
+"リスクユーザーレポート: 現在リスクフラグが付いているユーザーの一覧。管理者が確認→安全→却下操作",
+"リスクサインインレポート: リスクが検知されたサインインの詳細(IP/場所/デバイス/リスク理由)",
+"脆弱性レポート: 組織全体のセキュリティ態勢の弱点を可視化",
+"Microsoft Sentinel連携: ID Protectionのアラートをセキュリティ運用基盤に統合",
+"自動修復の効果測定: 自動ブロック/MFA強制でどれだけの攻撃を防いだかをレポート",
+"週次レビュー推奨: 高リスクユーザーの確認と対応を定期的に実施",
+"提案ポイント: 「IPアドレス制限だけでは不十分。AIベースのリスク検知で未知の攻撃にも対応」"]
+}],
+links:[{title:"MS Learn: ID Protection",url:"https://learn.microsoft.com/ja-jp/entra/id-protection/"}]},
+
+// ═══════════════════════════════════════════════════════
+// Topic 6: Intune
+// ═══════════════════════════════════════════════════════
+{id:"intune",title:"Intune",week:"Week 3",time:"4h",keyMsg:"物理PCもW365もAVDも、Intuneで統一管理。最大の提案ポイント",content:[
+{type:"cards",title:"3つの管理機能 — 詳細解説",icon:"📱",cards:[
+{title:"MDM（デバイス管理）",color:"",items:[
+"デバイス全体を組織が管理(フルコントロール)",
+"ライフサイクル: 登録→構成→コンプライアンス→廃止/ワイプ",
+"対応OS: Windows/iOS/iPadOS/Android/macOS/Linux/ChromeOS",
+"会社所有デバイス: フル管理(ワイプ/リモートロック/位置情報)",
+"BYOD: ユーザー登録で限定的な管理(個人データに触れない)",
+"セキュリティワイプ: 紛失時に会社データのみ選択的に削除",
+"デバイスカテゴリ: 部署/用途別に自動分類→グループに自動追加"]},
+{title:"MAM（アプリ管理）",color:"green",items:[
+"デバイス管理なしでアプリ内データのみ保護",
+"BYOD（個人デバイス）に最適なアプローチ",
+"Officeアプリのコピー・保存・共有を制御",
+"例: Outlook→個人メールへのコピペ禁止",
+"例: Teams→スクリーンショット禁止(Android)",
+"例: OneDrive→個人クラウドへの保存禁止",
+"アプリ保護ポリシー(APP): Level 1(基本)→Level 2(拡張)→Level 3(高保護)の3段階",
+"条件付き起動: PIN/生体認証/最低OS版を要求"]},
+{title:"PC管理(Windows専用機能)",color:"purple",items:[
+"構成プロファイル: 設定の一括配布(Wi-Fi/VPN/証明書/制限)",
+"コンプライアンスポリシー: 準拠/非準拠を判定→CAと連携",
+"Autopatch: Windows/Office/Edge/Teams更新の自動管理",
+"ドライバー更新管理: Windows Update for Business Drivers",
+"スクリプト(PowerShell/シェル): 高度なカスタム設定の展開",
+"Win32アプリ管理: .intunewin形式でLOBアプリ配布",
+"リモートヘルプ: IT管理者がユーザーの画面をリモート操作"]}]},
+{type:"flow",title:"デバイス登録フロー",icon:"📦",steps:[
+{icon:"📱",label:"デバイス検出",desc:"Autopilot/手動/BYOD",style:"blue"},
+{icon:"🔑",label:"Entra ID認証",desc:"ユーザーがサインイン",style:""},
+{icon:"📋",label:"ポリシー受信",desc:"構成プロファイル適用",style:""},
+{icon:"✅",label:"準拠判定",desc:"コンプライアンス評価",style:""},
+{icon:"🖥️",label:"業務開始",desc:"アプリ・設定完了",style:"green"}]},
+{type:"table",title:"コンプライアンスポリシー — 推奨設定例",icon:"📋",headers:["設定項目","推奨値","説明","CAとの連携"],rows:[
+["BitLocker","必須","ディスク暗号化","非準拠→アクセスブロック"],
+["ファイアウォール","有効","Windows FW有効","非準拠→制限付きアクセス"],
+["ウイルス対策","有効","Defenderまたはサードパーティ","非準拠→アクセスブロック"],
+["最低OSバージョン","Windows 11 23H2","セキュリティ更新適用","非準拠→猶予期間後ブロック"],
+["パスワード複雑さ","必須","大文字+小文字+数字+記号","非準拠→パスワード変更要求"],
+["パスワード最小長","12文字以上","セキュリティ推奨値","非準拠→パスワード変更要求"],
+["TPM","必須","ハードウェアセキュリティ","非準拠→アクセスブロック"],
+["セキュアブート","必須","起動時の整合性検証","非準拠→アクセスブロック"],
+["猶予期間","3日","ユーザーが対応する期間","期間中はアクセス許可"]]},
+{type:"cards",title:"構成プロファイル — よく使うテンプレート",icon:"⚙️",cards:[
+{title:"デバイス制限",color:"",items:[
+"カメラの使用制限(会議室端末等)",
+"USBストレージの接続禁止",
+"スクリーンキャプチャの制限",
+"Windowsストアの制限",
+"Cortana/Copilotの制限",
+"外部アプリのインストール制限",
+"リムーバブルメディアの暗号化要求"]},
+{title:"セキュリティベースライン",color:"red",items:[
+"Microsoft推奨セキュリティ設定のテンプレート",
+"Windows 11セキュリティベースライン",
+"Microsoft Edgeセキュリティベースライン",
+"Defender for Endpointベースライン",
+"M365 Appsセキュリティベースライン",
+"定期的に更新→最新の脅威に対応",
+"カスタマイズ可能(組織の要件に合わせる)"]},
+{title:"ネットワーク・証明書",color:"green",items:[
+"Wi-Fiプロファイル: 社内Wi-FiのSSID/認証情報を自動配布",
+"VPNプロファイル: Always-on VPN/条件付きVPN",
+"証明書プロファイル: SCEP/PKCS証明書の自動配布",
+"DNSフィルタリング設定",
+"プロキシ設定の自動構成",
+"Windowsファイアウォール規則",
+"ネットワーク保護(Defender連携)"]}]},
+{type:"list",title:"W365/AVDとの統合管理",icon:"🔗",items:[
+"W365 Enterpriseは Intuneが必須前提（ライセンス要件）",
+"Cloud PCを物理PCと同じIntune管理コンソールで一元管理",
+"同じコンプライアンスポリシーを物理PC・Cloud PC両方に適用可能",
+"条件付きアクセスの「準拠デバイス」判定にIntuneのコンプライアンス結果を使用",
+"Cloud PCへの構成プロファイル適用: Wi-Fi不要だがセキュリティ設定は同一",
+"W365固有の管理: Cloud PC一覧/再プロビジョニング/リサイズがIntune管理センターから可能",
+"AVD: セッションホストVMはIntune登録可能(Entra参加時)。ただし主にはAzure Portalで管理",
+"提案:「DaaS移行しても管理ツールが変わらない=教育コスト・運用コストが増えない」",
+"統合管理のメリット: 1つの管理画面で物理PC+Cloud PC+モバイルを全て管理→IT部門の負荷軽減"]},
+{type:"flow",title:"デバイス登録ライフサイクル — 購入からアクセス許可まで",icon:"🔄",steps:[
+{icon:"📦",label:"デバイス購入",desc:"PC調達・受領",style:""},
+{icon:"⚡",label:"Autopilot/手動",desc:"登録方式の選択",style:"blue"},
+{icon:"🔑",label:"Entra参加",desc:"組織IDに参加",style:""},
+{icon:"📱",label:"Intune登録",desc:"MDMポリシー受信",style:""},
+{icon:"✅",label:"コンプライアンス",desc:"準拠チェック判定",style:""},
+{icon:"🖥️",label:"アクセス許可",desc:"業務開始可能",style:"green"}]},
+{type:"list",title:"MAA (Multi Admin Approval) — 管理者操作の安全性",icon:"🔒",items:[
+"管理者アカウントが侵害された場合の被害を最小化する仕組み",
+"重要な操作(例: コンプライアンスポリシー削除)に別の管理者の承認を要求",
+"対象操作: アプリ削除/ポリシー削除/フィルター削除等の破壊的操作",
+"承認フロー: 管理者Aが操作要求→管理者Bが承認→操作が実行される",
+"設定: Intune管理センター > テナント管理 > Multi Admin Approval",
+"最低2名の承認者が必要(1名は要求者以外)",
+"承認待ちの操作は一定期間後に自動的に期限切れ",
+"提案ポイント: 「内部脅威対策として管理者操作の相互チェック体制を構築」"]
+}],
+links:[{title:"MS Learn: Intuneの概要",url:"https://learn.microsoft.com/ja-jp/intune/fundamentals/"}]},
+
+// ═══════════════════════════════════════════════════════
+// Topic 7: デバイス参加方式
+// ═══════════════════════════════════════════════════════
+{id:"dj",title:"デバイス参加方式",week:"Week 3",time:"3h",keyMsg:"Entra参加 vs ハイブリッド参加 — 必ず聞かれるポイント",content:[
+{type:"table",title:"3つの方式 — 詳細比較",icon:"💻",headers:["比較軸","Entra参加","ハイブリッドEntra参加","Entra登録"],rows:[
+["概要","クラウドのみでデバイスを管理","オンプレAD+Entra IDの両方に参加","個人デバイスの軽量登録(BYOD)"],
+["管理ツール","Intuneのみ","GPO+Intune(共存管理)","MAMのみ(デバイス管理なし)"],
+["認証","Entra IDに直接認証","ADで認証→Entra IDに同期","Entra IDに認証(制限付き)"],
+["SSO対象","クラウドリソース(M365等)","クラウド+オンプレリソース","クラウドリソースのみ(制限あり)"],
+["オンプレAD必要","不要","必要(Entra Connect必須)","不要"],
+["GPO適用","不可(Intune使用)","可能(GPO+Intune共存)","不可"],
+["Windows Hello","クラウド信頼モデル","キー信頼/証明書信頼モデル","限定的"],
+["W365対応","対応(推奨構成)","対応(ANC+Entra Connect必要)","非対応"],
+["AVD対応","対応(推奨)","対応(AD DS+VNet必要)","非対応"],
+["推奨シナリオ","新規導入/クラウドファースト","既存AD環境からの段階的移行","BYOD/協力会社端末"]]},
+{type:"flow",title:"どの方式を選ぶ？ — 判断フローチャート",icon:"🔄",steps:[
+{icon:"❓",label:"オンプレADあり？",desc:"既存環境の確認",style:"blue"},
+{icon:"🏢",label:"オンプレアプリ依存？",desc:"Kerberos/NTLM",style:""},
+{icon:"☁️",label:"クラウド移行予定？",desc:"1-2年以内",style:""},
+{icon:"✅",label:"方式決定",desc:"最適な選択",style:"green"}]},
+{type:"list",title:"ハイブリッドからEntra参加への移行パス",icon:"🔄",items:[
+"移行の背景: GPO→Intuneへの移行により、ADへの依存を段階的に減らせる",
+"Step 1: Entra Connect設定でハイブリッドEntra参加を有効化(現状維持)",
+"Step 2: Intune共存管理(Co-management)を有効化。GPOとIntuneの両方でデバイス管理",
+"Step 3: ワークロードを段階的にIntuneに移行(コンプライアンス→デバイス構成→Office等)",
+"Step 4: オンプレアプリのクラウド化/プロキシ化を進める(アプリプロキシ/Private Access)",
+"Step 5: 新規PCからEntra参加に変更。既存PCは自然リプレースに合わせて移行",
+"Step 6: 全PCがEntra参加になったらEntra Connectを撤廃→AD依存ゼロ",
+"移行期間の目安: 2-3年(大規模環境)。急がず段階的に進めることが重要",
+"注意: ファイルサーバー(SMB)のNTLM認証依存がある場合はAzure Filesへの移行を検討"]},
+{type:"cards",title:"W365/AVDでの参加方式の影響",icon:"🖥️",cards:[
+{title:"W365 × Entra参加(推奨)",color:"green",items:[
+"MHN(Microsoft Hosted Network)で最もシンプル",
+"Azureサブスクリプション不要",
+"VNet設計・NW設計不要",
+"Intuneのみで完結→GPO不要",
+"プロビジョニングが数分で完了",
+"最新のW365機能がフルサポート"]},
+{title:"W365 × ハイブリッド参加",color:"yellow",items:[
+"ANC(Azure Network Connection)が必要",
+"顧客のAzureサブスクリプションが必要",
+"VNet+Entra Connect+AD DS構成が必要",
+"オンプレリソース(ファイルサーバー等)にアクセス可能",
+"GPOの適用も可能(ただし非推奨)",
+"構成が複雑→トラブルシューティングも複雑に"]},
+{title:"AVDでの考慮点",color:"",items:[
+"Entra参加セッションホスト: FSLogixストレージのKerberos設定が必要",
+"ハイブリッド参加: AD DS+VNetが前提→従来型と同じ",
+"Entra参加の場合: Azure Files+Entra Kerberos認証でFSLogix対応",
+"将来的にはEntra参加が標準になる見込み",
+"既存のAVD環境はハイブリッドが多い→移行提案のチャンス"]}]
+}],
+links:[{title:"MS Learn: デバイスID",url:"https://learn.microsoft.com/ja-jp/entra/identity/devices/"}]},
+
+// ═══════════════════════════════════════════════════════
+// Topic 8: Autopilot
+// ═══════════════════════════════════════════════════════
+{id:"ap",title:"Autopilot",week:"Week 4",time:"3h",keyMsg:"箱から出して電源ONするだけで業務PCが完成。W365なら不要",content:[
+{type:"flow",title:"Autopilotの展開フロー",icon:"📦",steps:[
+{icon:"📦",label:"PC到着",desc:"ベンダーから届く",style:""},{icon:"⚡",label:"電源ON",desc:"ユーザーが起動",style:"blue"},
+{icon:"🔑",label:"サインイン",desc:"Entra IDで認証",style:""},{icon:"📋",label:"ポリシー適用",desc:"Intune構成配布",style:""},{icon:"✅",label:"業務開始",desc:"アプリ準備完了",style:"green"}]},
+{type:"table",title:"展開プロファイルの比較",icon:"📋",headers:["比較軸","ユーザー主導","自己展開","事前プロビジョニング"],rows:[
+["ユーザー操作","サインインのみ","一切なし","技術者+ユーザー"],
+["対象シナリオ","個人専用PC","共有PC/キオスク","VIP/迅速な展開"],
+["完了時間","30-60分","20-40分","技術者10分+ユーザー5分"],
+["Entra参加","○","○","○"],
+["ハイブリッド参加","○","×","○"],
+["TPM要件","必須","必須(2.0)","必須"],
+["ユーザー体験","良好(サインインのみ)","最良(操作不要)","最良(最短時間)"],
+["IT部門の負荷","最小","中(初期設定要)","中(事前準備要)"]]},
+{type:"cards",title:"プロビジョニングシナリオ",icon:"🔧",cards:[
+{title:"シナリオ1: 新入社員展開",color:"",items:[
+"入社日前にPCをベンダーから直送",
+"ユーザーが自宅/オフィスで電源ON",
+"Entra IDでサインイン→自動構成開始",
+"Officeアプリ/業務アプリが自動インストール",
+"Wi-Fi/VPN/証明書が自動配布",
+"30-60分で業務開始可能",
+"IT部門の作業: ゼロ(事前にプロファイル設定済み)"]},
+{title:"シナリオ2: PCリプレース",color:"green",items:[
+"旧PCをワイプ or 回収",
+"新PCを同じユーザーに配送",
+"Autopilotでサインイン→設定復元",
+"OneDrive Known Folder Moveでデータ同期済み",
+"アプリはIntune経由で自動再インストール",
+"リプレースのIT作業がほぼゼロに",
+"従来: 手動セットアップ2-4時間→Autopilot: 待つだけ"]},
+{title:"シナリオ3: Autopilot Reset",color:"yellow",items:[
+"既存PCを別ユーザーに再割当て時に使用",
+"デバイスをリモートでリセット(Intune操作)",
+"ユーザーデータを削除、OSは再インストールしない",
+"リセット後に新ユーザーがサインイン→自動構成",
+"完全なワイプより高速(OSインストール不要)",
+"PC返却→リセット→次のユーザーに再配布",
+"異動/退職時のPC再利用が効率化"]}]},
+{type:"list",title:"W365との比較 — Autopilotは不要？",icon:"⚖️",items:[
+"W365のプロビジョニング: ライセンス割当→数分でCloud PC自動生成。Autopilotすら不要",
+"W365はOS/アプリ/設定を含むカスタムイメージを使用→全ユーザーに同一環境を即座に展開",
+"W365 + Autopilot: Cloud PCには不要。ただしリモートワーカーの物理PC管理にはAutopilot必須",
+"ハイブリッド提案: 「Cloud PC(W365)=主力業務端末 + 物理PC(Autopilot)=出張/特殊用途」",
+"コスト比較: Autopilot展開 = PC1台あたりIT作業30分→W365 = IT作業0分(ライセンス割当のみ)",
+"Autopilotの価値: 「物理PCが必要な場面でも、クラウドと同じ自動化体験を提供」",
+"移行シナリオ: 現在Autopilotで物理PC管理→W365移行で物理PC台数減→Autopilot管理対象も減少",
+"提案トーク: 「まず物理PCのAutopilot移行で運用効率化、次にW365で物理PC自体を削減」"]
+}],
+links:[{title:"MS Learn: Autopilot",url:"https://learn.microsoft.com/ja-jp/autopilot/"}]},
+
+// ═══════════════════════════════════════════════════════
+// Topic 9: Defender for Endpoint
+// ═══════════════════════════════════════════════════════
+{id:"def",title:"Defender for Endpoint",week:"Week 4",time:"3h",keyMsg:"端末の脅威をリアルタイム検知・対応するEDR/XDR",content:[
+{type:"cards",title:"主な機能 — 詳細解説",icon:"🛡️",cards:[
+{title:"検知と対応(EDR/XDR)",color:"red",items:[
+"EDR: エンドポイント(端末)上の脅威をリアルタイム検知・調査・対応",
+"XDR: メール(Defender for Office 365)+ID(Identity)+クラウドアプリ(CASB)を統合した包括検知",
+"自動調査と修復(AIR): AIが脅威を分析→承認不要で自動修復(設定可)",
+"高度なハンティング: KQLクエリでログを横断検索→高度な脅威を発見",
+"インシデント管理: 関連アラートを自動的にグループ化→攻撃の全体像を把握",
+"ライブレスポンス: 侵害されたデバイスにリモート接続して調査(CLI操作)"]},
+{title:"予防・保護",color:"",items:[
+"ASR(Attack Surface Reduction): マクロ実行/子プロセス生成等の攻撃手法を事前にブロック",
+"脆弱性管理(TVM): OS/アプリの脆弱性をスキャンし、リスクスコアで優先順位付け",
+"ネットワーク保護: C2サーバーへの通信をブロック",
+"Web保護: 悪意あるURL/フィッシングサイトへのアクセスをブロック",
+"デバイス制御: USB等の外部デバイスのアクセスを制御",
+"制御されたフォルダーアクセス: ランサムウェアによるファイル暗号化を防止"]},
+{title:"DaaS環境での活用",color:"green",items:[
+"Cloud PC(W365)にもDefender for Endpointを適用すべき",
+"物理PCと同じセキュリティレベルをCloud PCでも維持",
+"Intune経由でDefenderセンサーを自動展開",
+"Cloud PC上のEDRデータもMicrosoft Defenderポータルに統合",
+"AVDセッションホストにもDefenderを適用→マルチセッション環境でも脅威検知",
+"統合管理: 物理PC+Cloud PC+AVDの全脅威を1つのポータルで監視"]}]},
+{type:"table",title:"ASR(攻撃面縮小)ルール — 主要ルール一覧",icon:"⚔️",headers:["ルール","効果","推奨モード","対象脅威"],rows:[
+["Officeマクロ実行ブロック","Office文書のVBAマクロをブロック","ブロック","Emotet/マルウェアダウンローダー"],
+["Office子プロセス作成ブロック","OfficeからのPowerShell/cmd起動を防止","ブロック","マルウェア実行チェーン"],
+["PSexec/WMI経由のプロセス作成ブロック","横方向移動に使われるツールをブロック","監査→ブロック","ラテラルムーブメント"],
+["資格情報窃取ブロック","LSASS(認証情報格納プロセス)への不正アクセスを防止","ブロック","Mimikatz等の認証情報窃取"],
+["ランサムウェア保護","振る舞いベースでランサムウェアをブロック","ブロック","ランサムウェア全般"],
+["難読化スクリプトブロック","難読化されたスクリプト(JS/VBS/PS)の実行を防止","ブロック","スクリプトベース攻撃"],
+["USB経由の実行ブロック","USBからの未署名プロセス実行を防止","ブロック","USBドロップ攻撃"]]},
+{type:"list",title:"セキュリティベースラインとIntune連携",icon:"📋",items:[
+"セキュリティベースライン: Microsoft推奨のDefender設定テンプレート(Intuneから展開)",
+"Windows 11セキュリティベースライン: 300+の推奨設定を1クリックで適用",
+"Defender for Endpointベースライン: EDR/ASR/ネットワーク保護の推奨設定",
+"ベースラインの更新: Microsoftが定期的に更新→最新の脅威対策を反映",
+"Intune連携フロー: コンプライアンスポリシーでDefenderの脅威レベルを条件に使用",
+"例: Defenderが「高リスク」と判定したデバイス→Intune非準拠→CAでアクセスブロック",
+"デバイスリスクスコア: Defender for Endpointが各デバイスのリスクを0-100でスコアリング",
+"このスコアをIntuneコンプライアンスの条件に使用→自動的に非準拠→CAでブロック",
+"提案ポイント: 「Defender+Intune+CAの三位一体で、脅威検知→自動隔離が実現」"]},
+{type:"list",title:"W365/AVDでのDefender展開",icon:"🖥️",items:[
+"W365 Cloud PC: Intuneから自動的にDefenderセンサーを展開(Intune管理下なので簡単)",
+"AVDセッションホスト: カスタムイメージにDefenderを含めるか、起動スクリプトで展開",
+"AVDマルチセッション: Windows 11/10 Enterprise multi-sessionにもDefender対応(2023年GA)",
+"ゴールドイメージ戦略: カスタムイメージにDefender+ベースライン設定を含めて展開",
+"パフォーマンス考慮: Cloud PCのスペック選定時にDefenderのリソース消費(CPU/メモリ)を考慮",
+"推奨最低スペック: 2vCPU/4GBでもDefenderは動作するが、快適には2vCPU/8GB以上を推奨",
+"提案ポイント: 「Cloud PCだからセキュリティは不要」は誤り。エンドポイント保護は同等以上に必要"]
+}],
+links:[{title:"MS Learn: Defender for Endpoint",url:"https://learn.microsoft.com/ja-jp/defender-endpoint/"}]}
+
+]},
+
+// ═══════════════════════════════════════════════════════
+// Month 2: W365/AVD 専門知識
+// ═══════════════════════════════════════════════════════
+{month:2,title:"W365/AVD 専門知識",color:"#107C10",period:"Week 5-8",topics:[
+
+// ═══════════════════════════════════════════════════════
+// Topic 10: W365 アーキテクチャ
+// ═══════════════════════════════════════════════════════
+{id:"w3a",title:"W365 アーキテクチャ",week:"Week 5",time:"4h",keyMsg:"Cloud PCはMSテナント内で稼働。インフラは全てMS管理のSaaS",content:[
+{type:"flow",title:"接続の流れ — エンドツーエンド",icon:"🌐",steps:[
+{icon:"👤",label:"ユーザーアクセス",desc:"Web/RDクライアント",style:"blue"},
+{icon:"🔑",label:"Entra認証",desc:"MFA/CA評価",style:""},
+{icon:"☁️",label:"制御プレーン",desc:"Cloud PC特定・ルーティング",style:""},
+{icon:"🔗",label:"ゲートウェイ",desc:"RDP Shortpath確立",style:""},
+{icon:"🖥️",label:"Cloud PC",desc:"セッション開始",style:"green"}]},
+{type:"cards",title:"ネットワーク方式 — MHN vs ANC 詳細",icon:"🏗️",cards:[
+{title:"MHN（Microsoft Hosted Network）",color:"",items:[
+"VNetをMicrosoftが自動管理→顧客のNW設計不要",
+"Azureサブスクリプション不要→追加コストなし",
+"Cloud PCはMicrosoft管理のVNet内で稼働",
+"インターネットアクセスは直接(Microsoft経由)",
+"オンプレミスリソースへのアクセスは不可(VNet接続なし)",
+"推奨: オンプレ依存がない/クラウドファーストの組織",
+"最もシンプルで迅速な展開(プロビジョニング数分)",
+"NWトラブルシューティングもMicrosoft責任"]},
+{title:"ANC（Azure Network Connection）",color:"teal",items:[
+"顧客のAzure VNetにCloud PCを接続",
+"オンプレミスリソースにVNet経由でアクセス可能(ExpressRoute/VPN)",
+"ハイブリッドEntra参加に必要(AD DS接続)",
+"顧客のAzureサブスクリプションが必要",
+"VNet/サブネット設計が必要(IPアドレス計画)",
+"NSGでCloud PCのNW通信を制御可能",
+"カスタムDNS設定でオンプレDNSを参照",
+"推奨: オンプレファイルサーバー/基幹システムへのアクセスが必要な場合"]}]},
+{type:"list",title:"プロビジョニングプロセス — 詳細手順",icon:"⚙️",items:[
+"Step 1: プロビジョニングポリシー作成 — 参加方式(Entra/ハイブリッド)+NW方式(MHN/ANC)+イメージ+言語を指定",
+"Step 2: ユーザーグループの割り当て — 動的グループ推奨(例: 部署=営業部のユーザーに自動割当)",
+"Step 3: ライセンス割当 — W365 Enterprise/Business/Frontlineライセンスをユーザーに付与",
+"Step 4: 自動プロビジョニング — ライセンス割当+グループ所属でCloud PCが自動生成(約20-40分)",
+"Step 5: ユーザー通知 — windows365.microsoft.comまたはRDクライアントでアクセス可能",
+"カスタムイメージ: ギャラリーイメージの他、独自のOSイメージをAzure Compute Galleryから指定可能",
+"カスタムイメージの活用: 業務アプリ/設定/ドライバーを事前にインストール→展開後即利用可能",
+"リサイズ: SKU変更(例: 2vCPU/8GB→4vCPU/16GB)はIntune管理センターから数クリックで完了",
+"再プロビジョニング: 問題発生時にCloud PCをリセット(ユーザーデータはOneDrive/KFM経由で復元)"]},
+{type:"cards",title:"セキュリティアーキテクチャ",icon:"🔒",cards:[
+{title:"データ保護",color:"green",items:[
+"Cloud PC内のデータはMicrosoftデータセンター内に保存",
+"ディスク暗号化: サーバーサイド暗号化(SSE)がデフォルト",
+"カスタマーマネージドキー(CMK)での暗号化もサポート",
+"画面転送のみ→端末にデータが残らない",
+"クリップボード/ドライブリダイレクト制御でデータ流出防止",
+"OneDrive Known Folder Move(KFM)でクラウドバックアップ"]},
+{title:"ネットワーク保護",color:"",items:[
+"RDP Shortpath: UDP経由の低遅延接続(自動ネゴシエーション)",
+"TLS 1.2暗号化でRDPトラフィックを保護",
+"ANC使用時: NSGで送受信トラフィックをフィルタリング",
+"MHN使用時: Microsoft管理のNWセキュリティ",
+"Watermarking: 画面に透かし(ユーザー名/IP)を表示→スクリーンショット抑止",
+"Screen capture protection: スクリーンキャプチャをブロック"]},
+{title:"ID・アクセス保護",color:"red",items:[
+"条件付きアクセス: Cloud PCへのアクセス条件を制御",
+"MFA: サインイン時に多要素認証を強制",
+"ID Protection: リスクベースの認証制御",
+"Intune準拠デバイスのみアクセス許可",
+"セッションタイムアウト: 非アクティブ時の自動切断",
+"Defender for Endpoint: Cloud PC上の脅威検知"]}]},
+{type:"flow",title:"データフロー全体像 — ユーザーからCloud PCまでの経路",icon:"🌐",steps:[
+{icon:"💻",label:"ユーザーデバイス",desc:"物理PC/タブレット等",style:"blue"},
+{icon:"🌍",label:"インターネット",desc:"TLS 1.2暗号化通信",style:""},
+{icon:"🔒",label:"Microsoft Gateway",desc:"認証・ルーティング",style:""},
+{icon:"⚙️",label:"制御プレーン",desc:"セッション管理(MS管理)",style:""},
+{icon:"🖥️",label:"Cloud PC",desc:"Microsoft管理インフラ",style:"green"}]},
+{type:"list",title:"ネットワーク要件と最適化",icon:"🌐",items:[
+"最低帯域: 1.5 Mbps(一般業務)。推奨: 5 Mbps以上(Web会議/動画含む)",
+"遅延: 推奨100ms以下。日本リージョンなら国内からは10-30ms程度",
+"プロトコル: TCP 443(HTTPS)でほぼ全て通信→FW許可が容易",
+"RDP Shortpath: UDP 3390(デフォルト)で低遅延通信。ブロックされている場合はTCPにフォールバック",
+"必須FQDN: *.wvd.microsoft.com, *.prod.warm.ingest.monitor.core.windows.net等(MS Learnで公開)",
+"プロキシ: Cloud PCからのインターネットアクセスにプロキシを設定する場合はPACファイルまたはWPAD推奨",
+"Split Tunnel: VPN経由の場合はCloud PC通信をSplit Tunnelしてパフォーマンス確保",
+"接続テスト: windows365.microsoft.com/connectiontest でユーザー環境からの接続品質をテスト可能"]
+}],
+links:[{title:"MS Learn: W365概要",url:"https://learn.microsoft.com/ja-jp/windows-365/enterprise/"}]},
+
+// ═══════════════════════════════════════════════════════
+// Topic 11: 3つのエディション
+// ═══════════════════════════════════════════════════════
+{id:"w3e",title:"3つのエディション",week:"Week 5",time:"3h",keyMsg:"Frontlineが提案の武器。1ライセンス3ユーザーで50%削減",content:[
+{type:"cards",title:"エディション詳細比較",icon:"📦",cards:[
+{title:"Business",color:"",items:[
+"対象: 300名以下の中小企業",
+"前提ライセンス不要(単体購入可)",
+"Azureサブスクリプション不要",
+"Intune不要(ただし推奨)",
+"MHNのみ(ANC非対応)",
+"ギャラリーイメージのみ(カスタムイメージ非対応)",
+"セキュリティベースライン非対応",
+"月額¥5,247〜(2vCPU/4GB/64GB)",
+"最もシンプルだが機能制限あり"]},
+{title:"Enterprise ★主力",color:"purple",items:[
+"対象: ユーザー数無制限(大企業向け)",
+"前提: M365 E3/E5 or F1/F3 + Entra ID P1 + Intune",
+"MHN/ANC両対応",
+"カスタムイメージ対応(業務アプリ事前インストール)",
+"セキュリティベースライン対応",
+"ユニバーサルプリント対応",
+"リサイズ(SKU変更)対応",
+"GPUサポート(GPU対応SKU)",
+"エンタープライズグレードのSLA"]},
+{title:"Frontline ★最強の武器",color:"green",items:[
+"1ライセンスで最大3ユーザーに割り当て可能",
+"同時利用は1名のみ(シフト制前提)",
+"実質的なコスト: Enterprise価格の約1/3",
+"前提: M365 F3/E3/E5",
+"対象: 工場3交代/店舗/コールセンター/受付",
+"MHN/ANC両対応",
+"カスタムイメージ対応",
+"8時間のセッション制限(自動ログオフ)",
+"グレースピリオド: 切替時に最大2時間の猶予"]}]},
+{type:"table",title:"ライセンス前提条件の詳細",icon:"📋",headers:["要素","Business","Enterprise","Frontline"],rows:[
+["M365/O365ライセンス","不要","E3/E5/F1/F3いずれか","F3/E3/E5いずれか"],
+["Entra ID P1","不要","必須(E3に含む)","必須(E3に含む)"],
+["Intune","不要(推奨)","必須(E3に含む)","必須(E3に含む)"],
+["Azureサブスク","不要","ANC時のみ必要","ANC時のみ必要"],
+["最大ユーザー数","300","無制限","無制限"],
+["カスタムイメージ","×","○","○"],
+["ANC","×","○","○"],
+["GPU SKU","×","○","×"],
+["リサイズ","○","○","○"],
+["セキュリティベースライン","×","○","○"]]},
+{type:"cards",title:"ユースケースシナリオ — エディション選択ガイド",icon:"🎯",cards:[
+{title:"シナリオ1: IT企業50名",color:"",items:[
+"開発者20名+営業15名+管理部門15名",
+"推奨: Business(300名以下)",
+"SKU: 開発者→4vCPU/16GB、他→2vCPU/8GB",
+"理由: M365ライセンスが別途不要でコスト効率◎",
+"ただしカスタムイメージ不可→開発ツールは個別インストール",
+"将来300名超の可能性→Enterpriseへの移行計画も併記"]},
+{title:"シナリオ2: 製造業500名",color:"green",items:[
+"工場300名(3交代)+オフィス200名",
+"推奨: Frontline(工場)+Enterprise(オフィス)",
+"工場: FL 100ライセンス×3ユーザー=300名カバー",
+"オフィス: Enterprise 200ライセンス(SKUミックス)",
+"M365前提: F3(工場)+E3(オフィス)の組合せ",
+"コスト効果: 全員Enterpriseと比べて工場分が実質66%削減"]},
+{title:"シナリオ3: 金融機関1000名",color:"red",items:[
+"全員Enterprise+高セキュリティ要件",
+"カスタムイメージ: 業務アプリ+Defender+ベースライン",
+"ANC構成: オンプレ基幹システムへのアクセス必要",
+"GPUなし(一般業務中心)",
+"SKUミックス: 一般(2c/8GB 70%)+パワー(4c/16GB 30%)",
+"セキュリティ: CA+MFA+準拠デバイス+ID Protection必須",
+"コンプライアンス: 金融庁ガイドライン対応(データ所在地=日本)"]}]},
+{type:"table",title:"前提ライセンス要件の詳細 — エディション別",icon:"🔑",headers:["エディション","前提ライセンス","追加で必要なもの","含まれる機能"],rows:[
+["Business","不要（単体購入可）","なし","基本管理のみ"],
+["Enterprise","M365 E3/E5/F1/F3/Business Premium のいずれか","Intune (E3等に含む) + Entra ID P1 (E3等に含む)","カスタムイメージ・セキュリティベースライン・条件付きアクセス"],
+["Frontline","M365 F1/F3/E3/E5 のいずれか","Intune + Entra ID P1","Enterprise と同等（共有モード）"]]},
+{type:"list",title:"エディション間の移行",icon:"🔄",items:[
+"Business→Enterprise: テナント内で移行可能。ただしM365 E3/E5ライセンスの追加購入が前提",
+"Enterprise→Frontline: ライセンス変更+プロビジョニングポリシーの更新で切替。既存Cloud PCは再プロビジョニング",
+"Frontline→Enterprise: 常時利用が必要になったユーザーをEnterprise個人ライセンスに変更",
+"SKUのリサイズ: 全エディションでサポート。例: 2vCPU/8GB→4vCPU/16GBにアップグレード",
+"リサイズの影響: 再プロビジョニングなし(ダウンタイム15分程度で完了)",
+"リージョン変更: Cloud PCのリージョン変更は再プロビジョニングが必要(データはリセットされる)",
+"提案のコツ: 「まずBusinessで小規模検証→効果確認後にEnterpriseで全社展開」の段階的アプローチ"]
+}],
+links:[{title:"W365日本公式価格",url:"https://www.microsoft.com/ja-jp/windows-365/enterprise/all-pricing"}]},
+
+// ═══════════════════════════════════════════════════════
+// Topic 12: 料金体系 & SKUミックス
+// ═══════════════════════════════════════════════════════
+{id:"w3p",title:"料金体系 & SKUミックス",week:"Week 6",time:"3h",keyMsg:"全員同じSKUにせず用途別最適化がコスト提案の鍵",content:[
+{type:"table",title:"W365 Enterprise SKU 全価格表（日本公式・税抜）",icon:"💰",headers:["vCPU","RAM","Storage","月額(税抜)","年額概算","推奨用途"],rows:[
+["2","4GB","64GB","¥5,247","¥62,964","超軽量業務(Web閲覧・メール)"],
+["2","4GB","128GB","¥6,059","¥72,708","軽量業務(データ保存多め)"],
+["2","4GB","256GB","¥7,683","¥92,196","軽量業務(大容量データ)"],
+["2","8GB","128GB","¥7,683","¥92,196","一般事務(Office・Teams)"],
+["2","8GB","256GB","¥9,307","¥111,684","一般事務(データ多め)"],
+["4","16GB","128GB","¥12,368","¥148,416","パワーユーザー(Excel大量/開発)"],
+["4","16GB","256GB","¥13,993","¥167,916","パワーユーザー(大容量)"],
+["4","16GB","512GB","¥17,054","¥204,648","パワーユーザー(CAD/RPA)"],
+["8","32GB","128GB","¥20,989","¥251,868","ヘビーユーザー(開発/BI)"],
+["8","32GB","256GB","¥22,613","¥271,356","ヘビーユーザー(大容量)"],
+["8","32GB","512GB","¥24,737","¥296,844","最高スペック(CAD/動画編集)"]]},
+{type:"table",title:"W365 Frontline SKU 価格表（日本公式・税抜）",icon:"⭐",headers:["vCPU","RAM","Storage","月額(税抜)","実質単価(1/3)","推奨用途"],rows:[
+["2","4GB","64GB","¥5,247/月","¥1,749/人","シフト制の軽量業務(Web/メール)"],
+["2","8GB","128GB","¥7,683/月","¥2,561/人","シフト制の一般事務(Office/Teams)"],
+["4","16GB","128GB","¥12,368/月","¥4,123/人","シフト制のパワーユーザー"],
+["4","16GB","256GB","¥14,055/月","¥4,685/人","シフト制のパワーユーザー(大容量)"],
+["8","32GB","128GB","¥23,050/月","¥7,683/人","シフト制のヘビーユーザー"]]},
+{type:"cards",title:"Enterprise vs Frontline ユースケース比較",icon:"⚖️",cards:[
+{title:"Enterprise が適するケース",color:"purple",items:[
+"1日8時間以上の継続利用が必要なフルタイムワーカー",
+"常時Cloud PCにアクセスする必要がある開発者・設計者",
+"残業が頻繁に発生する部門(8時間セッション制限に抵触)",
+"同時間帯に全員が利用する部門(共有不可)",
+"個人専用のカスタマイズ環境が必要なユーザー"]},
+{title:"Frontline が適するケース",color:"green",items:[
+"工場の3交代制(8時間×3シフト)→1ライセンスで3名",
+"コールセンターの2交代制(日勤/夜勤)→1ライセンスで2名+予備",
+"店舗スタッフ(パート/アルバイト含む1日4-6時間勤務)",
+"受付・窓口業務(シフト制で端末を共有する場面)",
+"実質コスト: Enterprise比で最大66%削減(1/3の価格)"]}]},
+{type:"cards",title:"SKUミックス戦略 — コスト最適化パターン",icon:"📊",cards:[
+{title:"パターンA: 全員統一(非推奨)",color:"red",items:[
+"全500名に4vCPU/16GB/128GB(¥12,368/月)",
+"月額合計: ¥6,184,000",
+"年額合計: ¥74,208,000",
+"問題: 一般事務にオーバースペック",
+"問題: コスト効率が悪い",
+"顧客がよくやりがちな見積もり方法",
+"→ これを改善提案するのがSEの腕の見せ所"]},
+{title:"パターンB: 2層ミックス(基本)",color:"yellow",items:[
+"一般70%(350名): 2vCPU/8GB(¥7,683/月)",
+"パワー30%(150名): 4vCPU/16GB(¥12,368/月)",
+"月額合計: ¥4,544,250",
+"年額合計: ¥54,531,000",
+"パターンAと比較: 26.5%削減",
+"年間削減額: ¥19,677,000",
+"提案トーク: 「業務内容に合わせたSKU選定で年間約2000万円削減」"]},
+{title:"パターンC: 3層+Frontline(最適)",color:"green",items:[
+"一般50%(250名): 2vCPU/8GB(¥7,683/月)",
+"パワー20%(100名): 4vCPU/16GB(¥12,368/月)",
+"シフト30%(150名): Frontline 2vCPU/8GB(実質¥2,561/月)",
+"月額合計: ¥3,541,900",
+"年額合計: ¥42,502,800",
+"パターンAと比較: 42.7%削減",
+"年間削減額: ¥31,705,200",
+"提案トーク: 「SKUミックス+Frontlineで年間3000万円以上の削減」"]}]},
+{type:"list",title:"SKU選定ガイド — 用途別推奨",icon:"🎯",items:[
+"Web閲覧・メール・軽量Office → 2vCPU/4GB/64GB(¥5,247) — 最低限の業務に",
+"一般事務(Office全般・Teams会議) → 2vCPU/8GB/128GB(¥7,683) — 最も一般的",
+"Excel大量処理・PowerBI → 4vCPU/16GB/128GB(¥12,368) — データ分析向け",
+"ソフトウェア開発(IDE・コンパイル) → 4vCPU/16GB/256GB(¥13,993) — ストレージ多め",
+"CAD/3Dモデリング → 8vCPU/32GB/512GB(¥24,737) — 最高スペック+GPU検討",
+"RPA開発・実行 → 4vCPU/16GB/128GB(¥12,368) — CPU重視",
+"コールセンター(シフト制) → Frontline 2vCPU/8GB(¥7,683の1/3) — 最大のコスト効果",
+"工場端末(3交代) → Frontline 2vCPU/4GB(¥5,247の1/3) — 最軽量+最安",
+"重要: ユーザーヒアリングシートを作成し、部門ごとの業務内容と必要スペックを事前調査"]},
+{type:"cards",title:"Frontline 深堀り — 最大の武器を使いこなす",icon:"⭐",cards:[
+{title:"Frontlineの仕組み",color:"green",items:[
+"1ライセンス=1 Cloud PC=最大3ユーザーが共有",
+"同時利用は1名のみ(排他制御)",
+"セッション制限: 連続8時間で自動ログオフ(延長不可)",
+"グレースピリオド: ユーザー切替時に最大2時間の猶予",
+"Cloud PCは常時起動(切替が高速=約30秒)",
+"ユーザープロファイル: FSLogixではなくOneDrive KFMで管理",
+"各ユーザーの環境は独立(プロファイル分離)"]},
+{title:"Frontline適用の判断基準",color:"",items:[
+"24時間のうち8時間以内の利用→Frontline候補",
+"2交代制(日勤/夜勤)→1ライセンスで2名、残り1名枠は予備",
+"3交代制(8h×3)→1ライセンスで3名がピッタリ",
+"パート/アルバイト→1日4-6時間勤務ならFrontline最適",
+"注意: 残業で8時間超える場合はEnterprise推奨",
+"注意: 全員が同時間帯に集中する場合はEnterprise必須",
+"コスト計算: Enterprise¥7,683 vs Frontline実質¥2,561(66%削減)"]}]},
+{type:"list",title:"TCO比較の方法論",icon:"📈",items:[
+"TCO(Total Cost of Ownership)= 初期費用 + 運用費 + 隠れコストの総計",
+"物理PCのTCO要素: PC購入費(4年償却)+OS/ソフトライセンス+キッティング人件費+HDD/修理+電力+廃棄費",
+"物理PC隠れコスト: IT部門のヘルプデスク対応(月20時間/100台)+セキュリティパッチ管理+VPN維持+故障対応出張",
+"W365のTCO要素: 月額ライセンス+M365前提ライセンス+ネットワーク帯域(既存でOK)+教育コスト(初回のみ)",
+"3年TCO比較の例(100名): 物理PC=¥150M vs W365(SKUミックス)=¥95M → 36%削減",
+"5年TCO比較の例(100名): 物理PC=¥230M(4年目にリプレース)vs W365=¥158M → 31%削減",
+"ポイント: 月額だけ見ると物理PCが安く見える→TCOで逆転させるのがSEの仕事",
+"提案ツール: Microsoft TCO Calculatorや自社テンプレートを使って試算を可視化"]
+}],
+links:[{title:"W365全SKU価格",url:"https://www.microsoft.com/ja-jp/windows-365/enterprise/all-pricing"}]},
+
+// ═══════════════════════════════════════════════════════
+// Topic 13: AVD アーキテクチャ
+// ═══════════════════════════════════════════════════════
+{id:"avd",title:"AVD アーキテクチャ",week:"Week 7",time:"4h",keyMsg:"セッションホストは顧客Azure内。柔軟だが管理責任も顧客側",content:[
+{type:"cards",title:"構成要素 — 詳細解説",icon:"🏗️",cards:[
+{title:"制御プレーン（MS管理）",color:"",items:[
+"ゲートウェイ: ユーザーからの接続を受け付け、適切なセッションホストにルーティング",
+"接続ブローカー: ユーザーセッションを最適なホストに割り当て(負荷分散)",
+"診断サービス: 接続エラー・パフォーマンス問題を自動収集・分析",
+"Webクライアント: ブラウザ経由のアクセスを提供(インストール不要)",
+"RDP Shortpath: UDP経由の低遅延接続を自動ネゴシエーション",
+"制御プレーンのSLA: 99.9%(Microsoft管理→顧客は気にしなくてOK)",
+"費用: 制御プレーンの利用料は無料(Azure VMの費用のみ)"]},
+{title:"データプレーン（顧客管理）",color:"teal",items:[
+"ホストプール: セッションホストVMの論理的なグループ",
+"セッションホスト: ユーザーが接続するWindows VM(Azure VM)",
+"VNet/サブネット: セッションホストのネットワーク構成",
+"NSG: ネットワークセキュリティグループでトラフィック制御",
+"FSLogix: ユーザープロファイルの外部保存(マルチセッション必須)",
+"Azure Files / NetApp Files: FSLogixプロファイルの保存先",
+"カスタムイメージ: ゴールドイメージの管理(Azure Compute Gallery)",
+"顧客責任: VM稼働・パッチ適用・スケーリング・バックアップ"]},
+{title:"3つのセッション方式",color:"green",items:[
+"マルチセッション: 1VMに複数ユーザー(コスト最適。最大50-75ユーザー/VM)",
+"シングルセッション: 1VM=1ユーザー(専用環境。パフォーマンス保証)",
+"RemoteApp: デスクトップ全体ではなくアプリだけを配信(軽量)",
+"マルチセッション用OS: Windows 11/10 Enterprise Multi-session(AVD専用)",
+"マルチセッションの利点: VMコスト大幅削減(1VM=¥15,000/月で20名利用可能)",
+"シングルセッションの利点: 管理が比較的シンプル、GPU利用可能",
+"RemoteAppの利点: 既存の物理PCにAVDアプリだけ表示→ユーザー体験自然"]}]},
+{type:"flow",title:"ネットワークトポロジー — 接続経路",icon:"🌐",steps:[
+{icon:"👤",label:"ユーザー",desc:"RDクライアント",style:"blue"},
+{icon:"🌍",label:"AVDゲートウェイ",desc:"MS管理(制御プレーン)",style:""},
+{icon:"🔗",label:"VNet",desc:"顧客Azure環境",style:""},
+{icon:"🖥️",label:"セッションホスト",desc:"Windows VM",style:"green"}]},
+{type:"table",title:"ホストプールの種類と設計",icon:"📋",headers:["設定","プールド(共有)","パーソナル(専用)","説明"],rows:[
+["VM割り当て","動的(ログイン時に空きVMを割当)","固定(ユーザーごとに専用VM)","プールドは効率的、パーソナルは専用"],
+["FSLogix","必須(プロファイル分離)","任意(VM内に保存可)","プールドではユーザーデータの分離が必要"],
+["OS","Multi-session推奨","Single-session推奨","プールドはマルチセッションでコスト最適"],
+["スケーリング","Autoscale対応","Autoscale対応(電源管理)","プールドはVM数を需要に応じて自動調整"],
+["イメージ更新","VMを置き換え(プロファイルは外部)","個別にWindows Update","プールドはイメージ更新が容易"],
+["用途","一般業務(コスト重視)","開発/CAD(パフォーマンス重視)","大多数の企業はプールドで十分"],
+["max session limit","推奨: 4-8ユーザー/VM(D4s v5)","1","VMスペックに応じて調整"]]},
+{type:"list",title:"セッションホスト管理のベストプラクティス",icon:"⚙️",items:[
+"ゴールドイメージ管理: Azure Compute GalleryでバージョニングされたOSイメージを管理",
+"イメージ更新フロー: ゴールドイメージ更新→新VMをホストプールに追加→旧VMをドレインモード→ユーザー移行→旧VM削除",
+"パッチ管理: Azure Update Managerまたは手動でWindows Update適用",
+"監視: Azure MonitorのAVD Insightsでセッション数/CPU/メモリ/遅延を可視化",
+"ストレージ: FSLogixプロファイルはAzure Files Premium(SSD)を推奨(IOPS重視)",
+"バックアップ: Azure Backupでセッションホストのスナップショットを取得(ただしプールドではイメージ再作成で対応)",
+"VM SKU推奨: 一般業務 D4s v5(4vCPU/16GB)、開発 D8s v5(8vCPU/32GB)、GPU NV12s v3",
+"コスト最適化: Azure Reserved Instances(1年/3年)で最大60%割引。Spot VMは非推奨(AVDでは安定性が必要)"]},
+{type:"flow",title:"AVD 接続経路の詳細 — 責任分界を意識したフロー",icon:"🔗",steps:[
+{icon:"👤",label:"ユーザー",desc:"RDクライアント/Web",style:"blue"},
+{icon:"🌍",label:"Gateway (MS管理)",desc:"接続受付・ルーティング",style:""},
+{icon:"🔗",label:"Broker (MS管理)",desc:"セッション割当・負荷分散",style:""},
+{icon:"🖥️",label:"Session Host",desc:"顧客Azure VM",style:"green"},
+{icon:"🌐",label:"VNet (顧客管理)",desc:"NW/NSG/サブネット",style:""},
+{icon:"🏢",label:"オンプレ (任意)",desc:"ExpressRoute/VPN",style:""}]},
+{type:"table",title:"AVD 導入の前提要件まとめ",icon:"📋",headers:["要件","詳細","備考"],rows:[
+["Azure サブスクリプション","必須（セッションホストVM を配置）","従量課金"],
+["M365 ライセンス","E3/E5/F1/F3/Business Premium 等","マルチセッション利用権を含む"],
+["Entra ID P1","条件付きアクセスに必要","M365 E3 以上に含む"],
+["Intune","デバイス管理に推奨（必須ではない）","M365 E3 以上に含む"],
+["FSLogix ライセンス","M365 E3/E5/F1/F3 に含む","マルチセッション時に必要"],
+["ネットワーク","VNet + サブネット設計が必要","ExpressRoute/VPN はオプション"]]},
+{type:"cards",title:"Autoscale(自動スケーリング)設定",icon:"📈",cards:[
+{title:"スケーリングプラン",color:"",items:[
+"時間帯ベースでセッションホストの起動/停止を自動制御",
+"ランプアップ(出社時間帯): 7:00-9:00にVMを段階的に起動",
+"ピーク時間: 9:00-18:00に全VMを稼働(負荷分散)",
+"ランプダウン(退社時間帯): 18:00-20:00にVMを段階的にシャットダウン",
+"オフピーク(夜間/休日): 最小限のVMのみ稼働(緊急用)"]},
+{title:"Autoscaleの効果",color:"green",items:[
+"典型的な効果: VMの稼働時間を50-60%削減→Azure VM費用を同率削減",
+"例: 10台のD4s v5 → ピーク10台/オフピーク2台で月額40%削減",
+"深度優先(Depth-first): 既存VMに最大までユーザーを詰めてからVM追加(コスト最適)",
+"幅優先(Breadth-first): ユーザーを均等分散(パフォーマンス最適)",
+"ドレインモード: スケールダウン時に既存セッションは維持→ユーザーログオフ後にVM停止",
+"容量しきい値: CPUやセッション数でVM追加/削除をトリガー"]}]
+}],
+links:[{title:"MS Learn: AVD概要",url:"https://learn.microsoft.com/ja-jp/azure/virtual-desktop/"}]},
+
+// ═══════════════════════════════════════════════════════
+// Topic 14: FSLogix
+// ═══════════════════════════════════════════════════════
+{id:"fsl",title:"FSLogix",week:"Week 7",time:"3h",keyMsg:"AVDマルチセッションではほぼ必須。W365では不要（差別化ポイント）",content:[
+{type:"list",title:"FSLogixの基本概念 — 詳細解説",icon:"📁",items:[
+"FSLogixとは: ユーザープロファイル(デスクトップ・ドキュメント・アプリ設定)をVHD/VHDXファイルに格納するソリューション",
+"動作原理: サインイン時にVHDをマウント→ユーザーには通常のCドライブとして見える→サインアウト時にアンマウント",
+"なぜ必要か: マルチセッションではVMが共有→ユーザーごとのデータを外部に保存して分離する必要がある",
+"プロファイルコンテナ: ユーザープロファイル全体をVHDに格納(推奨方式)",
+"Office 365コンテナ: Outlook OST/Teams/OneDriveキャッシュのみを別VHDに格納(プロファイルと分離)",
+"Cloud Cache: 複数のストレージ先にプロファイルを同時書き込み(高可用性/DR)",
+"ライセンス: M365 E3/E5/F1/F3、またはRDS CALに含まれる(追加費用なし)",
+"W365との違い: W365はCloud PC=専用VM→プロファイルはVM内に保存→FSLogix不要"]},
+{type:"table",title:"ストレージオプション比較",icon:"💾",headers:["ストレージ","IOPS","遅延","コスト","DR","推奨シナリオ"],rows:[
+["Azure Files Standard(HDD)","最大20,000","高(数ms)","最安","GRS対応","小規模/コスト重視"],
+["Azure Files Premium(SSD)","最大100,000","低(1ms以下)","中","LRS/ZRS","一般的な推奨(大多数のケース)"],
+["Azure NetApp Files","最大450,000","超低(0.3ms)","高","CRR対応","大規模/高パフォーマンス要件"],
+["自前ファイルサーバー(VM)","VM依存","低","VM費用+管理費","手動","レガシー環境/特殊要件"]]},
+{type:"list",title:"サイジングガイドライン",icon:"📏",items:[
+"プロファイルサイズ目安: 一般ユーザー 5-10GB、Outlookヘビーユーザー 20-30GB、開発者 10-20GB",
+"IOPS目安: ユーザーあたり10-20 IOPS(サインイン時ピーク: 50+ IOPS)",
+"100ユーザーの例: Azure Files Premium 1TB(プロビジョニング最小)→ 約3,000 IOPS+10GB/ユーザー",
+"ストレージ容量計算: ユーザー数 × 平均プロファイルサイズ × 1.2(バッファ) = 必要容量",
+"Azure Files Premium課金: プロビジョニングした容量に対して課金(使用量ではない)",
+"コスト計算例: Azure Files Premium 1TB = 約¥17,000/月(100ユーザーで¥170/ユーザー/月)",
+"縮小ルール: FSLogixはデフォルトでVHDを自動拡張するが縮小しない→ディスク容量管理が必要",
+"VHDXの最大サイズ: デフォルト30GB。業務要件に応じて変更(GPOまたはレジストリで設定)",
+"バックアップ: Azure Backupまたはスナップショットで定期バックアップ推奨"]},
+{type:"list",title:"トラブルシューティング — よくある問題と対処",icon:"🔧",items:[
+"問題: サインインが遅い(30秒以上) → 原因: ストレージIOPS不足。対処: Azure Files Premium/NetApp Filesに変更",
+"問題: プロファイルが読み込まれない → 原因: VHDのロック(前回のセッションが正常終了していない)。対処: ロックファイル削除+排他ロックの確認",
+"問題: ディスク容量不足 → 原因: VHDXの自動拡張で肥大化。対処: 定期的にVHDXを圧縮するスケジュールタスクを設定",
+"問題: Outlookキャッシュが大きすぎる → 対処: Office 365コンテナを分離してプロファイルとは別のストレージに保存",
+"問題: サインアウト時のプロファイル保存に時間がかかる → 対処: 大きなファイルの排除設定(redirections.xmlで不要フォルダを除外)",
+"問題: Cloud Cacheのレプリケーション遅延 → 対処: プロバイダーの順序を見直し、プライマリストレージを最寄りリージョンに設定",
+"問題: 一時プロファイルでログインしてしまう → 原因: 同一ユーザーが複数セッションに接続。対処: セッション制限+VHDLocationの確認",
+"監視: FSLogixのイベントログ(Applications and Services Logs > Microsoft > FSLogix)で詳細を確認",
+"提案ポイント: 「FSLogixの運用負荷がW365にはない=運用コスト削減の大きな差別化要素」"]
+}],
+links:[{title:"MS Learn: FSLogixとは",url:"https://learn.microsoft.com/ja-jp/fslogix/overview-what-is-fslogix"}]},
+
+// ═══════════════════════════════════════════════════════
+// Topic 15: W365 vs AVD 比較
+// ═══════════════════════════════════════════════════════
+{id:"cmp",title:"W365 vs AVD 比較",week:"Week 8",time:"3h",keyMsg:"SaaSのシンプルさ vs PaaSの柔軟性 — 顧客状況で使い分け",content:[
+{type:"table",title:"W365 vs AVD — 完全比較表",icon:"⚖️",headers:["比較軸","W365（SaaS）","AVD（PaaS）"],rows:[
+["管理ツール","Intune管理センター","Azure Portal + Intune(連携)"],
+["コストモデル","固定月額(予測しやすい)","従量課金(最適化で削減可能)"],
+["セッション方式","シングルのみ(1ユーザー=1 Cloud PC)","マルチ/シングル/RemoteApp"],
+["NW設計","MHNなら設計不要","VNet/NSG/サブネット設計必要"],
+["FSLogix","不要(プロファイルはCloud PC内)","マルチセッションで必須"],
+["スケーリング","なし(固定台数)","Autoscale対応(コスト最適化)"],
+["初期展開","数分(ライセンス割当のみ)","数日〜数週間(インフラ構築)"],
+["カスタムイメージ","対応(Enterprise)","対応(Azure Compute Gallery)"],
+["GPU","限定的(GPU SKUあり)","NV/NCシリーズ対応(柔軟)"],
+["OS更新","自動(Windows Autopatch)","手動 or Azure Update Manager"],
+["SLA","99.9%(Microsoft責任)","99.9%(制御プレーン)※データプレーンは顧客責任"],
+["オンプレ接続","ANC経由","VNet + ExpressRoute/VPN"],
+["運用負荷","低(SaaS型)","中-高(IaaS管理が必要)"],
+["最適対象","運用シンプル化/IT少人数/中小企業","コスト最適化/大規模/GPU/マルチセッション"],
+["Frontline","対応(1:3でコスト削減)","なし(ただしAutoscaleで代替)"],
+["リサイズ","Intune管理センターから即時","VMサイズ変更(再起動必要)"]]},
+{type:"cards",title:"選択フレームワーク — 顧客ヒアリングの5つの質問",icon:"🎯",cards:[
+{title:"ヒアリングポイント",color:"",items:[
+"Q1: IT部門の人数は？ → 少人数(10名以下)ならW365推奨(運用負荷が低い)",
+"Q2: マルチセッションは必要？ → 不要ならW365、必要ならAVD(コスト最適化)",
+"Q3: GPU処理は必要？ → 本格的なGPUならAVD(NV/NCシリーズ)、軽量ならW365 GPU SKU",
+"Q4: コスト予測性 vs 最適化、どちらが重要？ → 予測性→W365固定月額、最適化→AVD従量+Autoscale",
+"Q5: 既存のAzure環境はある？ → あり→AVD追加が容易、なし→W365の方がスタートが速い"]},
+{title:"W365推奨パターン",color:"green",items:[
+"IT部門が少人数(1-5名)の中小企業",
+"運用のシンプルさを最優先する組織",
+"固定月額で予算計画したい(予測可能性)",
+"Autopilot+Intuneで統一管理したい",
+"Frontlineでコスト削減できるシフトワーカーがいる",
+"インフラ管理の専門知識がないIT部門",
+"急いでDaaS導入したい(展開数分)"]},
+{title:"AVD推奨パターン",color:"purple",items:[
+"大規模環境(1000名以上)でコスト最適化が最重要",
+"マルチセッションでVM費用を大幅削減したい",
+"GPU処理(CAD/3D/動画編集)が多い",
+"既にAzure環境があり、VNet/ExpressRouteが構築済み",
+"Azureの運用スキルがあるIT部門",
+"RemoteApp(アプリ配信のみ)が必要",
+"Autoscaleで夜間/休日のコストを最小化したい"]}]},
+{type:"list",title:"ハイブリッド戦略 — W365 + AVD の併用",icon:"🔗",items:[
+"W365とAVDは競合ではなく「補完関係」。併用が最適解になるケースが多い",
+"パターン1: 一般業務→W365 + 専門業務(CAD/GPU)→AVD",
+"パターン2: 固定ユーザー→W365 + 一時利用/プロジェクト→AVD(従量課金)",
+"パターン3: 国内ユーザー→W365 + 海外拠点→AVD(リージョン選択の柔軟性)",
+"パターン4: フルタイム→W365 Enterprise + シフト→W365 Frontline + RemoteApp→AVD",
+"管理の統合: W365もAVDもIntune管理センターで統合管理可能(2024年以降の機能強化)",
+"コスト最適化: W365の固定費でベースライン+AVDの従量で変動需要をカバー",
+"提案トーク: 「W365かAVDかではなく、御社に最適な組み合わせを一緒に設計しましょう」"]},
+{type:"table",title:"コスト比較シナリオ — 100名の場合",icon:"💰",headers:["項目","W365 Enterprise","AVD(マルチセッション)","備考"],rows:[
+["VM/Cloud PC","¥768,300/月","¥450,000/月(D4s v5×10台)","AVDはAutoscale前提"],
+["FSLogix Storage","¥0","¥17,000/月(Azure Files Premium 1TB)","W365は不要"],
+["ネットワーク","¥0(MHN)","¥20,000/月(VNet/帯域)","MHNなら追加なし"],
+["運用人件費","低(¥200,000/月)","高(¥500,000/月)","AVDはインフラ管理が必要"],
+["月額合計","¥968,300","¥987,000","ほぼ同等だが運用負荷が大きく異なる"],
+["年額合計","¥11,619,600","¥11,844,000","運用負荷を含めるとW365有利"],
+["注意","Frontline適用で更に削減可","RI適用で更に削減可","シナリオにより最適解は変わる"]]
+}],
+links:[{title:"MS Learn: W365概要",url:"https://learn.microsoft.com/ja-jp/windows-365/enterprise/overview"}]}
+
+]},
+
+// ═══════════════════════════════════════════════════════
+// Month 3: 提案スキル & 実践
+// ═══════════════════════════════════════════════════════
+{month:3,title:"提案スキル & 実践",color:"#5C2D91",period:"Week 9-12",topics:[
+
+// ═══════════════════════════════════════════════════════
+// Topic 16: SASE & Global Secure Access
+// ═══════════════════════════════════════════════════════
+{id:"sase",title:"SASE & Global Secure Access",week:"Week 9",time:"5h",keyMsg:"VPNをなくせるか？ — SASEの知識が提案の説得力を決める",content:[
+{type:"cards",title:"SASE(サシー)の全体像",icon:"🌐",cards:[
+{title:"SASEとは",color:"purple",items:[
+"Secure Access Service Edge: NW+セキュリティをクラウドに統合",
+"Gartnerが2019年に提唱した概念",
+"SD-WAN: WANの最適化・クラウド直結(ローカルブレイクアウト)",
+"SWG(Secure Web Gateway): Webフィルタリング・マルウェアスキャン",
+"CASB(Cloud Access Security Broker): SaaSアプリの利用制御・シャドーIT検知",
+"ZTNA(Zero Trust Network Access): アプリ単位のリモートアクセス(VPN代替)",
+"FWaaS(Firewall as a Service): クラウド型ファイアウォール",
+"従来: VPN+プロキシ+FW+IPS→バラバラに管理 → SASE: 全てをクラウドで統合"]},
+{title:"Microsoft Global Secure Access",color:"",items:[
+"MicrosoftのSSE(Security Service Edge)ソリューション",
+"Entra Internet Access: インターネットアクセスの保護(SWG機能)",
+"Entra Private Access: オンプレアプリへのZTNA(VPN代替)",
+"Microsoft Trafficプロファイル: M365トラフィックの最適化",
+"ユニバーサルテナント制限: 未承認テナントへのアクセスをブロック",
+"ソースIP復元: テナント制限やCA場所条件でユーザーの実IPを使用",
+"ダッシュボード: アクセスログ・セキュリティイベントを一元表示",
+"Entra IDとの統合: CAポリシーで準拠ネットワークを条件に使用可能"]}]},
+{type:"diagram",title:"SASEの5つの柱 — セキュリティ+ネットワーク統合スタック",icon:"🏛️",pillars:[
+{label:"SWG",color:"#0078D4",desc:"Web保護"},
+{label:"CASB",color:"#5C2D91",desc:"SaaS制御"},
+{label:"ZTNA",color:"#107C10",desc:"VPN代替"},
+{label:"FWaaS",color:"#D83B01",desc:"クラウドFW"},
+{label:"SD-WAN",color:"#008B8B",desc:"WAN最適化"}]},
+{type:"flow",title:"Global Secure Access 接続フロー",icon:"🔄",steps:[
+{icon:"👤",label:"ユーザー",desc:"クライアントアプリ",style:"blue"},
+{icon:"🌐",label:"GSAクライアント",desc:"トラフィック転送",style:""},
+{icon:"🔒",label:"GSAクラウド",desc:"セキュリティ評価",style:""},
+{icon:"☁️",label:"クラウドアプリ",desc:"M365/SaaS",style:"green"}]},
+{type:"cards",title:"VPN置き換えシナリオ — 詳細",icon:"🔑",cards:[
+{title:"従来VPNの課題",color:"red",items:[
+"課題1: トラフィックのボトルネック(全通信がVPN経由→帯域逼迫)",
+"課題2: スプリットトンネリングのセキュリティリスク",
+"課題3: VPN装置の脆弱性が攻撃の入口に(FortiGate/Pulse Secure事例)",
+"課題4: VPN=ネットワーク全体へのアクセス権(過剰な権限)",
+"課題5: リモートワーカー増加でVPNライセンスコストが増大",
+"課題6: VPN接続の遅延がTeams/M365のパフォーマンスに影響",
+"課題7: 拠点追加のたびにVPN設計・構築が必要"]},
+{title:"ZTNA(Entra Private Access)の利点",color:"green",items:[
+"アプリ単位のアクセス制御(NW全体ではなく必要なアプリのみ)",
+"条件付きアクセスと連携(MFA/準拠デバイス/リスクを条件に)",
+"VPN装置不要→脆弱性リスクの排除",
+"ローカルブレイクアウト: M365/SaaSトラフィックはクラウド直結",
+"帯域の効率化: 必要なトラフィックのみGSA経由",
+"ユーザー体験向上: VPN接続操作不要(常時保護)",
+"段階的移行: VPN併用期間を設けて徐々に移行可能"]},
+{title:"W365/AVD + GSAの組合せ",color:"",items:[
+"Cloud PC + GSA = VPN完全撤廃が実現可能",
+"Cloud PCからオンプレアプリへ: GSA Private Accessで安全にアクセス",
+"Cloud PCのインターネットアクセス: GSA Internet Accessで保護",
+"M365トラフィック: GSA Trafficプロファイルで最適化",
+"提案トーク: 「DaaS+SASEでネットワーク変革を一気に実現」",
+"コスト効果: VPN装置撤廃(機器+保守)+ 帯域最適化で年間数百万円削減も",
+"全てEntra管理画面に統合→IT管理のシンプル化"]}]},
+{type:"list",title:"W365/AVDとの統合シナリオ",icon:"🖥️",items:[
+"シナリオ1: W365(MHN) + GSA Internet Access → Cloud PCのWeb閲覧をSWGで保護",
+"シナリオ2: W365(MHN) + GSA Private Access → Cloud PCからオンプレファイルサーバーにZTNA接続",
+"シナリオ3: AVD + GSA → セッションホストからのインターネット/オンプレアクセスを統合保護",
+"シナリオ4: 物理PC + GSA + W365/AVD → 全端末のNWセキュリティを統一",
+"導入順序推奨: まずM365 Trafficプロファイル(リスク低)→次にInternet Access(SWG)→最後にPrivate Access(VPN代替)",
+"条件付きアクセス連携: 「準拠ネットワーク」条件でGSA経由のアクセスのみ許可→VPNバイパスを防止",
+"テナント制限: GSA経由で未承認テナント(個人M365/他社テナント)へのアクセスをブロック",
+"提案のコツ: VPN更新時期が最大のチャンス。「VPN更新の代わりにGSA+W365で次世代NW環境へ」"]
+}],
+links:[{title:"MS: SASEとは",url:"https://www.microsoft.com/ja-jp/security/business/security-101/what-is-sase"},{title:"MS Learn: Global Secure Access",url:"https://learn.microsoft.com/ja-jp/entra/global-secure-access/overview-what-is-global-secure-access"}]},
+
+// ═══════════════════════════════════════════════════════
+// Topic 17: コスト提案の組み立て方
+// ═══════════════════════════════════════════════════════
+{id:"cost",title:"コスト提案の組み立て方",week:"Week 10",time:"3h",keyMsg:"月額比較ではなくTCOで「隠れコスト」を可視化して提案",content:[
+{type:"cards",title:"隠れコストの可視化 — 物理PC vs DaaS",icon:"💰",cards:[
+{title:"物理PCの隠れコスト(年間/100台あたり)",color:"red",items:[
+"PC購入費: ¥15,000,000(¥150,000/台×4年償却=¥3,750,000/年)",
+"OSライセンス: ¥1,500,000/年(Windows E3 ¥1,250/月×100台×12ヶ月)",
+"キッティング人件費: ¥1,500,000/年(1台3時間×¥5,000/時×年25台リプレース)",
+"ヘルプデスク人件費: ¥3,600,000/年(月20件×2時間/件×¥5,000/時×12ヶ月)",
+"セキュリティ管理: ¥2,400,000/年(パッチ管理・EDR運用・インシデント対応)",
+"ハードウェア修理: ¥600,000/年(故障率5%×¥120,000/台)",
+"電力+冷房: ¥360,000/年(¥300/月/台×12ヶ月×100台)",
+"物理セキュリティ: ¥300,000/年(盗難対策・持出管理)",
+"合計: 約¥14,010,000/年(¥140,100/台/年)"]},
+{title:"W365の総コスト(年間/100台あたり)",color:"green",items:[
+"W365ライセンス(SKUミックス): ¥10,800,000/年(平均¥9,000/月/台)",
+"M365 E3前提ライセンス: ¥5,820,000/年(¥4,850/月×100名×12ヶ月)※既存の場合¥0",
+"NW帯域増強: ¥600,000/年(必要に応じて)",
+"教育・移行コスト: ¥500,000(初年度のみ)",
+"運用管理人件費: ¥1,200,000/年(物理PCの1/3)",
+"合計: 約¥12,600,000/年(¥126,000/台/年)※M365既存の場合",
+"物理PC比: 約10%削減 + 運用負荷大幅減",
+"Frontline適用時: 更に20-40%削減可能"]}]},
+{type:"list",title:"TCO計算の方法論 — ステップバイステップ",icon:"📊",items:[
+"Step 1: 現状コストの棚卸し — PC購入費・ライセンス費・人件費・電力費・修理費・VPN費を全て洗い出す",
+"Step 2: 将来コストの予測 — 4年目のPCリプレース費、Windows 11移行費、セキュリティ強化費を含める",
+"Step 3: DaaSコストの算出 — SKUミックス+Frontline+前提ライセンスの有無で試算",
+"Step 4: 3年/5年の比較 — 物理PCは4年目にリプレース再発生→5年比較でDaaS有利が明確に",
+"Step 5: 定性効果の可視化 — 展開速度(数分 vs 数週間)、セキュリティ向上、BCP対応、ユーザー満足度",
+"Step 6: リスクコストの算出 — 情報漏洩時の損害賠償額、業務停止の機会損失を概算で提示",
+"重要: 月額比較だけでは物理PCが安く見える(隠れコストが見えない)→TCOで逆転させる",
+"ツール: Microsoft公式TCO Calculator(azure.microsoft.com/pricing/tco/calculator)を活用"]},
+{type:"cards",title:"提案書テンプレート構成",icon:"📄",cards:[
+{title:"提案書の基本構成(8スライド)",color:"",items:[
+"1. 表紙: 提案タイトル+日付+顧客名",
+"2. エグゼクティブサマリー: 結論を1枚で(TCO削減額/効果)",
+"3. 現状の課題: ヒアリングで把握した課題を整理",
+"4. 提案ソリューション: W365/AVDの概要+構成図",
+"5. TCO比較: 3年/5年の比較表+グラフ",
+"6. セキュリティ効果: ゼロトラストとの整合性",
+"7. 移行計画: フェーズ分け+スケジュール",
+"8. 次のステップ: PoC提案/見積もり依頼"]},
+{title:"効果的な提案のコツ",color:"green",items:[
+"「なぜDaaSか」ではなく「なぜ今DaaSか」を語る",
+"Windows 10 EOS(2025年10月)→PCリプレースのタイミングがチャンス",
+"セキュリティインシデントの事例を添える(同業他社の被害事例)",
+"Frontlineの1:3を計算して見せる(インパクト大)",
+"PoCの提案: 10-20名規模の無料トライアルを提示",
+"競合比較は聞かれたら出す(自分からは出さない)",
+"経営層向け: コスト+セキュリティ、IT部門向け: 運用効率+管理性"]}]},
+{type:"list",title:"顧客の反論に対する切り返し",icon:"💬",items:[
+"「月額が高い」→ 回答: 月額だけではなくTCOで比較。隠れコスト(人件費/修理/電力)を含めると逆転。さらにFrontline適用で大幅削減",
+"「オフラインで使えない」→ 回答: 業務の90%以上はオンラインで完結。残り10%は物理PC併用で対応。W365 Offlineモードも将来対応予定",
+"「パフォーマンスが心配」→ 回答: SKUで柔軟にスペック変更可能。PoCで実際のパフォーマンスを体験してもらう。Teams会議もRDP最適化で快適",
+"「セキュリティは大丈夫？」→ 回答: むしろ向上。データがクラウドに残る/端末紛失時もデータ漏洩なし/ゼロトラスト対応",
+"「移行が大変そう」→ 回答: 段階的に移行可能。まず1部署でPoCし、問題なければ全社展開。Autopilot/Intune活用でIT負荷最小",
+"「既存のVDIがある」→ 回答: VDI更新時期に合わせてW365/AVDに移行。運用コスト削減+最新セキュリティ。Citrixからの移行支援プログラムもある",
+"「クラウド障害が心配」→ 回答: W365のSLA 99.9%。物理PCも故障する(年5%)。BCP観点ではクラウドの方が強固(自動フェイルオーバー)",
+"「社内のファイルサーバーにアクセスできない」→ 回答: ANC構成でオンプレ接続可能。段階的にSharePoint Online/OneDriveに移行するのが理想"]
+}],
+links:[]},
+
+// ═══════════════════════════════════════════════════════
+// Topic 18: 競合比較
+// ═══════════════════════════════════════════════════════
+{id:"comp",title:"競合比較",week:"Week 10",time:"3h",keyMsg:"M365/Intuneとのネイティブ統合がMicrosoft DaaSの最大の武器",content:[
+{type:"table",title:"競合比較表 — 全方位比較",icon:"⚔️",headers:["比較軸","W365/AVD","Amazon WorkSpaces","Citrix DaaS","VMware Horizon Cloud"],rows:[
+["基盤","Azure (Microsoft管理)","AWS","任意のクラウド/オンプレ","任意のクラウド/オンプレ"],
+["M365統合","ネイティブ(最適化済み)","追加設定必要(AD Connector)","追加設定必要","追加設定必要"],
+["管理ツール","Intune(統一)","AWSコンソール(別管理)","Citrix Cloud(別管理)","Horizon Console(別管理)"],
+["マルチセッション","AVD対応(Windows Multi-session)","非対応","対応(別ライセンス)","対応(別ライセンス)"],
+["固定月額","W365対応","Core/Standard","なし(従量のみ)","なし(従量のみ)"],
+["Frontline(1:3)","対応","なし","なし","なし"],
+["認証統合","Entra ID + CA直結","AD Connector経由","SAML/AD連携","SAML/AD連携"],
+["デバイス管理","Intune一元管理","別途MDM必要","別途MDM必要","別途MDM必要"],
+["セキュリティ","Defender/CA/ID Protection統合","GuardDuty(別)","NetScaler(別ライセンス)","Carbon Black(別)"],
+["日本リージョン","東日本/西日本","東京/大阪","顧客選択","顧客選択"],
+["SLA","99.9%(W365)","99.9%","SLAなし(サービスレベル目標)","SLAなし"],
+["ライセンス複雑さ","シンプル(M365に統合)","シンプル","複雑(コンポーネント別)","複雑(Horizon/VMC/SDDC別)"],
+["GPU","W365 GPU SKU/AVD NVシリーズ","NICE DCV対応","対応","対応"],
+["初期費用","なし(月額のみ)","なし","なし(ただしライセンス)","なし(ただしライセンス)"]]},
+{type:"cards",title:"差別化トークポイント — 競合別",icon:"🎯",cards:[
+{title:"vs Amazon WorkSpaces",color:"",items:[
+"「M365をお使いなら、同じMicrosoftのDaaSが最も相性が良い」",
+"「Intuneで物理PCもCloud PCも統一管理。WorkSpacesだと別管理」",
+"「Frontline(1:3)でシフトワーカーのコストを66%削減。WorkSpacesにはない」",
+"「条件付きアクセスで高度なアクセス制御。WorkSpacesだと別途IAM設計」",
+"「TeamsのAVD/W365最適化(GPU offload等)で会議品質が最高」",
+"注意: AWSが強い領域=既存AWS環境が大きい顧客、Linux DaaS需要"]},
+{title:"vs Citrix DaaS",color:"red",items:[
+"「Citrixの機能はAVD+Intune+GSAでほぼカバーできる」",
+"「Citrixライセンス費用(年間¥50,000-80,000/ユーザー)が不要に」",
+"「管理画面がM365に統合→別コンソール不要」",
+"「マルチセッションはAVDでネイティブ対応(Citrix不要)」",
+"「Citrix→AVD移行で年間ライセンスコスト大幅削減」",
+"注意: Citrixが強い領域=超大規模環境(10,000+)、高度なセッション管理、レガシーアプリ"]},
+{title:"vs VMware Horizon",color:"yellow",items:[
+"「BroadcomによるVMware買収後、ライセンス体系が大幅変更→コスト増のリスク」",
+"「VMware依存からの脱却=Microsoft DaaSへの移行がトレンド」",
+"「AVD/W365なら追加のハイパーバイザーライセンス不要」",
+"「Horizon Cloudの将来に不確実性→Microsoft DaaSは安定的な投資」",
+"「Tanzu Labs→AVD移行の事例が増加中」",
+"注意: VMwareが強い領域=既存vSphere環境、オンプレVDI統合"]}]},
+{type:"list",title:"Win/Loss シナリオ — 実践的な競合対策",icon:"🏆",items:[
+"Winシナリオ1: M365 E3/E5を既に使っている企業 → 追加のDaaSライセンスだけで済む。Citrix/VMwareは別途ライセンス費用が発生",
+"Winシナリオ2: シフトワーカーが多い製造業/流通業 → Frontline(1:3)は唯一無二。競合にはない",
+"Winシナリオ3: IT部門が小規模(1-5名) → W365のSaaS運用(Intune管理)が最も負荷が低い。Citrix/VMwareは運用スキル必要",
+"Winシナリオ4: ゼロトラスト推進中の企業 → Entra ID+CA+Intune+Defenderとネイティブ統合。競合は全て別製品を追加購入",
+"Winシナリオ5: VPN更新時期の企業 → GSA(Global Secure Access)+W365でVPN撤廃+DaaS導入を同時提案",
+"Lossリスク1: 既存AWS環境が大きい → WorkSpacesの方がネットワーク的に有利。対策: M365統合の価値を訴求",
+"Lossリスク2: 10,000名超の超大規模 → Citrixの高度なセッション管理/ロードバランシング。対策: AVD+Autoscaleで対抗",
+"Lossリスク3: レガシーアプリ(古いIE/ActiveX)依存 → Citrixのアプリ仮想化。対策: App-V/RemoteApp/Entra Private Accessで代替提案",
+"重要: 競合を「否定」するのではなく、Microsoft DaaSの「優位性」を強調する。顧客は比較表を求めている"]
+}],
+links:[]}
+
+]}
+];
+
+const Q=[
+{id:"q1",cat:"基礎",q:"ゼロトラストの基本原則を3つ挙げてください",h:"明示的に検証/最小特権/侵害前提"},
+{id:"q2",cat:"基礎",q:"条件付きアクセスのシグナル・制御を例で説明",h:"シグナル:場所/デバイス→制御:MFA要求/ブロック"},
+{id:"q3",cat:"基礎",q:"Entra参加とハイブリッドの違いは？",h:"Entra参加=クラウドのみ/ハイブリッド=AD+Entra"},
+{id:"q4",cat:"基礎",q:"コンプライアンスポリシーと構成プロファイルの違い",h:"コンプライアンス=準拠判定/構成=設定値配布"},
+{id:"q5",cat:"基礎",q:"PIMはなぜ必要？",h:"常時Admin廃止→JIT昇格+承認制"},
+{id:"q6",cat:"基礎",q:"SASEとは？VPNと何が違う？",h:"NW+セキュリティのクラウド統合。どこからでもゼロトラスト"},
+{id:"q7",cat:"基礎",q:"MAMはどんなシナリオで使う？",h:"BYODでデバイス管理なしにアプリデータだけ保護"},
+{id:"q8",cat:"専門",q:"W365のBusiness/Enterprise/Frontlineの違い",h:"Business=300名/Enterprise=無制限+M365/Frontline=1:3"},
+{id:"q9",cat:"専門",q:"MHNとANCの違いと選択基準",h:"MHN=MS管理(設計不要)/ANC=顧客VNet(オンプレ時)"},
+{id:"q10",cat:"専門",q:"マルチセッションとシングルセッションの違い",h:"マルチ=1VMに複数(コスト◎)/シングル=1VM1人(専用)"},
+{id:"q11",cat:"専門",q:"FSLogixとは？なぜAVDマルチで必要？",h:"プロファイルをVHD外部保存。VM共有時のデータ分離に必要"},
+{id:"q12",cat:"専門",q:"W365とAVDの責任分界の違いを3つ",h:"VM管理/NW設計/FSLogix"},
+{id:"q13",cat:"専門",q:"RIとは？AVDコスト最適化での活用",h:"1年/3年予約で最大60%引。常時稼働VMに適用"},
+{id:"q14",cat:"専門",q:"Frontlineをどんな顧客に提案？",h:"工場3交代制/CC/店舗。1ライセンス3ユーザーで50%削減"},
+{id:"q15",cat:"提案",q:"製造業500名（工場3交代300名+オフィス200名）への提案は？",h:"工場→FL(100ライセンス)、オフィス→Ent(SKUミックス)"},
+{id:"q16",cat:"提案",q:"「W365は高い」と言われたら？",h:"月額ではなくTCO比較。隠れコスト含めると逆転"},
+{id:"q17",cat:"提案",q:"AVD運用が大変という相談には？",h:"一般業務→W365移行で運用75%削減。AVDは専門用途に特化"},
+{id:"q18",cat:"提案",q:"「オフライン不可は困る」と言われたら？",h:"対象業務特定→大半はオンライン。必要な業務は物理PC併用"},
+{id:"q19",cat:"提案",q:"ゼロトラスト実現にW365/AVDをどう位置づけ？",h:"データがクラウドに留まる+CA+Intune+Defenderで多層防御"},
+{id:"q20",cat:"提案",q:"競合WorkSpacesとの差別化3つ",h:"M365統合/Intune統合管理/Frontline(1:3)"}
+];
+
+let done=JSON.parse(localStorage.getItem("tr_done")||"{}");
+let view="welcome";
+const allT=()=>T.flatMap(m=>m.topics);
+const prog=()=>{const a=allT();return Math.round(a.filter(t=>done[t.id]).length/a.length*100);};
+// save() defined below with lastView persistence
+
+function renderSB(){
+  let h='';
+  T.forEach(m=>{
+    const td=m.topics.filter(t=>done[t.id]).length;
+    h+=`<div class="sb-section"><div class="sb-label" style="color:${m.color}">Month ${m.month}: ${m.title} (${td}/${m.topics.length})</div>`;
+    m.topics.forEach(t=>{
+      h+=`<div class="sb-item ${view===t.id?'active':''} ${done[t.id]?'done':''}" onclick="go('${t.id}')"><span class="check">${done[t.id]?'✅':'○'}</span>${t.title}</div>`;
+    });
+    h+='</div>';
+  });
+  h+=`<div class="sb-section"><div class="sb-label" style="color:#008B8B">ハンズオン Lab</div><div class="sb-item" onclick="window.open('labs/lab1-entra-group.html','_blank')"><span class="check">🧪</span>Lab 1: Entra グループ作成</div><div class="sb-item" onclick="window.open('labs/lab2-conditional-access.html','_blank')"><span class="check">🧪</span>Lab 2: 条件付きアクセス</div><div class="sb-item" onclick="window.open('labs/lab3-intune-compliance.html','_blank')"><span class="check">🧪</span>Lab 3: Intune コンプライアンス</div><div class="sb-item" onclick="window.open('labs/lab4-w365-provisioning.html','_blank')"><span class="check">🧪</span>Lab 4: W365 プロビジョニング</div></div>`;
+  h+=`<div class="sb-section"><div class="sb-label" style="color:#D83B01">卒業テスト</div><div class="sb-item ${view==='quiz'?'active':''}" onclick="goQuiz()">📝 卒業テスト（20問）</div></div>`;
+  document.getElementById('sidebar').innerHTML=h;
+}
+
+function renderMain(){
+  if(view==='welcome') return renderWelcome();
+  if(view==='quiz') return renderQuiz();
+  const t=allT().find(x=>x.id===view);
+  if(!t) return renderWelcome();
+  const m=T.find(x=>x.topics.includes(t));
+  let h=`<div class="topic-view active"><div class="breadcrumb">Month ${m.month}: ${m.title} › ${t.week}</div><div class="topic-title">${t.title}</div><div class="key-msg">${t.keyMsg}</div>`;
+  t.content.forEach(b=>{
+    if(b.type==='list') h+=rList(b);
+    else if(b.type==='cards') h+=rCards(b);
+    else if(b.type==='table') h+=rTable(b);
+    else if(b.type==='flow') h+=rFlow(b);
+    else if(b.type==='diagram') h+=rDiagram(b);
+  });
+  if(t.links&&t.links.length){
+    h+=`<div class="block"><h3><span class="icon">🔗</span>深掘り学習</h3>`;
+    t.links.forEach(l=>{h+=`<a class="link-box" href="${l.url}" target="_blank">📄 ${l.title}</a>`;});
+    h+='</div>';
+  }
+  const all=allT(),idx=all.findIndex(x=>x.id===t.id);
+  h+=`<div class="complete-bar"><button class="btn ${done[t.id]?'btn-outline':'btn-green'}" onclick="toggle('${t.id}')">${done[t.id]?'✅ 完了済み':'☐ 完了にする'}</button><div style="margin-left:auto;display:flex;gap:8px;">${idx>0?`<button class="btn btn-outline" onclick="go('${all[idx-1].id}')">← 前</button>`:''}${idx<all.length-1?`<button class="btn btn-azure" onclick="go('${all[idx+1].id}')">次 →</button>`:''}</div></div>`;
+  h+='</div>';
+  document.getElementById('main').innerHTML=h;
+}
+
+function rList(b){return `<div class="block"><h3><span class="icon">${b.icon||''}</span>${b.title}</h3><ul>${b.items.map(i=>`<li>${e(i)}</li>`).join('')}</ul></div>`;}
+function rCards(b){return `<div class="block"><h3><span class="icon">${b.icon||''}</span>${b.title}</h3><div class="card-grid">${b.cards.map(c=>`<div class="card ${c.color}"><h4>${c.title}</h4><ul>${c.items.map(i=>`<li>${e(i)}</li>`).join('')}</ul></div>`).join('')}</div></div>`;}
+function rTable(b){return `<div class="block"><h3><span class="icon">${b.icon||''}</span>${b.title}</h3><table class="cmp-table"><thead><tr>${b.headers.map(h=>`<th>${e(h)}</th>`).join('')}</tr></thead><tbody>${b.rows.map(r=>`<tr>${r.map((c,i)=>`<td${i===0?' style="font-weight:600;color:var(--fg)"':''}>${e(c)}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;}
+function rFlow(b){return `<div class="block"><h3><span class="icon">${b.icon||''}</span>${b.title}</h3><div class="diagram">${b.steps.map((s,i)=>`${i>0?'<span class="diagram-arrow">→</span>':''}<div class="diagram-step"><div class="diagram-box ${s.style||''}"><div class="d-icon">${s.icon}</div><h5>${s.label}</h5><p>${s.desc}</p></div></div>`).join('')}</div></div>`;}
+function rDiagram(b){return `<div class="block"><h3><span class="icon">${b.icon||''}</span>${b.title}</h3><div class="pillar-row">${b.pillars.map(p=>`<div class="pillar" style="background:${p.color}"><div style="font-size:18px;margin-bottom:2px;">${p.label}</div><div style="font-size:10px;opacity:.85;">${p.desc}</div></div>`).join('')}</div></div>`;}
+
+function renderWelcome(){
+  const p=prog(),all=allT(),d=all.filter(t=>done[t.id]).length;
+  document.getElementById('main').innerHTML=`
+<div class="hero">
+  <h2>Cloud Endpoint SE への道</h2>
+  <p>Windows 365 / AVD の初回提案ができるソリューションエンジニアへ — 3ヶ月の育成プログラム</p>
+  <div class="hero-stat">${d} / ${all.length}</div>
+  <div class="hero-stat-label">トピック完了 (${p}%)</div>
+</div>
+
+<!-- 目的 -->
+<div class="block" style="border-left:3px solid var(--azure);">
+  <h3><span class="icon">🎯</span>本ラーニングパスの目的</h3>
+  <p style="font-size:14px;color:var(--fg-sub);margin-bottom:12px;">
+    Windows 365 および Azure Virtual Desktop（AVD）を中心としたクラウドエンドポイントソリューションを、
+    お客様に対して<b style="color:var(--fg);">自信を持って初回提案</b>できるSE（ソリューションエンジニア）を育成します。
+  </p>
+  <p style="font-size:13px;color:var(--fg-sub);">
+    DaaS/VDI の提案には、製品知識だけでなく、セキュリティ（ゼロトラスト）、ID管理（Entra ID）、
+    デバイス管理（Intune）、ネットワーク（SASE）など幅広い周辺知識が必要です。
+    本プログラムでは、これらの知識を<b style="color:var(--fg);">体系的に・段階的に</b>習得します。
+  </p>
+</div>
+
+<!-- ゴール -->
+<div class="block" style="border-left:3px solid var(--green);">
+  <h3><span class="icon">🏆</span>3ヶ月後のゴール</h3>
+  <ul>
+    <li>W365 と AVD の違い、それぞれの強み・弱みを<b>自分の言葉で</b>お客様に説明できる</li>
+    <li>お客様の環境をヒアリングし、W365 / AVD / 物理PC の<b>最適な組み合わせを提案</b>できる</li>
+    <li>TCO 比較・SKU ミックス・Frontline 活用などの<b>コスト提案</b>ができる</li>
+    <li>ゼロトラスト・SASE・Entra ID・Intune 等の関連ワードを理解し、<b>お客様との会話で使える</b></li>
+    <li>競合（Amazon WorkSpaces / Citrix DaaS）との<b>差別化ポイント</b>を説明できる</li>
+    <li>卒業テスト（20問）に合格し、先輩SE同行で<b>実際の顧客提案に参加</b>できる</li>
+  </ul>
+</div>
+
+<!-- 前提条件 & 対象者 -->
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+  <div class="block" style="border-left:3px solid var(--purple);">
+    <h3><span class="icon">👤</span>対象者</h3>
+    <ul>
+      <li>新入社員（IT基礎知識あり）</li>
+      <li>中途入社（他分野からの転職）</li>
+      <li>W365/AVD 未経験のSE・営業</li>
+      <li>提案スキルを体系的に学び直したい方</li>
+    </ul>
+  </div>
+  <div class="block" style="border-left:3px solid var(--yellow);">
+    <h3><span class="icon">📋</span>前提条件</h3>
+    <ul>
+      <li>基本的なIT用語を理解している（TCP/IP、DNS、AD、VM 等）</li>
+      <li>Windows の基本操作ができる</li>
+      <li>クラウドの概念（IaaS/PaaS/SaaS）を知っている</li>
+      <li style="border-left-color:var(--green);">ゼロトラスト・SASE・Intune 等は未経験でOK（本プログラムで学ぶ）</li>
+    </ul>
+  </div>
+</div>
+
+<!-- 学習の進め方 -->
+<div class="block" style="border-left:3px solid var(--teal);">
+  <h3><span class="icon">📖</span>学習の進め方</h3>
+  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:8px;">
+    <div style="text-align:center;padding:14px 8px;background:var(--azure-light);border-radius:8px;">
+      <div style="font-size:24px;margin-bottom:4px;">📚</div>
+      <div style="font-size:12px;font-weight:600;color:var(--fg);">1. 概要を読む</div>
+      <div style="font-size:11px;color:var(--fg-sub);">各トピック15分で<br>基本概念を理解</div>
+    </div>
+    <div style="text-align:center;padding:14px 8px;background:var(--green-bg);border-radius:8px;">
+      <div style="font-size:24px;margin-bottom:4px;">🔗</div>
+      <div style="font-size:12px;font-weight:600;color:var(--fg);">2. 深掘りリンク</div>
+      <div style="font-size:11px;color:var(--fg-sub);">MS Learn で<br>詳細を学習</div>
+    </div>
+    <div style="text-align:center;padding:14px 8px;background:var(--purple-bg);border-radius:8px;">
+      <div style="font-size:24px;margin-bottom:4px;">✅</div>
+      <div style="font-size:12px;font-weight:600;color:var(--fg);">3. 完了チェック</div>
+      <div style="font-size:11px;color:var(--fg-sub);">理解したら<br>完了ボタンを押す</div>
+    </div>
+    <div style="text-align:center;padding:14px 8px;background:var(--red-bg);border-radius:8px;">
+      <div style="font-size:24px;margin-bottom:4px;">📝</div>
+      <div style="font-size:12px;font-weight:600;color:var(--fg);">4. 卒業テスト</div>
+      <div style="font-size:11px;color:var(--fg-sub);">全20問に挑戦<br>合格で修了</div>
+    </div>
+  </div>
+</div>
+
+<!-- ロードマップ -->
+<div class="block">
+  <h3><span class="icon">🗺️</span>3ヶ月ロードマップ</h3>
+  <div class="month-cards" style="max-width:100%;">
+    ${T.map(m=>{const td=m.topics.filter(t=>done[t.id]).length;const mp=m.topics.length?Math.round(td/m.topics.length*100):0;return `<div class="month-card" onclick="go('${m.topics[0].id}')"><div class="mc-num" style="color:${m.color}">${m.month}</div><h3>Month ${m.month}: ${m.title}</h3><p>${m.period} — ${td}/${m.topics.length} 完了</p><div class="mc-prog"><div class="mc-prog-fill" style="width:${mp}%;background:${m.color}"></div></div></div>`;}).join('')}
+  </div>
+</div>
+
+<!-- 合格基準 -->
+<div class="block" style="border-left:3px solid var(--red);">
+  <h3><span class="icon">🎓</span>卒業テストの合格基準</h3>
+  <ul>
+    <li>基礎知識（Q1-7）: 7問中 <b>5問以上</b>正答</li>
+    <li>専門知識（Q8-14）: 7問中 <b>5問以上</b>正答</li>
+    <li>提案シナリオ（Q15-20）: 先輩SEレビューで<b>「顧客に出せるレベル」</b>の評価</li>
+    <li style="border-left-color:var(--green);">合格後 → 先輩SE同行で<b>実際の顧客提案に参加</b>（OJT フェーズ）</li>
+    <li style="border-left-color:var(--yellow);">不合格 → 該当セクションを1週間復習し再テスト</li>
+  </ul>
+</div>
+`;
+}
+
+function renderQuiz(){
+  let h='<div class="topic-view active"><div class="topic-title">卒業テスト（20問）</div><div class="key-msg">各問1-2文で回答。「ヒント」で参考回答を表示</div>';
+  let lc='';
+  Q.forEach((q,i)=>{
+    if(q.cat!==lc){lc=q.cat;h+=`<div class="section-divider"><h3>${lc==='基礎'?'📘 基礎知識（Q1-7）':lc==='専門'?'📗 専門知識（Q8-14）':'📙 提案シナリオ（Q15-20）'}</h3></div>`;}
+    h+=`<div class="quiz-q ${q.cat==='提案'?'scenario':''}"><h4>Q${i+1}. ${e(q.q)}</h4><textarea class="quiz-answer" placeholder="回答を入力..."></textarea><button class="hint-btn" onclick="this.nextElementSibling.classList.toggle('active')">💡 ヒント</button><div class="quiz-hint">${e(q.h)}</div></div>`;
+  });
+  h+='</div>';
+  document.getElementById('main').innerHTML=h;
+}
+
+function go(id){view=id;save();renderSB();renderMain();upd();window.scrollTo(0,0);}
+function goQuiz(){view='quiz';renderSB();renderMain();window.scrollTo(0,0);}
+function toggle(id){done[id]=!done[id];save();renderSB();renderMain();upd();showSaved();}
+function upd(){const p=prog();document.getElementById('progFill').style.width=p+'%';document.getElementById('progText').textContent=p+'%';}
+function e(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML;}
+
+// Theme switching
+function setTheme(theme){
+  document.documentElement.setAttribute('data-theme',theme);
+  localStorage.setItem('tr_theme',theme);
+  document.querySelectorAll('.theme-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelector(`.${theme}-btn`)?.classList.add('active');
+}
+function initTheme(){
+  const saved=localStorage.getItem('tr_theme')||'dark';
+  setTheme(saved);
+}
+
+// Save indicator
+function showSaved(){
+  const el=document.getElementById('saveInd');
+  el.classList.add('show');
+  setTimeout(()=>el.classList.remove('show'),2000);
+}
+
+// Also save last viewed topic
+function save(){
+  localStorage.setItem("tr_done",JSON.stringify(done));
+  localStorage.setItem("tr_lastView",view);
+}
+
+// Restore last view on load
+function restoreView(){
+  const last=localStorage.getItem("tr_lastView");
+  if(last && last!=='welcome'){
+    if(last==='quiz'){view='quiz';}
+    else if(allT().find(t=>t.id===last)){view=last;}
+  }
+}
+
+initTheme();
+restoreView();
+renderSB();renderMain();upd();
+</script>
+</body>
+</html>
