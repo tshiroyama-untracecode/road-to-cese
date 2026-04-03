@@ -1,0 +1,794 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lab 8: W365 SKU ミックスを設計する（コスト計算演習）</title>
+<style>
+:root{--bg:#1e1e1e;--panel:#252526;--sidebar-bg:#333333;--border:#3e3e3e;--fg:#cccccc;--fg-bright:#ffffff;--fg-muted:#858585;--blue:#0078D4;--blue-hover:#1a8ad4;--blue-bg:rgba(0,120,212,.12);--green:#107C10;--green-bg:rgba(16,124,16,.15);--yellow:#FFB900;--yellow-bg:rgba(255,185,0,.12);--red:#D13438;--input-bg:#3c3c3c;--input-border:#555;--breadcrumb:#858585;--selected-bg:rgba(0,120,212,.15);}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:"Segoe UI","Meiryo UI",system-ui,sans-serif;background:#09090b;color:#a1a1a1;line-height:1.5;}
+
+/* Layout */
+.lab-layout{display:flex;height:100vh;}
+
+/* Left: Instructions */
+.instructions{width:380px;background:#18181b;border-right:1px solid #27272a;display:flex;flex-direction:column;flex-shrink:0;}
+.inst-header{padding:16px 20px;border-bottom:1px solid #27272a;background:#09090b;}
+.inst-header h1{font-size:15px;color:#fff;font-weight:600;}
+.inst-header .lab-badge{display:inline-block;background:var(--blue-bg);color:var(--blue);font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;margin-left:8px;}
+.inst-body{flex:1;overflow-y:auto;padding:20px;}
+.inst-body .back-link{display:inline-flex;align-items:center;gap:4px;font-size:12px;color:var(--blue);text-decoration:none;margin-bottom:12px;}
+.inst-body .back-link:hover{text-decoration:underline;}
+.inst-body h2{font-size:18px;color:#fff;margin-bottom:6px;}
+.inst-body .subtitle{font-size:13px;color:#858585;margin-bottom:16px;}
+
+/* Steps */
+.step{padding:14px 16px;margin-bottom:8px;border-radius:8px;border:1px solid #27272a;cursor:pointer;transition:all .15s;position:relative;}
+.step:hover{border-color:#3f3f46;}
+.step.active{border-color:var(--blue);background:var(--blue-bg);}
+.step.completed{border-color:rgba(16,124,16,.5);background:var(--green-bg);}
+.step-num{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;font-size:11px;font-weight:700;margin-right:8px;flex-shrink:0;}
+.step:not(.completed) .step-num{background:#27272a;color:#a1a1a1;}
+.step.completed .step-num{background:var(--green);color:#fff;}
+.step-title{font-size:13px;font-weight:600;color:#e4e4e7;}
+.step-desc{font-size:12px;color:#858585;margin-top:4px;margin-left:30px;}
+.step-hint{display:none;margin-top:8px;margin-left:30px;padding:8px 12px;background:rgba(255,185,0,.08);border:1px solid rgba(255,185,0,.2);border-radius:6px;font-size:11px;color:var(--yellow);}
+.step.active .step-hint{display:block;}
+
+/* Progress */
+.progress-bar{margin:16px 0;height:4px;background:#27272a;border-radius:2px;overflow:hidden;}
+.progress-fill{height:100%;background:var(--green);transition:width .3s;border-radius:2px;}
+
+/* Completion */
+.completion{display:none;text-align:center;padding:24px;background:var(--green-bg);border:1px solid rgba(16,124,16,.3);border-radius:12px;margin-top:16px;}
+.completion.show{display:block;}
+.completion h3{color:var(--green);font-size:16px;margin-bottom:4px;}
+.completion p{font-size:12px;color:#a1a1a1;}
+
+/* Right: Calculator Panel */
+.simulator{flex:1;display:flex;flex-direction:column;background:var(--bg);overflow:hidden;}
+
+/* Top bar */
+.calc-bar{display:flex;align-items:center;padding:10px 20px;background:#1b1b1f;border-bottom:1px solid var(--border);gap:12px;}
+.calc-bar .bar-logo{font-size:14px;font-weight:700;color:var(--blue);}
+.calc-bar .bar-title{font-size:13px;color:var(--fg-muted);margin-left:4px;}
+.calc-bar .bar-right{margin-left:auto;display:flex;align-items:center;gap:12px;font-size:12px;color:var(--fg-muted);}
+
+/* Calculator content */
+.calc-content{flex:1;overflow-y:auto;padding:24px 28px 120px;}
+
+/* Scenario card */
+.scenario-card{background:linear-gradient(135deg,#1a2744 0%,#0d1b36 100%);border:1px solid rgba(0,120,212,.3);border-radius:12px;padding:20px 24px;margin-bottom:24px;position:relative;overflow:hidden;}
+.scenario-card::before{content:'';position:absolute;top:0;right:0;width:180px;height:100%;background:linear-gradient(135deg,transparent 40%,rgba(0,120,212,.08) 100%);pointer-events:none;}
+.scenario-card h3{font-size:16px;color:var(--fg-bright);margin-bottom:8px;display:flex;align-items:center;gap:8px;}
+.scenario-card .sc-badge{display:inline-block;background:var(--blue);color:#fff;font-size:10px;font-weight:700;padding:2px 10px;border-radius:10px;}
+.scenario-details{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:12px;}
+.scenario-detail{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:12px;text-align:center;}
+.scenario-detail .sd-num{font-size:22px;font-weight:700;color:var(--fg-bright);}
+.scenario-detail .sd-label{font-size:11px;color:var(--fg-muted);margin-top:2px;}
+
+/* Category cards */
+.category-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:24px;}
+.cat-card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:0;overflow:hidden;transition:border-color .2s;}
+.cat-card:hover{border-color:rgba(255,255,255,.15);}
+.cat-card.card-office{border-top:3px solid var(--blue);}
+.cat-card.card-power{border-top:3px solid var(--yellow);}
+.cat-card.card-factory{border-top:3px solid var(--green);}
+.cat-header{padding:16px 18px 8px;display:flex;align-items:center;gap:10px;}
+.cat-icon{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;}
+.card-office .cat-icon{background:var(--blue-bg);}
+.card-power .cat-icon{background:var(--yellow-bg);}
+.card-factory .cat-icon{background:var(--green-bg);}
+.cat-title-wrap h4{font-size:13px;color:var(--fg-bright);font-weight:600;}
+.cat-title-wrap .cat-sub{font-size:10px;color:var(--fg-muted);}
+.cat-body{padding:8px 18px 18px;}
+.cat-field{margin-bottom:14px;}
+.cat-field label{display:block;font-size:11px;font-weight:600;color:var(--fg-muted);margin-bottom:5px;text-transform:uppercase;letter-spacing:.3px;}
+.cat-slider-row{display:flex;align-items:center;gap:10px;}
+.cat-slider{flex:1;-webkit-appearance:none;appearance:none;height:6px;border-radius:3px;background:#3c3c3c;outline:none;cursor:pointer;}
+.cat-slider::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:18px;height:18px;border-radius:50%;cursor:pointer;border:2px solid #fff;box-shadow:0 0 6px rgba(0,0,0,.4);}
+.card-office .cat-slider::-webkit-slider-thumb{background:var(--blue);}
+.card-power .cat-slider::-webkit-slider-thumb{background:var(--yellow);}
+.card-factory .cat-slider::-webkit-slider-thumb{background:var(--green);}
+.cat-slider::-moz-range-thumb{width:18px;height:18px;border-radius:50%;cursor:pointer;border:2px solid #fff;box-shadow:0 0 6px rgba(0,0,0,.4);}
+.card-office .cat-slider::-moz-range-thumb{background:var(--blue);}
+.card-power .cat-slider::-moz-range-thumb{background:var(--yellow);}
+.card-factory .cat-slider::-moz-range-thumb{background:var(--green);}
+.slider-val{min-width:42px;text-align:right;font-size:16px;font-weight:700;color:var(--fg-bright);}
+.cat-select{width:100%;padding:8px 10px;background:var(--input-bg);border:1px solid var(--input-border);border-radius:6px;color:var(--fg-bright);font-size:12px;font-family:inherit;cursor:pointer;}
+.cat-select:focus{outline:none;border-color:var(--blue);}
+.frontline-note{font-size:11px;color:var(--yellow);background:var(--yellow-bg);border:1px solid rgba(255,185,0,.2);border-radius:6px;padding:8px 10px;margin-top:6px;line-height:1.4;}
+.cat-cost-box{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);border-radius:8px;padding:12px;text-align:center;margin-top:4px;}
+.cat-cost-label{font-size:10px;color:var(--fg-muted);text-transform:uppercase;letter-spacing:.3px;}
+.cat-cost-val{font-size:20px;font-weight:700;margin-top:2px;}
+.card-office .cat-cost-val{color:var(--blue);}
+.card-power .cat-cost-val{color:var(--yellow);}
+.card-factory .cat-cost-val{color:var(--green);}
+.cat-cost-detail{font-size:10px;color:var(--fg-muted);margin-top:2px;}
+
+/* Comparison section */
+.comparison-section{margin-top:8px;}
+.comp-title{font-size:15px;color:var(--fg-bright);font-weight:600;margin-bottom:14px;display:flex;align-items:center;gap:8px;}
+.comp-grid{display:grid;grid-template-columns:1fr 60px 1fr;gap:0;align-items:stretch;}
+.comp-box{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:18px 20px;}
+.comp-box.physical{border-top:3px solid var(--red);}
+.comp-box.w365{border-top:3px solid var(--green);}
+.comp-box h5{font-size:12px;font-weight:700;color:var(--fg-muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;}
+.comp-total{font-size:22px;font-weight:700;margin-bottom:4px;}
+.comp-box.physical .comp-total{color:var(--red);}
+.comp-box.w365 .comp-total{color:var(--green);}
+.comp-per-user{font-size:11px;color:var(--fg-muted);}
+.comp-breakdown{margin-top:12px;border-top:1px solid var(--border);padding-top:10px;}
+.comp-line{display:flex;justify-content:space-between;align-items:center;font-size:11px;padding:3px 0;color:var(--fg);}
+.comp-line .cl-label{color:var(--fg-muted);}
+.comp-vs{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;}
+.comp-vs-text{font-size:10px;color:var(--fg-muted);font-weight:600;text-transform:uppercase;}
+.comp-vs-icon{font-size:24px;}
+
+/* Savings banner */
+.savings-banner{margin-top:16px;border-radius:12px;padding:16px 20px;display:flex;align-items:center;justify-content:space-between;transition:all .3s;}
+.savings-banner.positive{background:var(--green-bg);border:1px solid rgba(16,124,16,.3);}
+.savings-banner.negative{background:rgba(209,52,56,.1);border:1px solid rgba(209,52,56,.3);}
+.savings-left h4{font-size:14px;font-weight:600;}
+.savings-banner.positive .savings-left h4{color:var(--green);}
+.savings-banner.negative .savings-left h4{color:var(--red);}
+.savings-left p{font-size:11px;color:var(--fg-muted);margin-top:2px;}
+.savings-right{text-align:right;}
+.savings-amount{font-size:24px;font-weight:700;}
+.savings-banner.positive .savings-amount{color:var(--green);}
+.savings-banner.negative .savings-amount{color:var(--red);}
+.savings-pct{font-size:13px;font-weight:600;margin-top:2px;}
+.savings-banner.positive .savings-pct{color:var(--green);}
+.savings-banner.negative .savings-pct{color:var(--red);}
+
+/* Summary table */
+.summary-table-wrap{margin-top:20px;background:var(--panel);border:1px solid var(--border);border-radius:12px;overflow:hidden;}
+.summary-table{width:100%;border-collapse:collapse;font-size:12px;}
+.summary-table th{text-align:left;padding:10px 16px;color:var(--fg-muted);font-weight:600;border-bottom:1px solid var(--border);background:rgba(255,255,255,.02);font-size:11px;text-transform:uppercase;letter-spacing:.3px;}
+.summary-table td{padding:10px 16px;border-bottom:1px solid var(--border);color:var(--fg);}
+.summary-table tr:last-child td{border-bottom:none;}
+.summary-table .row-total{background:rgba(0,120,212,.05);}
+.summary-table .row-total td{font-weight:700;color:var(--fg-bright);}
+
+/* Live cost bar (fixed bottom) */
+.live-bar{position:fixed;bottom:0;right:0;left:380px;background:linear-gradient(180deg,rgba(27,27,31,0) 0%,#1b1b1f 15%,#1b1b1f 100%);padding:16px 28px 16px;border-top:1px solid var(--border);z-index:50;}
+.live-bar-inner{display:flex;align-items:center;gap:20px;background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:12px 20px;}
+.lb-item{display:flex;flex-direction:column;align-items:center;}
+.lb-item .lb-label{font-size:10px;color:var(--fg-muted);text-transform:uppercase;letter-spacing:.3px;white-space:nowrap;}
+.lb-item .lb-val{font-size:18px;font-weight:700;color:var(--fg-bright);white-space:nowrap;}
+.lb-sep{width:1px;height:32px;background:var(--border);}
+.lb-savings{margin-left:auto;display:flex;align-items:center;gap:10px;}
+.lb-savings-badge{padding:4px 14px;border-radius:20px;font-size:13px;font-weight:700;}
+.lb-savings-badge.positive{background:var(--green-bg);color:var(--green);border:1px solid rgba(16,124,16,.3);}
+.lb-savings-badge.negative{background:rgba(209,52,56,.1);color:var(--red);border:1px solid rgba(209,52,56,.3);}
+
+/* Chart bars */
+.chart-bars{display:flex;align-items:flex-end;gap:24px;justify-content:center;margin:16px 0 8px;height:120px;}
+.chart-col{display:flex;flex-direction:column;align-items:center;gap:6px;width:120px;}
+.chart-bar-wrap{width:80px;display:flex;align-items:flex-end;height:100px;}
+.chart-bar{width:100%;border-radius:6px 6px 0 0;transition:height .4s ease;min-height:4px;}
+.chart-bar.bar-physical{background:linear-gradient(180deg,var(--red),#8a1f22);}
+.chart-bar.bar-w365{background:linear-gradient(180deg,var(--green),#0a5a0a);}
+.chart-label{font-size:10px;color:var(--fg-muted);text-align:center;}
+.chart-value{font-size:13px;font-weight:700;text-align:center;}
+
+/* Toast */
+.toast{position:fixed;bottom:80px;right:20px;padding:12px 20px;background:var(--green);color:#fff;border-radius:8px;font-size:13px;font-weight:600;z-index:100;display:none;animation:slideUp .3s;}
+.toast.show{display:block;}
+@keyframes slideUp{from{transform:translateY(20px);opacity:0;}to{transform:translateY(0);opacity:1;}}
+
+/* Responsive */
+@media(max-width:1100px){.category-cards{grid-template-columns:1fr;}}
+@media(max-width:900px){.instructions{width:100%;position:fixed;bottom:0;height:40vh;z-index:20;border-top:1px solid #27272a;border-right:none;}.simulator{height:60vh;}.live-bar{left:0;}}
+</style>
+</head>
+<body>
+
+<div class="lab-layout">
+  <!-- Instructions Panel (Left) -->
+  <div class="instructions">
+    <div class="inst-header">
+      <h1>Lab 8 <span class="lab-badge">コスト計算演習</span></h1>
+    </div>
+    <div class="inst-body">
+      <a class="back-link" href="../index.html">&larr; トレーニングに戻る</a>
+      <h2>W365 SKU ミックスを設計する</h2>
+      <p class="subtitle">製造業500名のお客様に最適な SKU 構成を設計し、物理 PC との TCO 比較を行います。所要時間: 約15分</p>
+
+      <div class="progress-bar"><div class="progress-fill" id="labProgress" style="width:0%"></div></div>
+
+      <div class="step active" id="step1" onclick="goStep(1)">
+        <span class="step-num">1</span>
+        <span class="step-title">シナリオを確認</span>
+        <div class="step-desc">お客様情報を確認: 製造業500名、オフィス300名+工場200名（3交代制）</div>
+        <div class="step-hint">&#128161; ヒント: 右パネル上部のシナリオカードの「確認しました」ボタンをクリック</div>
+      </div>
+
+      <div class="step" id="step2" onclick="goStep(2)">
+        <span class="step-num">2</span>
+        <span class="step-title">オフィスユーザーを分類</span>
+        <div class="step-desc">一般事務 (70%) とパワーユーザー (30%) にスライダーで分ける</div>
+        <div class="step-hint">&#128161; ヒント: 一般事務を210名、パワーユーザーを90名に設定してください</div>
+      </div>
+
+      <div class="step" id="step3" onclick="goStep(3)">
+        <span class="step-num">3</span>
+        <span class="step-title">オフィスユーザーの SKU を選択</span>
+        <div class="step-desc">一般: 2vCPU/8GB (&#165;7,683)、パワー: 4vCPU/16GB (&#165;12,368)</div>
+        <div class="step-hint">&#128161; ヒント: 各カードのドロップダウンから適切な SKU を選択してください</div>
+      </div>
+
+      <div class="step" id="step4" onclick="goStep(4)">
+        <span class="step-num">4</span>
+        <span class="step-title">工場ユーザーに Frontline を適用</span>
+        <div class="step-desc">200名 &divide; 3交代 = 67ライセンス。SKU: 2vCPU/4GB (&#165;5,247)</div>
+        <div class="step-hint">&#128161; ヒント: 工場カードで人数を200名に設定し、Frontline SKU を選択</div>
+      </div>
+
+      <div class="step" id="step5" onclick="goStep(5)">
+        <span class="step-num">5</span>
+        <span class="step-title">月額コストを計算</span>
+        <div class="step-desc">各カテゴリの合計を確認して月額総コストを算出</div>
+        <div class="step-hint">&#128161; ヒント: 全カテゴリの設定が完了すると自動計算されます</div>
+      </div>
+
+      <div class="step" id="step6" onclick="goStep(6)">
+        <span class="step-num">6</span>
+        <span class="step-title">物理 PC の TCO と比較</span>
+        <div class="step-desc">隠れコストを含めた物理 PC との比較を表示</div>
+        <div class="step-hint">&#128161; ヒント: 比較セクションで物理 PC との差額と削減率を確認しましょう</div>
+      </div>
+
+      <div class="completion" id="completion">
+        <h3>&#127881; Lab 8 完了！</h3>
+        <p>SKU ミックスの設計とコスト比較が完了しました。<br>Frontline ライセンスの活用で大幅なコスト削減を実現できることを確認できました。</p>
+        <p style="margin-top:8px;"><a class="back-link" href="../index.html">&larr; トレーニングに戻る</a></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Calculator Panel (Right) -->
+  <div class="simulator">
+    <!-- Top bar -->
+    <div class="calc-bar">
+      <span class="bar-logo">W365 SKU Mix Designer</span>
+      <span class="bar-title">&#8212; コスト最適化シミュレーション</span>
+      <div class="bar-right">
+        <span>&#128200; リアルタイム計算</span>
+      </div>
+    </div>
+
+    <!-- Calculator Content -->
+    <div class="calc-content">
+
+      <!-- Scenario Card -->
+      <div class="scenario-card" id="scenarioCard">
+        <h3><span class="sc-badge">SCENARIO</span> お客様シナリオ</h3>
+        <p style="font-size:13px;color:var(--fg);margin-bottom:4px;">業種: <strong style="color:var(--fg-bright);">製造業</strong> &#160;|&#160; 従業員: <strong style="color:var(--fg-bright);">500名</strong> &#160;|&#160; 現行: 物理PC <strong style="color:var(--fg-bright);">&#165;180,000/台</strong></p>
+        <div class="scenario-details">
+          <div class="scenario-detail">
+            <div class="sd-num">300</div>
+            <div class="sd-label">オフィスワーカー</div>
+          </div>
+          <div class="scenario-detail">
+            <div class="sd-num">200</div>
+            <div class="sd-label">工場スタッフ (3交代制)</div>
+          </div>
+          <div class="scenario-detail">
+            <div class="sd-num">&#165;180,000</div>
+            <div class="sd-label">現行PC単価 (物理)</div>
+          </div>
+        </div>
+        <div style="text-align:center;margin-top:14px;">
+          <button class="az-btn primary" id="btnConfirmScenario" onclick="confirmScenario()" style="padding:8px 28px;font-size:13px;border-radius:8px;">シナリオを確認しました</button>
+        </div>
+      </div>
+
+      <!-- Category Cards -->
+      <div class="category-cards">
+        <!-- Card 1: Office General -->
+        <div class="cat-card card-office">
+          <div class="cat-header">
+            <div class="cat-icon">&#128187;</div>
+            <div class="cat-title-wrap">
+              <h4>オフィス一般</h4>
+              <div class="cat-sub">一般事務・メール・Office利用</div>
+            </div>
+          </div>
+          <div class="cat-body">
+            <div class="cat-field">
+              <label>ユーザー数</label>
+              <div class="cat-slider-row">
+                <input type="range" class="cat-slider" id="sliderOffice" min="0" max="300" value="0" oninput="updateOffice()">
+                <span class="slider-val" id="valOffice">0</span>
+              </div>
+            </div>
+            <div class="cat-field">
+              <label>SKU 選択</label>
+              <select class="cat-select" id="skuOffice" onchange="updateOffice()">
+                <option value="">-- SKU を選択 --</option>
+                <option value="4588">2vCPU / 4GB / 128GB - &#165;4,588</option>
+                <option value="7683">2vCPU / 8GB / 128GB - &#165;7,683</option>
+                <option value="12368">4vCPU / 16GB / 128GB - &#165;12,368</option>
+                <option value="17054">8vCPU / 32GB / 128GB - &#165;17,054</option>
+              </select>
+            </div>
+            <div class="cat-cost-box">
+              <div class="cat-cost-label">月額コスト</div>
+              <div class="cat-cost-val" id="costOffice">&#165;0</div>
+              <div class="cat-cost-detail" id="detailOffice">0名 &times; &#165;0</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 2: Office Power -->
+        <div class="cat-card card-power">
+          <div class="cat-header">
+            <div class="cat-icon">&#9889;</div>
+            <div class="cat-title-wrap">
+              <h4>オフィスパワー</h4>
+              <div class="cat-sub">開発・設計・データ分析</div>
+            </div>
+          </div>
+          <div class="cat-body">
+            <div class="cat-field">
+              <label>ユーザー数</label>
+              <div class="cat-slider-row">
+                <input type="range" class="cat-slider" id="sliderPower" min="0" max="300" value="0" oninput="updatePower()">
+                <span class="slider-val" id="valPower">0</span>
+              </div>
+            </div>
+            <div class="cat-field">
+              <label>SKU 選択</label>
+              <select class="cat-select" id="skuPower" onchange="updatePower()">
+                <option value="">-- SKU を選択 --</option>
+                <option value="7683">2vCPU / 8GB / 128GB - &#165;7,683</option>
+                <option value="12368">4vCPU / 16GB / 128GB - &#165;12,368</option>
+                <option value="17054">8vCPU / 32GB / 128GB - &#165;17,054</option>
+                <option value="24438">8vCPU / 32GB / 512GB - &#165;24,438</option>
+              </select>
+            </div>
+            <div class="cat-cost-box">
+              <div class="cat-cost-label">月額コスト</div>
+              <div class="cat-cost-val" id="costPower">&#165;0</div>
+              <div class="cat-cost-detail" id="detailPower">0名 &times; &#165;0</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 3: Factory Frontline -->
+        <div class="cat-card card-factory">
+          <div class="cat-header">
+            <div class="cat-icon">&#127981;</div>
+            <div class="cat-title-wrap">
+              <h4>工場 Frontline</h4>
+              <div class="cat-sub">3交代制・共有デバイス利用</div>
+            </div>
+          </div>
+          <div class="cat-body">
+            <div class="cat-field">
+              <label>ワーカー数 (実人数)</label>
+              <div class="cat-slider-row">
+                <input type="range" class="cat-slider" id="sliderFactory" min="0" max="300" value="0" oninput="updateFactory()">
+                <span class="slider-val" id="valFactory">0</span>
+              </div>
+            </div>
+            <div class="frontline-note" id="frontlineNote">
+              &#9660; Frontline: <strong><span id="flLicenses">0</span> ライセンス</strong>が必要 (<span id="flWorkers">0</span>名 &divide; 3交代 = <span id="flCalc">0</span>、切り上げ)
+            </div>
+            <div class="cat-field" style="margin-top:12px;">
+              <label>SKU 選択 (Frontline)</label>
+              <select class="cat-select" id="skuFactory" onchange="updateFactory()">
+                <option value="">-- SKU を選択 --</option>
+                <option value="5247">2vCPU / 4GB / 128GB - &#165;5,247</option>
+                <option value="7683">2vCPU / 8GB / 128GB - &#165;7,683</option>
+                <option value="10370">4vCPU / 16GB / 128GB - &#165;10,370</option>
+              </select>
+            </div>
+            <div class="cat-cost-box">
+              <div class="cat-cost-label">月額コスト</div>
+              <div class="cat-cost-val" id="costFactory">&#165;0</div>
+              <div class="cat-cost-detail" id="detailFactory">0 ライセンス &times; &#165;0</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Comparison Section -->
+      <div class="comparison-section" id="compSection">
+        <div class="comp-title">&#128202; TCO 比較: 物理 PC vs Windows 365</div>
+
+        <!-- Chart bars -->
+        <div class="chart-bars">
+          <div class="chart-col">
+            <div class="chart-value" id="chartPhysicalVal" style="color:var(--red);">&#165;0</div>
+            <div class="chart-bar-wrap">
+              <div class="chart-bar bar-physical" id="barPhysical" style="height:0px;"></div>
+            </div>
+            <div class="chart-label">物理 PC<br>(月額換算)</div>
+          </div>
+          <div class="chart-col">
+            <div class="chart-value" id="chartW365Val" style="color:var(--green);">&#165;0</div>
+            <div class="chart-bar-wrap">
+              <div class="chart-bar bar-w365" id="barW365" style="height:0px;"></div>
+            </div>
+            <div class="chart-label">Windows 365<br>(SKU ミックス)</div>
+          </div>
+        </div>
+
+        <!-- Side-by-side comparison -->
+        <div class="comp-grid">
+          <!-- Physical PC -->
+          <div class="comp-box physical">
+            <h5>&#128187; 物理 PC (月額換算 TCO)</h5>
+            <div class="comp-total" id="physicalTotal">&#165;0</div>
+            <div class="comp-per-user">500名 &times; &#165;7,778/user/月</div>
+            <div class="comp-breakdown">
+              <div class="comp-line"><span class="cl-label">ハードウェア償却 (&#165;180,000&divide;46ヶ月)</span><span>&#165;3,917</span></div>
+              <div class="comp-line"><span class="cl-label">IT運用管理コスト</span><span>&#165;1,528</span></div>
+              <div class="comp-line"><span class="cl-label">ヘルプデスク対応</span><span>&#165;583</span></div>
+              <div class="comp-line"><span class="cl-label">セキュリティ対策</span><span>&#165;1,450</span></div>
+              <div class="comp-line"><span class="cl-label">電力コスト</span><span>&#165;300</span></div>
+              <div class="comp-line" style="border-top:1px solid var(--border);padding-top:6px;margin-top:4px;font-weight:700;color:var(--fg-bright);"><span>合計/user/月</span><span>&#165;7,778</span></div>
+            </div>
+          </div>
+
+          <!-- VS -->
+          <div class="comp-vs">
+            <div class="comp-vs-text">VS</div>
+            <div class="comp-vs-icon" id="vsIcon">&#8596;</div>
+          </div>
+
+          <!-- W365 -->
+          <div class="comp-box w365">
+            <h5>&#9729; Windows 365 (SKU ミックス)</h5>
+            <div class="comp-total" id="w365Total">&#165;0</div>
+            <div class="comp-per-user" id="w365PerUser">平均 &#165;0/user/月</div>
+            <div class="comp-breakdown" id="w365Breakdown">
+              <div class="comp-line"><span class="cl-label">一般オフィス</span><span id="brkOffice">&#165;0</span></div>
+              <div class="comp-line"><span class="cl-label">パワーユーザー</span><span id="brkPower">&#165;0</span></div>
+              <div class="comp-line"><span class="cl-label">工場 Frontline</span><span id="brkFactory">&#165;0</span></div>
+              <div class="comp-line" style="border-top:1px solid var(--border);padding-top:6px;margin-top:4px;font-weight:700;color:var(--fg-bright);"><span>合計/月</span><span id="brkTotal">&#165;0</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Savings banner -->
+        <div class="savings-banner positive" id="savingsBanner">
+          <div class="savings-left">
+            <h4 id="savingsTitle">コスト削減</h4>
+            <p id="savingsDesc">W365 SKU ミックスによる月額削減額</p>
+          </div>
+          <div class="savings-right">
+            <div class="savings-amount" id="savingsAmount">&#165;0</div>
+            <div class="savings-pct" id="savingsPct">0% 削減</div>
+          </div>
+        </div>
+
+        <!-- Summary table -->
+        <div class="summary-table-wrap" id="summaryTable" style="margin-top:20px;">
+          <table class="summary-table">
+            <thead>
+              <tr>
+                <th>カテゴリ</th>
+                <th>ユーザー数</th>
+                <th>ライセンス数</th>
+                <th>SKU</th>
+                <th>単価/月</th>
+                <th>小計/月</th>
+              </tr>
+            </thead>
+            <tbody id="summaryBody">
+              <tr>
+                <td>オフィス一般</td>
+                <td id="sumOfficeUsers">-</td>
+                <td id="sumOfficeLic">-</td>
+                <td id="sumOfficeSku">-</td>
+                <td id="sumOfficePrice">-</td>
+                <td id="sumOfficeSub">-</td>
+              </tr>
+              <tr>
+                <td>オフィスパワー</td>
+                <td id="sumPowerUsers">-</td>
+                <td id="sumPowerLic">-</td>
+                <td id="sumPowerSku">-</td>
+                <td id="sumPowerPrice">-</td>
+                <td id="sumPowerSub">-</td>
+              </tr>
+              <tr>
+                <td>工場 Frontline</td>
+                <td id="sumFactoryUsers">-</td>
+                <td id="sumFactoryLic">-</td>
+                <td id="sumFactorySku">-</td>
+                <td id="sumFactoryPrice">-</td>
+                <td id="sumFactorySub">-</td>
+              </tr>
+              <tr class="row-total">
+                <td>合計</td>
+                <td id="sumTotalUsers">-</td>
+                <td id="sumTotalLic">-</td>
+                <td>-</td>
+                <td id="sumTotalAvg">-</td>
+                <td id="sumTotalSub">-</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div><!-- /calc-content -->
+
+    <!-- Live cost bar (fixed bottom) -->
+    <div class="live-bar">
+      <div class="live-bar-inner">
+        <div class="lb-item">
+          <span class="lb-label">W365 月額合計</span>
+          <span class="lb-val" id="lbTotal">&#165;0</span>
+        </div>
+        <div class="lb-sep"></div>
+        <div class="lb-item">
+          <span class="lb-label">ユーザー平均</span>
+          <span class="lb-val" id="lbAvg">&#165;0</span>
+        </div>
+        <div class="lb-sep"></div>
+        <div class="lb-item">
+          <span class="lb-label">物理PC比</span>
+          <span class="lb-val" id="lbVs">-</span>
+        </div>
+        <div class="lb-savings">
+          <span class="lb-savings-badge positive" id="lbBadge">&#165;0 削減</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Toast -->
+    <div class="toast" id="toast"></div>
+
+  </div><!-- /simulator -->
+</div>
+
+<script>
+let currentStep = 1;
+const totalSteps = 6;
+
+// Physical PC TCO per user per month
+const PHYSICAL_TCO_PER_USER = 7778;
+const TOTAL_EMPLOYEES = 500;
+const PHYSICAL_MONTHLY_TOTAL = PHYSICAL_TCO_PER_USER * TOTAL_EMPLOYEES;
+
+// Track step states
+let step1Done = false;
+let officeSet = false;
+let powerSet = false;
+let officeSkuSet = false;
+let powerSkuSet = false;
+let factorySet = false;
+let factorySkuSet = false;
+let step5Triggered = false;
+
+// SKU label map
+const skuLabels = {
+  '4588':'2vCPU/4GB','5247':'2vCPU/4GB (FL)','7683':'2vCPU/8GB',
+  '10370':'4vCPU/16GB (FL)','12368':'4vCPU/16GB','17054':'8vCPU/32GB','24438':'8vCPU/32GB/512GB'
+};
+
+function goStep(n) {
+  if (n > currentStep) return;
+  document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+  document.getElementById('step' + n).classList.add('active');
+}
+
+function completeStep(n) {
+  const stepEl = document.getElementById('step' + n);
+  if (stepEl.classList.contains('completed')) return;
+  stepEl.classList.remove('active');
+  stepEl.classList.add('completed');
+
+  if (n >= currentStep) {
+    currentStep = n + 1;
+    if (currentStep <= totalSteps) {
+      document.getElementById('step' + currentStep).classList.add('active');
+    }
+  }
+
+  const pct = Math.round((n / totalSteps) * 100);
+  document.getElementById('labProgress').style.width = pct + '%';
+
+  if (n === totalSteps) {
+    document.getElementById('completion').classList.add('show');
+    showToast('Lab 8 完了！SKU ミックス設計が完了しました');
+  }
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+function fmt(n) {
+  return '¥' + Math.round(n).toLocaleString();
+}
+
+// Step 1: Confirm scenario
+function confirmScenario() {
+  if (!step1Done) {
+    step1Done = true;
+    document.getElementById('btnConfirmScenario').textContent = '確認済み';
+    document.getElementById('btnConfirmScenario').style.background = 'var(--green)';
+    document.getElementById('btnConfirmScenario').style.borderColor = 'var(--green)';
+    document.getElementById('btnConfirmScenario').disabled = true;
+    completeStep(1);
+    showToast('シナリオを確認しました');
+  }
+}
+
+// Calculate and update all costs
+function recalcAll() {
+  const officeCount = parseInt(document.getElementById('sliderOffice').value) || 0;
+  const officeSku = parseInt(document.getElementById('skuOffice').value) || 0;
+  const powerCount = parseInt(document.getElementById('sliderPower').value) || 0;
+  const powerSku = parseInt(document.getElementById('skuPower').value) || 0;
+  const factoryWorkers = parseInt(document.getElementById('sliderFactory').value) || 0;
+  const factorySku = parseInt(document.getElementById('skuFactory').value) || 0;
+  const factoryLicenses = Math.ceil(factoryWorkers / 3);
+
+  const officeCost = officeCount * officeSku;
+  const powerCost = powerCount * powerSku;
+  const factoryCost = factoryLicenses * factorySku;
+  const totalW365 = officeCost + powerCost + factoryCost;
+  const totalUsers = officeCount + powerCount + factoryWorkers;
+  const totalLicenses = officeCount + powerCount + factoryLicenses;
+  const avgPerUser = totalUsers > 0 ? totalW365 / totalUsers : 0;
+
+  // Update card costs
+  document.getElementById('costOffice').textContent = fmt(officeCost);
+  document.getElementById('detailOffice').textContent = officeCount + '名 \u00d7 ' + fmt(officeSku);
+  document.getElementById('costPower').textContent = fmt(powerCost);
+  document.getElementById('detailPower').textContent = powerCount + '名 \u00d7 ' + fmt(powerSku);
+  document.getElementById('costFactory').textContent = fmt(factoryCost);
+  document.getElementById('detailFactory').textContent = factoryLicenses + ' ライセンス \u00d7 ' + fmt(factorySku);
+
+  // Update comparison
+  const physicalTotal = PHYSICAL_MONTHLY_TOTAL;
+  document.getElementById('physicalTotal').textContent = fmt(physicalTotal) + '/月';
+  document.getElementById('w365Total').textContent = fmt(totalW365) + '/月';
+  document.getElementById('w365PerUser').textContent = '平均 ' + fmt(avgPerUser) + '/user/月';
+
+  document.getElementById('brkOffice').textContent = fmt(officeCost);
+  document.getElementById('brkPower').textContent = fmt(powerCost);
+  document.getElementById('brkFactory').textContent = fmt(factoryCost);
+  document.getElementById('brkTotal').textContent = fmt(totalW365);
+
+  // Chart bars
+  const maxVal = Math.max(physicalTotal, totalW365, 1);
+  const barMaxH = 90;
+  document.getElementById('barPhysical').style.height = (physicalTotal / maxVal * barMaxH) + 'px';
+  document.getElementById('barW365').style.height = (totalW365 / maxVal * barMaxH) + 'px';
+  document.getElementById('chartPhysicalVal').textContent = fmt(physicalTotal);
+  document.getElementById('chartW365Val').textContent = fmt(totalW365);
+
+  // Savings
+  const diff = physicalTotal - totalW365;
+  const pct = physicalTotal > 0 ? (diff / physicalTotal * 100) : 0;
+  const isPositive = diff >= 0;
+
+  const banner = document.getElementById('savingsBanner');
+  banner.className = 'savings-banner ' + (isPositive ? 'positive' : 'negative');
+  document.getElementById('savingsTitle').textContent = isPositive ? 'コスト削減' : 'コスト増加';
+  document.getElementById('savingsDesc').textContent = isPositive
+    ? 'W365 SKU ミックスによる月額削減額'
+    : 'W365 SKU ミックスは物理 PC より高コスト';
+  document.getElementById('savingsAmount').textContent = fmt(Math.abs(diff)) + '/月';
+  document.getElementById('savingsPct').textContent = Math.abs(pct).toFixed(1) + '% ' + (isPositive ? '削減' : '増加');
+
+  document.getElementById('vsIcon').textContent = isPositive ? '\u2b07' : '\u2b06';
+
+  // Live bar
+  document.getElementById('lbTotal').textContent = fmt(totalW365);
+  document.getElementById('lbAvg').textContent = fmt(avgPerUser);
+  document.getElementById('lbVs').textContent = (isPositive ? '-' : '+') + Math.abs(pct).toFixed(1) + '%';
+
+  const lbBadge = document.getElementById('lbBadge');
+  lbBadge.textContent = fmt(Math.abs(diff)) + (isPositive ? ' 削減' : ' 増加');
+  lbBadge.className = 'lb-savings-badge ' + (isPositive ? 'positive' : 'negative');
+
+  // Summary table
+  document.getElementById('sumOfficeUsers').textContent = officeCount + '名';
+  document.getElementById('sumOfficeLic').textContent = officeCount;
+  document.getElementById('sumOfficeSku').textContent = officeSku ? skuLabels[document.getElementById('skuOffice').value] || '-' : '-';
+  document.getElementById('sumOfficePrice').textContent = officeSku ? fmt(officeSku) : '-';
+  document.getElementById('sumOfficeSub').textContent = fmt(officeCost);
+
+  document.getElementById('sumPowerUsers').textContent = powerCount + '名';
+  document.getElementById('sumPowerLic').textContent = powerCount;
+  document.getElementById('sumPowerSku').textContent = powerSku ? skuLabels[document.getElementById('skuPower').value] || '-' : '-';
+  document.getElementById('sumPowerPrice').textContent = powerSku ? fmt(powerSku) : '-';
+  document.getElementById('sumPowerSub').textContent = fmt(powerCost);
+
+  document.getElementById('sumFactoryUsers').textContent = factoryWorkers + '名';
+  document.getElementById('sumFactoryLic').textContent = factoryLicenses;
+  document.getElementById('sumFactorySku').textContent = factorySku ? skuLabels[document.getElementById('skuFactory').value] || '-' : '-';
+  document.getElementById('sumFactoryPrice').textContent = factorySku ? fmt(factorySku) : '-';
+  document.getElementById('sumFactorySub').textContent = fmt(factoryCost);
+
+  document.getElementById('sumTotalUsers').textContent = totalUsers + '名';
+  document.getElementById('sumTotalLic').textContent = totalLicenses;
+  document.getElementById('sumTotalAvg').textContent = fmt(avgPerUser);
+  document.getElementById('sumTotalSub').textContent = fmt(totalW365);
+
+  // Step logic
+  checkSteps(officeCount, powerCount, factoryWorkers, officeSku, powerSku, factorySku, totalW365);
+}
+
+function checkSteps(officeCount, powerCount, factoryWorkers, officeSku, powerSku, factorySku, totalW365) {
+  // Step 2: Office split set correctly (210 + 90 = 300, but accept any split)
+  if (currentStep === 2 && officeCount > 0 && powerCount > 0 && (officeCount + powerCount) > 0) {
+    officeSet = true;
+    powerSet = true;
+    completeStep(2);
+    showToast('オフィスユーザーの分類が完了しました');
+  }
+
+  // Step 3: Both SKUs selected
+  if (currentStep === 3 && officeSku > 0 && powerSku > 0) {
+    officeSkuSet = true;
+    powerSkuSet = true;
+    completeStep(3);
+    showToast('SKU の選択が完了しました');
+  }
+
+  // Step 4: Factory set with Frontline SKU
+  if (currentStep === 4 && factoryWorkers > 0 && factorySku > 0) {
+    factorySet = true;
+    factorySkuSet = true;
+    completeStep(4);
+    showToast('Frontline ライセンスの設定が完了しました');
+  }
+
+  // Step 5: All configured and total > 0
+  if (currentStep === 5 && totalW365 > 0 && officeSet && powerSet && factorySet) {
+    if (!step5Triggered) {
+      step5Triggered = true;
+      completeStep(5);
+      showToast('月額コストの計算が完了しました');
+    }
+  }
+
+  // Step 6: Auto-complete when step 5 is done (comparison is always visible)
+  if (currentStep === 6 && step5Triggered) {
+    setTimeout(function(){
+      completeStep(6);
+    }, 1500);
+  }
+}
+
+function updateOffice() {
+  var val = document.getElementById('sliderOffice').value;
+  document.getElementById('valOffice').textContent = val;
+  recalcAll();
+}
+
+function updatePower() {
+  var val = document.getElementById('sliderPower').value;
+  document.getElementById('valPower').textContent = val;
+  recalcAll();
+}
+
+function updateFactory() {
+  var workers = parseInt(document.getElementById('sliderFactory').value) || 0;
+  var licenses = Math.ceil(workers / 3);
+  document.getElementById('valFactory').textContent = workers;
+  document.getElementById('flWorkers').textContent = workers;
+  document.getElementById('flCalc').textContent = licenses;
+  document.getElementById('flLicenses').textContent = licenses;
+  recalcAll();
+}
+
+// Initialize
+recalcAll();
+</script>
+</body>
+</html>

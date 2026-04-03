@@ -1,0 +1,1113 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lab 10: Global Secure Access（VPN代替）を設定する</title>
+<style>
+:root{--bg:#1e1e1e;--panel:#252526;--sidebar-bg:#333333;--border:#3e3e3e;--fg:#cccccc;--fg-bright:#ffffff;--fg-muted:#858585;--blue:#0078D4;--blue-hover:#1a8ad4;--blue-bg:rgba(0,120,212,.12);--green:#107C10;--green-bg:rgba(16,124,16,.15);--yellow:#FFB900;--yellow-bg:rgba(255,185,0,.12);--red:#D13438;--input-bg:#3c3c3c;--input-border:#555;--breadcrumb:#858585;--selected-bg:rgba(0,120,212,.15);}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:"Segoe UI","Meiryo UI",system-ui,sans-serif;background:#09090b;color:#a1a1a1;line-height:1.5;}
+
+/* Layout */
+.lab-layout{display:flex;height:100vh;}
+
+/* Left: Instructions */
+.instructions{width:380px;background:#18181b;border-right:1px solid #27272a;display:flex;flex-direction:column;flex-shrink:0;}
+.inst-header{padding:16px 20px;border-bottom:1px solid #27272a;background:#09090b;}
+.inst-header h1{font-size:15px;color:#fff;font-weight:600;}
+.inst-header .lab-badge{display:inline-block;background:var(--blue-bg);color:var(--blue);font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;margin-left:8px;}
+.inst-body{flex:1;overflow-y:auto;padding:20px;}
+.inst-body .back-link{display:inline-flex;align-items:center;gap:4px;font-size:12px;color:var(--blue);text-decoration:none;margin-bottom:12px;}
+.inst-body .back-link:hover{text-decoration:underline;}
+.inst-body h2{font-size:18px;color:#fff;margin-bottom:6px;}
+.inst-body .subtitle{font-size:13px;color:#858585;margin-bottom:16px;}
+
+/* Steps */
+.step{padding:14px 16px;margin-bottom:8px;border-radius:8px;border:1px solid #27272a;cursor:pointer;transition:all .15s;position:relative;}
+.step:hover{border-color:#3f3f46;}
+.step.active{border-color:var(--blue);background:var(--blue-bg);}
+.step.completed{border-color:rgba(16,124,16,.5);background:var(--green-bg);}
+.step-num{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;font-size:11px;font-weight:700;margin-right:8px;flex-shrink:0;}
+.step:not(.completed) .step-num{background:#27272a;color:#a1a1a1;}
+.step.completed .step-num{background:var(--green);color:#fff;}
+.step-title{font-size:13px;font-weight:600;color:#e4e4e7;}
+.step-desc{font-size:12px;color:#858585;margin-top:4px;margin-left:30px;}
+.step-hint{display:none;margin-top:8px;margin-left:30px;padding:8px 12px;background:rgba(255,185,0,.08);border:1px solid rgba(255,185,0,.2);border-radius:6px;font-size:11px;color:var(--yellow);}
+.step.active .step-hint{display:block;}
+
+/* Progress */
+.progress-bar{margin:16px 0;height:4px;background:#27272a;border-radius:2px;overflow:hidden;}
+.progress-fill{height:100%;background:var(--green);transition:width .3s;border-radius:2px;}
+
+/* Completion */
+.completion{display:none;text-align:center;padding:24px;background:var(--green-bg);border:1px solid rgba(16,124,16,.3);border-radius:12px;margin-top:16px;}
+.completion.show{display:block;}
+.completion h3{color:var(--green);font-size:16px;margin-bottom:4px;}
+.completion p{font-size:12px;color:#a1a1a1;}
+
+/* Right: Simulator */
+.simulator{flex:1;display:flex;flex-direction:column;background:var(--bg);}
+
+/* Azure-like top bar */
+.azure-bar{display:flex;align-items:center;padding:8px 16px;background:#1b1b1f;border-bottom:1px solid var(--border);gap:12px;}
+.azure-bar .az-logo{font-size:14px;font-weight:700;color:var(--blue);}
+.azure-bar .az-search{flex:1;max-width:400px;padding:6px 12px;background:var(--input-bg);border:1px solid var(--input-border);border-radius:4px;color:var(--fg);font-size:12px;font-family:inherit;}
+.azure-bar .az-icons{margin-left:auto;display:flex;gap:12px;font-size:14px;color:var(--fg-muted);}
+.azure-bar .az-user{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--fg);}
+.azure-bar .az-avatar{width:24px;height:24px;border-radius:50%;background:var(--blue);color:#fff;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;}
+
+/* Azure content area */
+.azure-content{flex:1;display:flex;overflow:hidden;}
+
+/* Azure sidebar */
+.az-sidebar{width:240px;background:var(--sidebar-bg);border-right:1px solid var(--border);overflow-y:auto;padding:8px 0;}
+.az-nav-item{padding:8px 16px;font-size:12px;color:var(--fg);cursor:pointer;display:flex;align-items:center;gap:8px;transition:background .1s;}
+.az-nav-item:hover{background:rgba(255,255,255,.05);}
+.az-nav-item.active{background:var(--selected-bg);color:var(--blue);font-weight:600;border-left:2px solid var(--blue);}
+.az-nav-item .nav-icon{font-size:14px;width:20px;text-align:center;}
+.az-nav-section{padding:8px 16px 4px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--fg-muted);}
+.az-nav-sub{padding-left:36px;font-size:11px;}
+
+/* Azure main panel */
+.az-main{flex:1;overflow-y:auto;background:var(--bg);}
+
+/* Breadcrumb */
+.az-breadcrumb{padding:12px 24px;font-size:12px;color:var(--breadcrumb);}
+.az-breadcrumb a{color:var(--blue);text-decoration:none;}
+
+/* Page header */
+.az-page-header{padding:0 24px 16px;border-bottom:1px solid var(--border);}
+.az-page-header h2{font-size:20px;color:var(--fg-bright);font-weight:600;}
+.az-page-header .desc{font-size:13px;color:var(--fg-muted);margin-top:2px;}
+
+/* Toolbar */
+.az-toolbar{padding:10px 24px;display:flex;gap:8px;border-bottom:1px solid var(--border);}
+.az-btn{padding:6px 14px;border-radius:4px;font-size:12px;font-family:inherit;cursor:pointer;border:1px solid var(--border);background:transparent;color:var(--fg);display:inline-flex;align-items:center;gap:6px;transition:all .12s;}
+.az-btn:hover{background:rgba(255,255,255,.05);}
+.az-btn.primary{background:var(--blue);color:#fff;border-color:var(--blue);}
+.az-btn.primary:hover{background:var(--blue-hover);}
+.az-btn.highlight{animation:pulse 1.5s infinite;}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(0,120,212,.4);}50%{box-shadow:0 0 0 6px rgba(0,120,212,0);}}
+
+/* Table */
+.az-table{width:100%;border-collapse:collapse;font-size:12px;}
+.az-table th{text-align:left;padding:10px 24px;color:var(--fg-muted);font-weight:600;border-bottom:1px solid var(--border);background:rgba(255,255,255,.02);}
+.az-table td{padding:10px 24px;border-bottom:1px solid var(--border);color:var(--fg);}
+.az-table tr:hover{background:rgba(255,255,255,.03);}
+.az-table .link{color:var(--blue);cursor:pointer;}
+
+/* Form panel (slide-in) */
+.form-panel{position:absolute;top:0;right:0;width:480px;height:100%;background:var(--panel);border-left:1px solid var(--border);z-index:10;display:none;flex-direction:column;box-shadow:-4px 0 16px rgba(0,0,0,.3);}
+.form-panel.open{display:flex;}
+.form-header{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.form-header h3{font-size:16px;color:var(--fg-bright);}
+.form-close{background:none;border:none;color:var(--fg-muted);font-size:18px;cursor:pointer;}
+.form-body{flex:1;overflow-y:auto;padding:20px;}
+.form-group{margin-bottom:16px;}
+.form-group label{display:block;font-size:12px;font-weight:600;color:var(--fg);margin-bottom:4px;}
+.form-group label .required{color:var(--red);}
+.form-input{width:100%;padding:8px 12px;background:var(--input-bg);border:1px solid var(--input-border);border-radius:4px;color:var(--fg-bright);font-size:13px;font-family:inherit;}
+.form-input:focus{outline:none;border-color:var(--blue);}
+.form-select{width:100%;padding:8px 12px;background:var(--input-bg);border:1px solid var(--input-border);border-radius:4px;color:var(--fg-bright);font-size:13px;font-family:inherit;appearance:auto;}
+.form-hint{font-size:11px;color:var(--fg-muted);margin-top:4px;}
+.form-footer{padding:12px 20px;border-top:1px solid var(--border);display:flex;gap:8px;}
+
+/* Members section */
+.member-section{margin-top:12px;padding:12px;background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:6px;}
+.member-item{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:4px;font-size:12px;color:var(--fg);}
+.member-item:hover{background:rgba(255,255,255,.05);}
+.member-item .m-avatar{width:24px;height:24px;border-radius:50%;background:var(--blue);color:#fff;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;}
+.member-item .m-check{margin-left:auto;}
+input[type=checkbox]{accent-color:var(--blue);}
+
+/* Toggle switch */
+.toggle-wrap{display:flex;align-items:center;gap:10px;}
+.toggle{position:relative;width:44px;height:22px;cursor:pointer;flex-shrink:0;}
+.toggle input{opacity:0;width:0;height:0;}
+.toggle .slider{position:absolute;top:0;left:0;right:0;bottom:0;background:#555;border-radius:12px;transition:.2s;}
+.toggle .slider::before{content:'';position:absolute;height:16px;width:16px;left:3px;bottom:3px;background:#fff;border-radius:50%;transition:.2s;}
+.toggle input:checked+.slider{background:var(--blue);}
+.toggle input:checked+.slider::before{transform:translateX(22px);}
+.toggle-label{font-size:13px;color:var(--fg);}
+
+/* Activation cards */
+.activation-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;padding:0 24px 24px;}
+.act-card{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:20px;transition:border-color .2s;}
+.act-card:hover{border-color:#555;}
+.act-card .act-icon{font-size:28px;margin-bottom:10px;}
+.act-card .act-title{font-size:14px;font-weight:600;color:var(--fg-bright);margin-bottom:4px;}
+.act-card .act-desc{font-size:11px;color:var(--fg-muted);margin-bottom:14px;line-height:1.5;}
+.act-card .act-status{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--fg-muted);}
+.act-card .act-status .badge-on{display:inline-block;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700;background:var(--green-bg);color:var(--green);}
+.act-card .act-status .badge-off{display:inline-block;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700;background:rgba(255,255,255,.06);color:var(--fg-muted);}
+
+/* VPN comparison diagram */
+.vpn-compare{display:grid;grid-template-columns:1fr 1fr;gap:20px;padding:0 24px 24px;}
+.vpn-box{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:20px;text-align:center;}
+.vpn-box.before{border-color:rgba(209,52,56,.3);}
+.vpn-box.after{border-color:rgba(16,124,16,.3);}
+.vpn-box .vpn-label{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;}
+.vpn-box.before .vpn-label{color:var(--red);}
+.vpn-box.after .vpn-label{color:var(--green);}
+.vpn-flow{display:flex;align-items:center;justify-content:center;gap:8px;font-size:20px;padding:8px 0;}
+.vpn-flow .flow-node{font-size:12px;color:var(--fg);padding:6px 12px;border:1px solid var(--border);border-radius:6px;background:rgba(255,255,255,.03);}
+.vpn-flow .flow-arrow{color:var(--fg-muted);font-size:14px;}
+.vpn-flow .flow-node.highlight-red{border-color:rgba(209,52,56,.4);color:var(--red);}
+.vpn-flow .flow-node.highlight-green{border-color:rgba(16,124,16,.4);color:var(--green);}
+
+/* Connector status */
+.status-dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;}
+.status-dot.active{background:var(--green);}
+.status-dot.inactive{background:var(--fg-muted);}
+
+/* Test connection animation */
+.test-area{padding:24px;text-align:center;}
+.test-progress{margin:20px auto;width:80%;max-width:400px;height:6px;background:#27272a;border-radius:3px;overflow:hidden;}
+.test-progress .test-fill{height:100%;width:0;background:var(--blue);border-radius:3px;transition:width 1.5s ease-in-out;}
+.test-result{margin-top:16px;padding:16px;border-radius:8px;display:none;}
+.test-result.success{display:block;background:var(--green-bg);border:1px solid rgba(16,124,16,.3);}
+.test-result .result-title{font-size:14px;font-weight:600;color:var(--green);margin-bottom:4px;}
+.test-result .result-desc{font-size:12px;color:var(--fg);}
+.test-steps{text-align:left;margin:16px auto;max-width:400px;}
+.test-step-item{display:flex;align-items:center;gap:8px;padding:6px 0;font-size:12px;color:var(--fg-muted);}
+.test-step-item.done{color:var(--green);}
+.test-step-item .tsi-icon{width:18px;text-align:center;}
+
+/* Toast */
+.toast{position:fixed;bottom:20px;right:20px;padding:12px 20px;background:var(--green);color:#fff;border-radius:8px;font-size:13px;font-weight:600;z-index:100;display:none;animation:slideUp .3s;}
+.toast.show{display:block;}
+@keyframes slideUp{from{transform:translateY(20px);opacity:0;}to{transform:translateY(0);opacity:1;}}
+
+/* Responsive */
+@media(max-width:900px){.instructions{width:100%;position:fixed;bottom:0;height:40vh;z-index:20;border-top:1px solid #27272a;border-right:none;}.simulator{height:60vh;}}
+</style>
+</head>
+<body>
+
+<div class="lab-layout">
+  <!-- Instructions Panel -->
+  <div class="instructions">
+    <div class="inst-header">
+      <h1>Lab 10 <span class="lab-badge">ハンズオン</span></h1>
+    </div>
+    <div class="inst-body">
+      <a class="back-link" href="../index.html">← トレーニングに戻る</a>
+      <h2>Global Secure Access（VPN代替）を設定する</h2>
+      <p class="subtitle">Microsoft Entra Private Access で VPN を使わずに社内リソースへ安全にアクセスできる環境を構築します。所要時間: 約20分</p>
+
+      <div class="progress-bar"><div class="progress-fill" id="labProgress" style="width:0%"></div></div>
+
+      <div class="step active" id="step1" onclick="goStep(1)">
+        <span class="step-num">1</span>
+        <span class="step-title">Entra 管理センターにアクセス</span>
+        <div class="step-desc">サイドバーで「Global Secure Access」→「はじめに」をクリック</div>
+        <div class="step-hint">💡 ヒント: 左メニューの「Global Secure Access」をクリックしてみましょう</div>
+      </div>
+
+      <div class="step" id="step2" onclick="goStep(2)">
+        <span class="step-num">2</span>
+        <span class="step-title">Global Secure Access を有効化</span>
+        <div class="step-desc">「テナントのアクティブ化」ボタンをクリック</div>
+        <div class="step-hint">💡 ヒント: 「はじめに」ページの「テナントのアクティブ化」ボタンをクリック</div>
+      </div>
+
+      <div class="step" id="step3" onclick="goStep(3)">
+        <span class="step-num">3</span>
+        <span class="step-title">トラフィック転送プロファイルを有効化</span>
+        <div class="step-desc">「Private access profile」をオンに切り替え</div>
+        <div class="step-hint">💡 ヒント: トラフィック転送ページで「Private access」のトグルをオンにしてください</div>
+      </div>
+
+      <div class="step" id="step4" onclick="goStep(4)">
+        <span class="step-num">4</span>
+        <span class="step-title">アプリケーションセグメントを作成</span>
+        <div class="step-desc">「クイックアクセス」→ 社内アプリのFQDN/IPとポートを登録</div>
+        <div class="step-hint">💡 ヒント: FQDN にアプリのアドレスを入力し、ポートとプロトコルを設定して「追加」をクリック</div>
+      </div>
+
+      <div class="step" id="step5" onclick="goStep(5)">
+        <span class="step-num">5</span>
+        <span class="step-title">コネクタグループを確認</span>
+        <div class="step-desc">オンプレミスにインストールするコネクタの状態を確認</div>
+        <div class="step-hint">💡 ヒント: コネクタページでコネクタグループのステータスが「アクティブ」であることを確認しましょう</div>
+      </div>
+
+      <div class="step" id="step6" onclick="goStep(6)">
+        <span class="step-num">6</span>
+        <span class="step-title">ユーザー割り当てを設定</span>
+        <div class="step-desc">対象グループ「SG-W365-Users」を割り当て</div>
+        <div class="step-hint">💡 ヒント: 「SG-W365-Users」にチェックを入れて「割り当て」をクリック</div>
+      </div>
+
+      <div class="step" id="step7" onclick="goStep(7)">
+        <span class="step-num">7</span>
+        <span class="step-title">接続テストを実行</span>
+        <div class="step-desc">テスト接続ボタンでVPN不要のアクセスを確認</div>
+        <div class="step-hint">💡 ヒント: 「接続テスト」ボタンをクリックして確認しましょう</div>
+      </div>
+
+      <div class="completion" id="completion">
+        <h3>🎉 Lab 10 完了！</h3>
+        <p>Global Secure Access（Entra Private Access）の設定が完了しました。<br>VPN を使わずに社内リソースへ安全にアクセスできる環境が構築されました。</p>
+        <p style="margin-top:8px;"><a class="back-link" href="../index.html">← トレーニングに戻る</a></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Simulator -->
+  <div class="simulator" style="position:relative;">
+    <!-- Azure top bar -->
+    <div class="azure-bar">
+      <span class="az-logo">Microsoft Entra 管理センター</span>
+      <input class="az-search" type="text" placeholder="🔍 リソース、サービス、ドキュメントの検索" readonly>
+      <div class="az-icons">⚙️ 🔔 ❓</div>
+      <div class="az-user">
+        <div class="az-avatar">T</div>
+        training@contoso.com
+      </div>
+    </div>
+
+    <!-- Azure content -->
+    <div class="azure-content">
+      <!-- Sidebar -->
+      <div class="az-sidebar">
+        <div class="az-nav-section">お気に入り</div>
+        <div class="az-nav-item" onclick="navClick('dashboard')"><span class="nav-icon">📊</span>ダッシュボード</div>
+        <div class="az-nav-item" onclick="navClick('users')"><span class="nav-icon">👤</span>ユーザー</div>
+        <div class="az-nav-item" onclick="navClick('groups')"><span class="nav-icon">👥</span>グループ</div>
+        <div class="az-nav-item"><span class="nav-icon">📱</span>デバイス</div>
+        <div class="az-nav-item"><span class="nav-icon">🔒</span>アプリの登録</div>
+        <div class="az-nav-section">管理</div>
+        <div class="az-nav-item"><span class="nav-icon">🛡️</span>条件付きアクセス</div>
+        <div class="az-nav-item"><span class="nav-icon">🔑</span>認証方法</div>
+        <div class="az-nav-section">セキュリティ</div>
+        <div class="az-nav-item" id="navGSA" onclick="navClick('gsa')"><span class="nav-icon">🌐</span>Global Secure Access</div>
+        <div id="gsaSubMenu" style="display:none;">
+          <div class="az-nav-item az-nav-sub" id="navGettingStarted" onclick="navClick('getting-started')"><span class="nav-icon">🚀</span>はじめに</div>
+          <div class="az-nav-item az-nav-sub" id="navTrafficFwd" onclick="navClick('traffic-forwarding')"><span class="nav-icon">🔀</span>トラフィック転送</div>
+          <div class="az-nav-item az-nav-sub" style="font-size:11px;padding-left:36px;color:var(--fg-muted);cursor:default;"><span class="nav-icon" style="font-size:12px;">📦</span>アプリケーション</div>
+          <div class="az-nav-item az-nav-sub" id="navQuickAccess" onclick="navClick('quick-access')" style="padding-left:52px;"><span class="nav-icon">⚡</span>クイックアクセス</div>
+          <div class="az-nav-item az-nav-sub" id="navEntApps" onclick="navClick('enterprise-apps')" style="padding-left:52px;"><span class="nav-icon">🏢</span>エンタープライズアプリ</div>
+          <div class="az-nav-item az-nav-sub" id="navConnectors" onclick="navClick('connectors')"><span class="nav-icon">🔌</span>コネクタ</div>
+          <div class="az-nav-item az-nav-sub" id="navMonitoring" onclick="navClick('monitoring')"><span class="nav-icon">📈</span>監視</div>
+        </div>
+      </div>
+
+      <!-- Main content -->
+      <div class="az-main" id="azMain">
+
+        <!-- Dashboard (initial) -->
+        <div id="page-dashboard">
+          <div class="az-breadcrumb">ホーム > ダッシュボード</div>
+          <div class="az-page-header">
+            <h2>Microsoft Entra ID</h2>
+            <div class="desc">contoso.onmicrosoft.com</div>
+          </div>
+          <div style="padding:24px;color:var(--fg-muted);font-size:13px;">
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;">
+              <div style="padding:20px;background:var(--panel);border:1px solid var(--border);border-radius:8px;">
+                <div style="font-size:24px;font-weight:700;color:var(--fg-bright);">142</div>
+                <div>ユーザー</div>
+              </div>
+              <div style="padding:20px;background:var(--panel);border:1px solid var(--border);border-radius:8px;">
+                <div style="font-size:24px;font-weight:700;color:var(--fg-bright);">12</div>
+                <div>グループ</div>
+              </div>
+              <div style="padding:20px;background:var(--panel);border:1px solid var(--border);border-radius:8px;">
+                <div style="font-size:24px;font-weight:700;color:var(--fg-bright);">18</div>
+                <div>アプリケーション</div>
+              </div>
+            </div>
+            <!-- VPN vs GSA Comparison -->
+            <div style="margin-top:24px;">
+              <h3 style="font-size:14px;color:var(--fg-bright);margin-bottom:12px;">🌐 Global Secure Access で VPN を置き換える</h3>
+              <div class="vpn-compare">
+                <div class="vpn-box before">
+                  <div class="vpn-label">❌ 従来の構成（VPN）</div>
+                  <div class="vpn-flow">
+                    <span class="flow-node">👤 ユーザー</span>
+                    <span class="flow-arrow">→</span>
+                    <span class="flow-node highlight-red">🔐 VPN</span>
+                    <span class="flow-arrow">→</span>
+                    <span class="flow-node">🏢 社内サーバー</span>
+                  </div>
+                  <div style="font-size:10px;color:var(--fg-muted);margin-top:8px;">帯域制限・スプリットトンネル問題・管理コスト大</div>
+                </div>
+                <div class="vpn-box after">
+                  <div class="vpn-label">✅ 新しい構成（GSA）</div>
+                  <div class="vpn-flow">
+                    <span class="flow-node">👤 ユーザー</span>
+                    <span class="flow-arrow">→</span>
+                    <span class="flow-node highlight-green">🌐 GSA</span>
+                    <span class="flow-arrow">→</span>
+                    <span class="flow-node">🏢 社内サーバー</span>
+                  </div>
+                  <div style="font-size:10px;color:var(--fg-muted);margin-top:8px;">ゼロトラスト・条件付きアクセス統合・VPN不要</div>
+                </div>
+              </div>
+            </div>
+            <p style="margin-top:12px;">← 左メニューの<b style="color:var(--blue);">「Global Secure Access」</b>をクリックして始めましょう</p>
+          </div>
+        </div>
+
+        <!-- Getting Started page -->
+        <div id="page-getting-started" style="display:none;">
+          <div class="az-breadcrumb"><a href="#">ホーム</a> > <a href="#">Global Secure Access</a> > はじめに</div>
+          <div class="az-page-header">
+            <h2>はじめに</h2>
+            <div class="desc">Global Secure Access をセットアップしてテナントのセキュリティを強化します</div>
+          </div>
+          <div style="padding:24px;">
+            <!-- Activation banner -->
+            <div id="activationBanner" style="padding:16px 20px;background:var(--blue-bg);border:1px solid rgba(0,120,212,.3);border-radius:8px;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;">
+              <div>
+                <div style="font-size:14px;font-weight:600;color:var(--fg-bright);">🔒 Global Secure Access はまだ有効化されていません</div>
+                <div style="font-size:12px;color:var(--fg-muted);margin-top:2px;">テナントで Global Secure Access を有効にして、ゼロトラスト ネットワーク アクセスを開始してください</div>
+              </div>
+              <button class="az-btn primary" id="btnActivate" onclick="activateTenant()">テナントのアクティブ化</button>
+            </div>
+            <div id="activatedBanner" style="padding:16px 20px;background:var(--green-bg);border:1px solid rgba(16,124,16,.3);border-radius:8px;margin-bottom:20px;display:none;">
+              <div style="font-size:14px;font-weight:600;color:var(--green);">✅ Global Secure Access は有効です</div>
+              <div style="font-size:12px;color:var(--fg-muted);margin-top:2px;">テナントでゼロトラスト ネットワーク アクセスが有効になっています</div>
+            </div>
+            <h3 style="font-size:15px;color:var(--fg-bright);margin-bottom:16px;">トラフィック転送プロファイル</h3>
+          </div>
+          <div class="activation-cards" id="activationCards">
+            <div class="act-card">
+              <div class="act-icon">🔷</div>
+              <div class="act-title">Microsoft トラフィック</div>
+              <div class="act-desc">Microsoft 365 サービスへのトラフィックをセキュリティで保護します。Exchange、SharePoint、Teams などが対象です。</div>
+              <div class="act-status">
+                <label class="toggle">
+                  <input type="checkbox" id="toggleMsTraffic" disabled>
+                  <span class="slider"></span>
+                </label>
+                <span id="statusMsTraffic" class="badge-off">無効</span>
+              </div>
+            </div>
+            <div class="act-card" style="border-color:rgba(0,120,212,.3);">
+              <div class="act-icon">🔐</div>
+              <div class="act-title">Private Access</div>
+              <div class="act-desc">オンプレミスやプライベート ネットワーク上のリソースへ VPN 不要でアクセスを提供します。</div>
+              <div class="act-status">
+                <label class="toggle">
+                  <input type="checkbox" id="togglePrivateCard" disabled>
+                  <span class="slider"></span>
+                </label>
+                <span id="statusPrivateCard" class="badge-off">無効</span>
+              </div>
+            </div>
+            <div class="act-card">
+              <div class="act-icon">🌍</div>
+              <div class="act-title">Internet Access</div>
+              <div class="act-desc">SaaS アプリやインターネットへのトラフィックにセキュリティ ポリシーを適用します。</div>
+              <div class="act-status">
+                <label class="toggle">
+                  <input type="checkbox" id="toggleInternetCard" disabled>
+                  <span class="slider"></span>
+                </label>
+                <span id="statusInternetCard" class="badge-off">無効</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Traffic Forwarding page -->
+        <div id="page-traffic-forwarding" style="display:none;">
+          <div class="az-breadcrumb"><a href="#">ホーム</a> > <a href="#">Global Secure Access</a> > トラフィック転送</div>
+          <div class="az-page-header">
+            <h2>トラフィック転送</h2>
+            <div class="desc">トラフィック転送プロファイルを管理して、Global Secure Access でトラフィックをルーティングします</div>
+          </div>
+          <div style="padding:24px;">
+            <div style="background:var(--panel);border:1px solid var(--border);border-radius:8px;overflow:hidden;">
+              <!-- Microsoft 365 traffic -->
+              <div style="padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
+                <div style="display:flex;align-items:center;gap:12px;">
+                  <span style="font-size:20px;">🔷</span>
+                  <div>
+                    <div style="font-size:13px;font-weight:600;color:var(--fg-bright);">Microsoft 365 トラフィック</div>
+                    <div style="font-size:11px;color:var(--fg-muted);">Exchange Online, SharePoint, Teams のトラフィックを転送</div>
+                  </div>
+                </div>
+                <div class="toggle-wrap">
+                  <label class="toggle">
+                    <input type="checkbox" id="toggleMs365">
+                    <span class="slider"></span>
+                  </label>
+                  <span class="toggle-label" id="labelMs365">無効</span>
+                </div>
+              </div>
+              <!-- Private access traffic -->
+              <div style="padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
+                <div style="display:flex;align-items:center;gap:12px;">
+                  <span style="font-size:20px;">🔐</span>
+                  <div>
+                    <div style="font-size:13px;font-weight:600;color:var(--fg-bright);">Private access トラフィック</div>
+                    <div style="font-size:11px;color:var(--fg-muted);">オンプレミスおよびプライベート ネットワーク リソースへのトラフィックを転送</div>
+                  </div>
+                </div>
+                <div class="toggle-wrap">
+                  <label class="toggle">
+                    <input type="checkbox" id="togglePrivateAccess" onchange="checkStep3()">
+                    <span class="slider"></span>
+                  </label>
+                  <span class="toggle-label" id="labelPrivateAccess">無効</span>
+                </div>
+              </div>
+              <!-- Internet access traffic -->
+              <div style="padding:16px 20px;display:flex;align-items:center;justify-content:space-between;">
+                <div style="display:flex;align-items:center;gap:12px;">
+                  <span style="font-size:20px;">🌍</span>
+                  <div>
+                    <div style="font-size:13px;font-weight:600;color:var(--fg-bright);">Internet access トラフィック</div>
+                    <div style="font-size:11px;color:var(--fg-muted);">SaaS アプリおよびインターネットへのトラフィックを転送</div>
+                  </div>
+                </div>
+                <div class="toggle-wrap">
+                  <label class="toggle">
+                    <input type="checkbox" id="toggleInternet">
+                    <span class="slider"></span>
+                  </label>
+                  <span class="toggle-label" id="labelInternet">無効</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quick Access page -->
+        <div id="page-quick-access" style="display:none;">
+          <div class="az-breadcrumb"><a href="#">ホーム</a> > <a href="#">Global Secure Access</a> > <a href="#">アプリケーション</a> > クイックアクセス</div>
+          <div class="az-page-header">
+            <h2>クイックアクセス</h2>
+            <div class="desc">アプリケーション セグメントを定義して、プライベート ネットワーク リソースへのアクセスを構成します</div>
+          </div>
+          <div class="az-toolbar">
+            <button class="az-btn primary" id="btnAddSegment" onclick="openSegmentForm()">+ アプリケーション セグメントを追加</button>
+            <button class="az-btn">🔄 最新の情報に更新</button>
+          </div>
+          <div style="padding:24px;">
+            <table class="az-table" id="segmentTable">
+              <thead>
+                <tr><th>宛先の種類</th><th>FQDN / IP アドレス</th><th>ポート</th><th>プロトコル</th><th>状態</th></tr>
+              </thead>
+              <tbody id="segmentTableBody">
+                <tr id="emptySegmentRow"><td colspan="5" style="text-align:center;color:var(--fg-muted);padding:24px;">アプリケーション セグメントがありません。「+ アプリケーション セグメントを追加」をクリックして追加してください。</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Connectors page -->
+        <div id="page-connectors" style="display:none;">
+          <div class="az-breadcrumb"><a href="#">ホーム</a> > <a href="#">Global Secure Access</a> > コネクタ</div>
+          <div class="az-page-header">
+            <h2>コネクタ</h2>
+            <div class="desc">プライベート ネットワーク コネクタとコネクタ グループを管理します</div>
+          </div>
+          <div class="az-toolbar">
+            <button class="az-btn">+ コネクタのダウンロード</button>
+            <button class="az-btn">🔄 最新の情報に更新</button>
+          </div>
+          <div style="padding:24px;">
+            <h3 style="font-size:14px;color:var(--fg-bright);margin-bottom:12px;">コネクタ グループ</h3>
+            <table class="az-table" id="connectorTable">
+              <thead>
+                <tr><th>グループ名</th><th>コネクタ数</th><th>ステータス</th><th>リージョン</th><th>最終応答</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="link">Default</td>
+                  <td>2</td>
+                  <td><span class="status-dot active"></span>アクティブ</td>
+                  <td>Japan East</td>
+                  <td>2 分前</td>
+                </tr>
+                <tr>
+                  <td class="link">Contoso-OnPrem</td>
+                  <td>1</td>
+                  <td><span class="status-dot active"></span>アクティブ</td>
+                  <td>Japan East</td>
+                  <td>5 分前</td>
+                </tr>
+                <tr>
+                  <td class="link">Factory-Network</td>
+                  <td>0</td>
+                  <td><span class="status-dot inactive"></span>非アクティブ</td>
+                  <td>Japan West</td>
+                  <td>—</td>
+                </tr>
+              </tbody>
+            </table>
+            <h3 style="font-size:14px;color:var(--fg-bright);margin:24px 0 12px;">個別コネクタ</h3>
+            <table class="az-table">
+              <thead>
+                <tr><th>コネクタ名</th><th>グループ</th><th>ステータス</th><th>ホスト名</th><th>バージョン</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>YOURDC01-connector</td>
+                  <td>Default</td>
+                  <td><span class="status-dot active"></span>アクティブ</td>
+                  <td>yourdc01.contoso.local</td>
+                  <td>1.5.3437.0</td>
+                </tr>
+                <tr>
+                  <td>YOURDC02-connector</td>
+                  <td>Default</td>
+                  <td><span class="status-dot active"></span>アクティブ</td>
+                  <td>yourdc02.contoso.local</td>
+                  <td>1.5.3437.0</td>
+                </tr>
+                <tr>
+                  <td>YOURSRV01-connector</td>
+                  <td>Contoso-OnPrem</td>
+                  <td><span class="status-dot active"></span>アクティブ</td>
+                  <td>yoursrv01.contoso.local</td>
+                  <td>1.5.3437.0</td>
+                </tr>
+              </tbody>
+            </table>
+            <div style="margin-top:16px;">
+              <button class="az-btn" id="btnConfirmConnector" onclick="confirmConnectors()">✅ コネクタの状態を確認済み</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- User Assignment page -->
+        <div id="page-user-assignment" style="display:none;">
+          <div class="az-breadcrumb"><a href="#">ホーム</a> > <a href="#">Global Secure Access</a> > <a href="#">アプリケーション</a> > ユーザー割り当て</div>
+          <div class="az-page-header">
+            <h2>ユーザーとグループの割り当て</h2>
+            <div class="desc">クイックアクセス アプリケーションにアクセスできるユーザーとグループを管理します</div>
+          </div>
+          <div class="az-toolbar">
+            <button class="az-btn primary" id="btnAddAssignment" onclick="openAssignmentPanel()">+ ユーザー/グループの追加</button>
+          </div>
+          <div style="padding:24px;">
+            <table class="az-table" id="assignmentTable">
+              <thead>
+                <tr><th>表示名</th><th>種類</th><th>割り当て日</th></tr>
+              </thead>
+              <tbody id="assignmentTableBody">
+                <tr id="emptyAssignmentRow"><td colspan="3" style="text-align:center;color:var(--fg-muted);padding:24px;">割り当てられたユーザー/グループはありません</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Test Connection page -->
+        <div id="page-test-connection" style="display:none;">
+          <div class="az-breadcrumb"><a href="#">ホーム</a> > <a href="#">Global Secure Access</a> > 接続テスト</div>
+          <div class="az-page-header">
+            <h2>接続テスト</h2>
+            <div class="desc">Global Secure Access 経由のプライベート ネットワーク接続をテストします</div>
+          </div>
+          <div class="test-area">
+            <div style="max-width:500px;margin:0 auto;">
+              <div style="padding:20px;background:var(--panel);border:1px solid var(--border);border-radius:10px;margin-bottom:20px;">
+                <div style="font-size:14px;font-weight:600;color:var(--fg-bright);margin-bottom:12px;">テスト対象</div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;text-align:left;">
+                  <div>
+                    <div style="font-size:11px;color:var(--fg-muted);">宛先</div>
+                    <div style="font-size:13px;color:var(--fg-bright);" id="testTarget">intranet.contoso.local</div>
+                  </div>
+                  <div>
+                    <div style="font-size:11px;color:var(--fg-muted);">ポート</div>
+                    <div style="font-size:13px;color:var(--fg-bright);" id="testPort">443</div>
+                  </div>
+                  <div>
+                    <div style="font-size:11px;color:var(--fg-muted);">プロトコル</div>
+                    <div style="font-size:13px;color:var(--fg-bright);">TCP</div>
+                  </div>
+                  <div>
+                    <div style="font-size:11px;color:var(--fg-muted);">コネクタ グループ</div>
+                    <div style="font-size:13px;color:var(--fg-bright);">Default</div>
+                  </div>
+                </div>
+              </div>
+              <button class="az-btn primary" id="btnTestConnection" onclick="runConnectionTest()" style="width:100%;justify-content:center;padding:10px;">🔍 接続テストを実行</button>
+              <div class="test-progress" id="testProgress" style="display:none;">
+                <div class="test-fill" id="testFill"></div>
+              </div>
+              <div class="test-steps" id="testSteps" style="display:none;">
+                <div class="test-step-item" id="ts1"><span class="tsi-icon">⏳</span>DNS 解決を確認中...</div>
+                <div class="test-step-item" id="ts2"><span class="tsi-icon">⏳</span>コネクタへの接続を確立中...</div>
+                <div class="test-step-item" id="ts3"><span class="tsi-icon">⏳</span>プライベート ネットワークへのルーティングを検証中...</div>
+                <div class="test-step-item" id="ts4"><span class="tsi-icon">⏳</span>宛先アプリケーションへの到達性を確認中...</div>
+                <div class="test-step-item" id="ts5"><span class="tsi-icon">⏳</span>条件付きアクセス ポリシーを評価中...</div>
+              </div>
+              <div class="test-result" id="testResult">
+                <div class="result-title">✅ 接続テスト成功</div>
+                <div class="result-desc">
+                  <span id="testTargetResult">intranet.contoso.local:443</span> への接続が Global Secure Access 経由で正常に確立されました。<br>
+                  <span style="font-size:11px;color:var(--fg-muted);margin-top:4px;display:block;">レイテンシ: 12ms | コネクタ: YOURDC01-connector | 経路: Entra Private Access</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Monitoring page (placeholder) -->
+        <div id="page-monitoring" style="display:none;">
+          <div class="az-breadcrumb"><a href="#">ホーム</a> > <a href="#">Global Secure Access</a> > 監視</div>
+          <div class="az-page-header">
+            <h2>監視</h2>
+            <div class="desc">Global Secure Access の接続ログとトラフィックを監視します</div>
+          </div>
+          <div style="padding:24px;color:var(--fg-muted);font-size:13px;">
+            <p>このラボでは監視ページは使用しません。他のステップを完了してください。</p>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Form panel: App Segment -->
+      <div class="form-panel" id="segmentFormPanel">
+        <div class="form-header">
+          <h3>アプリケーション セグメントを追加</h3>
+          <button class="form-close" onclick="closeSegmentForm()">×</button>
+        </div>
+        <div class="form-body">
+          <div class="form-group">
+            <label>宛先の種類 <span class="required">*</span></label>
+            <select class="form-select" id="segDestType">
+              <option value="fqdn">FQDN</option>
+              <option value="ip">IP アドレス</option>
+              <option value="cidr">IP 範囲 (CIDR)</option>
+            </select>
+            <div class="form-hint">FQDN: 完全修飾ドメイン名 / IP: 単一 IP / CIDR: サブネット範囲</div>
+          </div>
+          <div class="form-group">
+            <label>FQDN / IP アドレス <span class="required">*</span></label>
+            <input class="form-input" id="segFqdn" type="text" placeholder="例: intranet.contoso.local" oninput="checkStep4Input()">
+          </div>
+          <div class="form-group">
+            <label>ポート <span class="required">*</span></label>
+            <input class="form-input" id="segPort" type="text" placeholder="例: 443 または 80,443 または 1-65535" oninput="checkStep4Input()">
+            <div class="form-hint">カンマ区切りで複数ポートを指定できます（例: 80,443,8080）</div>
+          </div>
+          <div class="form-group">
+            <label>プロトコル <span class="required">*</span></label>
+            <select class="form-select" id="segProtocol">
+              <option value="tcp">TCP</option>
+              <option value="udp">UDP</option>
+              <option value="both">TCP + UDP</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-footer">
+          <button class="az-btn primary" id="btnSaveSegment" onclick="saveSegment()">追加</button>
+          <button class="az-btn" onclick="closeSegmentForm()">キャンセル</button>
+        </div>
+      </div>
+
+      <!-- Form panel: User Assignment -->
+      <div class="form-panel" id="assignmentFormPanel">
+        <div class="form-header">
+          <h3>ユーザー/グループの追加</h3>
+          <button class="form-close" onclick="closeAssignmentPanel()">×</button>
+        </div>
+        <div class="form-body">
+          <div class="form-group">
+            <label>グループを選択</label>
+            <input class="form-input" type="text" placeholder="🔍 グループを検索..." oninput="filterGroups(this.value)" style="margin-bottom:8px;">
+            <div class="member-section" id="groupSelectSection">
+              <div class="member-item" data-name="sg-w365-users"><div class="m-avatar" style="background:var(--blue);">S</div>SG-W365-Users<span class="m-check"><input type="checkbox" id="chkSGW365" onchange="checkStep6()"></span></div>
+              <div class="member-item" data-name="it-admins"><div class="m-avatar" style="background:#6B7280;">I</div>IT-Admins<span class="m-check"><input type="checkbox" onchange="checkStep6()"></span></div>
+              <div class="member-item" data-name="all-company"><div class="m-avatar" style="background:#6B7280;">A</div>All Company<span class="m-check"><input type="checkbox" onchange="checkStep6()"></span></div>
+              <div class="member-item" data-name="sales"><div class="m-avatar" style="background:#6B7280;">営</div>営業部<span class="m-check"><input type="checkbox" onchange="checkStep6()"></span></div>
+              <div class="member-item" data-name="factory"><div class="m-avatar" style="background:#6B7280;">工</div>工場スタッフ<span class="m-check"><input type="checkbox" onchange="checkStep6()"></span></div>
+            </div>
+          </div>
+        </div>
+        <div class="form-footer">
+          <button class="az-btn primary" id="btnSaveAssignment" onclick="saveAssignment()">割り当て</button>
+          <button class="az-btn" onclick="closeAssignmentPanel()">キャンセル</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Toast -->
+    <div class="toast" id="toast"></div>
+  </div>
+</div>
+
+<script>
+let currentStep = 1;
+const totalSteps = 7;
+let tenantActivated = false;
+let segmentAdded = false;
+let connectorConfirmed = false;
+
+function goStep(n) {
+  if (n > currentStep) return;
+  document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+  document.getElementById('step' + n).classList.add('active');
+}
+
+function completeStep(n) {
+  const stepEl = document.getElementById('step' + n);
+  stepEl.classList.remove('active');
+  stepEl.classList.add('completed');
+
+  if (n < totalSteps) {
+    currentStep = n + 1;
+    const nextStep = document.getElementById('step' + currentStep);
+    nextStep.classList.add('active');
+  }
+
+  const pct = Math.round((n / totalSteps) * 100);
+  document.getElementById('labProgress').style.width = pct + '%';
+
+  if (n === totalSteps) {
+    document.getElementById('completion').classList.add('show');
+  }
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(function() { t.classList.remove('show'); }, 3000);
+}
+
+function hideAllPages() {
+  var pages = ['page-dashboard','page-getting-started','page-traffic-forwarding','page-quick-access','page-connectors','page-user-assignment','page-test-connection','page-monitoring'];
+  pages.forEach(function(id) {
+    document.getElementById(id).style.display = 'none';
+  });
+}
+
+function clearActiveNav() {
+  document.querySelectorAll('.az-nav-item').forEach(function(i) { i.classList.remove('active'); });
+}
+
+// Navigation
+function navClick(page) {
+  clearActiveNav();
+  hideAllPages();
+
+  if (page === 'gsa') {
+    document.getElementById('navGSA').classList.add('active');
+    var sub = document.getElementById('gsaSubMenu');
+    sub.style.display = sub.style.display === 'none' ? 'block' : 'none';
+    // Also navigate to getting started
+    document.getElementById('navGettingStarted').classList.add('active');
+    document.getElementById('page-getting-started').style.display = 'block';
+    if (currentStep === 1) {
+      completeStep(1);
+      setTimeout(function() {
+        document.getElementById('btnActivate').classList.add('highlight');
+      }, 500);
+    }
+    return;
+  }
+
+  if (page === 'getting-started') {
+    document.getElementById('navGettingStarted').classList.add('active');
+    document.getElementById('page-getting-started').style.display = 'block';
+    if (currentStep === 1) {
+      document.getElementById('gsaSubMenu').style.display = 'block';
+      completeStep(1);
+      setTimeout(function() {
+        document.getElementById('btnActivate').classList.add('highlight');
+      }, 500);
+    }
+    return;
+  }
+
+  if (page === 'traffic-forwarding') {
+    document.getElementById('navTrafficFwd').classList.add('active');
+    document.getElementById('page-traffic-forwarding').style.display = 'block';
+    return;
+  }
+
+  if (page === 'quick-access') {
+    document.getElementById('navQuickAccess').classList.add('active');
+    document.getElementById('page-quick-access').style.display = 'block';
+    if (currentStep === 4) {
+      setTimeout(function() {
+        document.getElementById('btnAddSegment').classList.add('highlight');
+      }, 300);
+    }
+    return;
+  }
+
+  if (page === 'enterprise-apps') {
+    document.getElementById('navEntApps').classList.add('active');
+    // Reuse quick access page context - show user assignment
+    document.getElementById('page-user-assignment').style.display = 'block';
+    return;
+  }
+
+  if (page === 'connectors') {
+    document.getElementById('navConnectors').classList.add('active');
+    document.getElementById('page-connectors').style.display = 'block';
+    if (currentStep === 5) {
+      setTimeout(function() {
+        document.getElementById('btnConfirmConnector').classList.add('highlight');
+      }, 300);
+    }
+    return;
+  }
+
+  if (page === 'monitoring') {
+    document.getElementById('navMonitoring').classList.add('active');
+    document.getElementById('page-monitoring').style.display = 'block';
+    return;
+  }
+
+  if (page === 'dashboard') {
+    document.getElementById('page-dashboard').style.display = 'block';
+    return;
+  }
+}
+
+// Step 2: Activate tenant
+function activateTenant() {
+  if (tenantActivated) return;
+  tenantActivated = true;
+  document.getElementById('btnActivate').classList.remove('highlight');
+  document.getElementById('activationBanner').style.display = 'none';
+  document.getElementById('activatedBanner').style.display = 'block';
+
+  // Enable all card toggles
+  document.getElementById('toggleMsTraffic').disabled = false;
+  document.getElementById('togglePrivateCard').disabled = false;
+  document.getElementById('toggleInternetCard').disabled = false;
+
+  showToast('✅ Global Secure Access がテナントで有効化されました');
+
+  if (currentStep === 2) {
+    completeStep(2);
+    // Auto navigate to traffic forwarding after a moment
+    setTimeout(function() {
+      navClick('traffic-forwarding');
+    }, 1200);
+  }
+}
+
+// Step 3: Enable Private Access toggle
+function checkStep3() {
+  var toggle = document.getElementById('togglePrivateAccess');
+  var label = document.getElementById('labelPrivateAccess');
+  if (toggle.checked) {
+    label.textContent = '有効';
+    label.style.color = 'var(--green)';
+    showToast('✅ Private access プロファイルが有効になりました');
+    if (currentStep === 3) {
+      completeStep(3);
+      setTimeout(function() {
+        navClick('quick-access');
+      }, 1200);
+    }
+  } else {
+    label.textContent = '無効';
+    label.style.color = '';
+  }
+}
+
+// Step 4: Add app segment
+function openSegmentForm() {
+  document.getElementById('segmentFormPanel').classList.add('open');
+  document.getElementById('btnAddSegment').classList.remove('highlight');
+}
+
+function closeSegmentForm() {
+  document.getElementById('segmentFormPanel').classList.remove('open');
+}
+
+function checkStep4Input() {
+  // Just visual feedback, actual check on save
+}
+
+function saveSegment() {
+  var fqdn = document.getElementById('segFqdn').value.trim();
+  var port = document.getElementById('segPort').value.trim();
+  var protocol = document.getElementById('segProtocol').value;
+  var destType = document.getElementById('segDestType').value;
+
+  if (!fqdn || !port) {
+    alert('FQDN/IP アドレスとポートを入力してください');
+    return;
+  }
+
+  var destTypeLabel = destType === 'fqdn' ? 'FQDN' : destType === 'ip' ? 'IP アドレス' : 'IP 範囲';
+  var protocolLabel = protocol === 'tcp' ? 'TCP' : protocol === 'udp' ? 'UDP' : 'TCP + UDP';
+
+  // Remove empty row
+  var emptyRow = document.getElementById('emptySegmentRow');
+  if (emptyRow) emptyRow.remove();
+
+  var tbody = document.getElementById('segmentTableBody');
+  var newRow = document.createElement('tr');
+  newRow.style.background = 'var(--green-bg)';
+  newRow.innerHTML = '<td>' + destTypeLabel + '</td><td class="link" style="color:var(--green);font-weight:600;">' + fqdn + '</td><td>' + port + '</td><td>' + protocolLabel + '</td><td><span class="status-dot active"></span>有効</td>';
+  tbody.appendChild(newRow);
+
+  closeSegmentForm();
+  segmentAdded = true;
+  showToast('✅ アプリケーション セグメント「' + fqdn + '」が追加されました');
+
+  if (currentStep === 4) {
+    completeStep(4);
+    setTimeout(function() {
+      navClick('connectors');
+    }, 1200);
+  }
+}
+
+// Step 5: Confirm connectors
+function confirmConnectors() {
+  connectorConfirmed = true;
+  document.getElementById('btnConfirmConnector').classList.remove('highlight');
+  showToast('✅ コネクタのステータスを確認しました（2/3 グループがアクティブ）');
+
+  if (currentStep === 5) {
+    completeStep(5);
+    // Navigate to user assignment
+    setTimeout(function() {
+      clearActiveNav();
+      hideAllPages();
+      document.getElementById('navEntApps').classList.add('active');
+      document.getElementById('page-user-assignment').style.display = 'block';
+      setTimeout(function() {
+        document.getElementById('btnAddAssignment').classList.add('highlight');
+      }, 300);
+    }, 1200);
+  }
+}
+
+// Step 6: User assignment
+function openAssignmentPanel() {
+  document.getElementById('assignmentFormPanel').classList.add('open');
+  document.getElementById('btnAddAssignment').classList.remove('highlight');
+}
+
+function closeAssignmentPanel() {
+  document.getElementById('assignmentFormPanel').classList.remove('open');
+}
+
+function filterGroups(query) {
+  var items = document.querySelectorAll('#groupSelectSection .member-item');
+  items.forEach(function(item) {
+    var name = item.getAttribute('data-name') || '';
+    var text = item.textContent.toLowerCase();
+    if (text.indexOf(query.toLowerCase()) !== -1 || name.indexOf(query.toLowerCase()) !== -1) {
+      item.style.display = '';
+    } else {
+      item.style.display = 'none';
+    }
+  });
+}
+
+function checkStep6() {
+  // Check if SG-W365-Users is checked
+  var chk = document.getElementById('chkSGW365');
+  // Any check will do for the step validation
+}
+
+function saveAssignment() {
+  var checked = document.querySelectorAll('#groupSelectSection input[type=checkbox]:checked');
+  if (checked.length === 0) {
+    alert('グループを選択してください');
+    return;
+  }
+
+  var emptyRow = document.getElementById('emptyAssignmentRow');
+  if (emptyRow) emptyRow.remove();
+
+  var tbody = document.getElementById('assignmentTableBody');
+  var today = new Date().toLocaleDateString('ja-JP');
+
+  checked.forEach(function(chk) {
+    var item = chk.closest('.member-item');
+    var name = item.childNodes[1].textContent.trim();
+    var newRow = document.createElement('tr');
+    newRow.style.background = 'var(--green-bg)';
+    newRow.innerHTML = '<td class="link" style="color:var(--green);font-weight:600;">👥 ' + name + '</td><td>セキュリティ グループ</td><td>' + today + '</td>';
+    tbody.appendChild(newRow);
+  });
+
+  closeAssignmentPanel();
+  showToast('✅ ユーザー/グループが割り当てられました');
+
+  if (currentStep === 6) {
+    completeStep(6);
+    // Navigate to test connection
+    setTimeout(function() {
+      clearActiveNav();
+      hideAllPages();
+      document.getElementById('page-test-connection').style.display = 'block';
+      // Update test target info based on segment
+      var fqdnEl = document.getElementById('segFqdn');
+      var portEl = document.getElementById('segPort');
+      if (fqdnEl && fqdnEl.value.trim()) {
+        document.getElementById('testTarget').textContent = fqdnEl.value.trim();
+        document.getElementById('testTargetResult').textContent = fqdnEl.value.trim() + ':' + (portEl.value.trim() || '443');
+      }
+      if (portEl && portEl.value.trim()) {
+        document.getElementById('testPort').textContent = portEl.value.trim();
+      }
+      setTimeout(function() {
+        document.getElementById('btnTestConnection').classList.add('highlight');
+      }, 300);
+    }, 1200);
+  }
+}
+
+// Step 7: Connection test
+function runConnectionTest() {
+  document.getElementById('btnTestConnection').classList.remove('highlight');
+  document.getElementById('btnTestConnection').disabled = true;
+  document.getElementById('btnTestConnection').textContent = 'テスト実行中...';
+  document.getElementById('testProgress').style.display = 'block';
+  document.getElementById('testSteps').style.display = 'block';
+  document.getElementById('testResult').style.display = 'none';
+
+  var fill = document.getElementById('testFill');
+  fill.style.width = '0%';
+
+  var steps = ['ts1','ts2','ts3','ts4','ts5'];
+  var delays = [600, 1200, 1800, 2400, 3000];
+
+  // Animate progress
+  setTimeout(function() { fill.style.width = '100%'; }, 100);
+
+  // Animate each step
+  steps.forEach(function(stepId, idx) {
+    setTimeout(function() {
+      var el = document.getElementById(stepId);
+      el.classList.add('done');
+      el.querySelector('.tsi-icon').textContent = '✅';
+    }, delays[idx]);
+  });
+
+  // Show result
+  setTimeout(function() {
+    document.getElementById('testResult').style.display = 'block';
+    document.getElementById('testResult').classList.add('success');
+    document.getElementById('btnTestConnection').textContent = '✅ テスト完了';
+    showToast('✅ 接続テスト成功 - VPN不要でアクセス確認済み');
+
+    if (currentStep === 7) {
+      completeStep(7);
+    }
+  }, 3600);
+}
+
+// Toggle label updates for traffic forwarding page
+document.getElementById('toggleMs365').addEventListener('change', function() {
+  document.getElementById('labelMs365').textContent = this.checked ? '有効' : '無効';
+  document.getElementById('labelMs365').style.color = this.checked ? 'var(--green)' : '';
+});
+document.getElementById('toggleInternet').addEventListener('change', function() {
+  document.getElementById('labelInternet').textContent = this.checked ? '有効' : '無効';
+  document.getElementById('labelInternet').style.color = this.checked ? 'var(--green)' : '';
+});
+</script>
+</body>
+</html>

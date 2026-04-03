@@ -1,0 +1,820 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lab 5: Intune でアプリを配信する</title>
+<style>
+:root{--bg:#1e1e1e;--panel:#252526;--sidebar-bg:#333333;--border:#3e3e3e;--fg:#cccccc;--fg-bright:#ffffff;--fg-muted:#858585;--blue:#0078D4;--blue-hover:#1a8ad4;--blue-bg:rgba(0,120,212,.12);--green:#107C10;--green-bg:rgba(16,124,16,.15);--yellow:#FFB900;--yellow-bg:rgba(255,185,0,.12);--red:#D13438;--input-bg:#3c3c3c;--input-border:#555;--breadcrumb:#858585;--selected-bg:rgba(0,120,212,.15);}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:"Segoe UI","Meiryo UI",system-ui,sans-serif;background:#09090b;color:#a1a1a1;line-height:1.5;}
+
+/* Layout */
+.lab-layout{display:flex;height:100vh;}
+
+/* Left: Instructions */
+.instructions{width:380px;background:#18181b;border-right:1px solid #27272a;display:flex;flex-direction:column;flex-shrink:0;}
+.inst-header{padding:16px 20px;border-bottom:1px solid #27272a;background:#09090b;}
+.inst-header h1{font-size:15px;color:#fff;font-weight:600;}
+.inst-header .lab-badge{display:inline-block;background:var(--blue-bg);color:var(--blue);font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;margin-left:8px;}
+.inst-body{flex:1;overflow-y:auto;padding:20px;}
+.inst-body .back-link{display:inline-flex;align-items:center;gap:4px;font-size:12px;color:var(--blue);text-decoration:none;margin-bottom:12px;}
+.inst-body .back-link:hover{text-decoration:underline;}
+.inst-body h2{font-size:18px;color:#fff;margin-bottom:6px;}
+.inst-body .subtitle{font-size:13px;color:#858585;margin-bottom:16px;}
+
+/* Steps */
+.step{padding:14px 16px;margin-bottom:8px;border-radius:8px;border:1px solid #27272a;cursor:pointer;transition:all .15s;position:relative;}
+.step:hover{border-color:#3f3f46;}
+.step.active{border-color:var(--blue);background:var(--blue-bg);}
+.step.completed{border-color:rgba(16,124,16,.5);background:var(--green-bg);}
+.step-num{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;font-size:11px;font-weight:700;margin-right:8px;flex-shrink:0;}
+.step:not(.completed) .step-num{background:#27272a;color:#a1a1a1;}
+.step.completed .step-num{background:var(--green);color:#fff;}
+.step-title{font-size:13px;font-weight:600;color:#e4e4e7;}
+.step-desc{font-size:12px;color:#858585;margin-top:4px;margin-left:30px;}
+.step-hint{display:none;margin-top:8px;margin-left:30px;padding:8px 12px;background:rgba(255,185,0,.08);border:1px solid rgba(255,185,0,.2);border-radius:6px;font-size:11px;color:var(--yellow);}
+.step.active .step-hint{display:block;}
+
+/* Progress */
+.progress-bar{margin:16px 0;height:4px;background:#27272a;border-radius:2px;overflow:hidden;}
+.progress-fill{height:100%;background:var(--green);transition:width .3s;border-radius:2px;}
+
+/* Completion */
+.completion{display:none;text-align:center;padding:24px;background:var(--green-bg);border:1px solid rgba(16,124,16,.3);border-radius:12px;margin-top:16px;}
+.completion.show{display:block;}
+.completion h3{color:var(--green);font-size:16px;margin-bottom:4px;}
+.completion p{font-size:12px;color:#a1a1a1;}
+
+/* Right: Simulator */
+.simulator{flex:1;display:flex;flex-direction:column;background:var(--bg);}
+
+/* Azure-like top bar */
+.azure-bar{display:flex;align-items:center;padding:8px 16px;background:#1b1b1f;border-bottom:1px solid var(--border);gap:12px;}
+.azure-bar .az-logo{font-size:14px;font-weight:700;color:var(--blue);}
+.azure-bar .az-search{flex:1;max-width:400px;padding:6px 12px;background:var(--input-bg);border:1px solid var(--input-border);border-radius:4px;color:var(--fg);font-size:12px;font-family:inherit;}
+.azure-bar .az-icons{margin-left:auto;display:flex;gap:12px;font-size:14px;color:var(--fg-muted);}
+.azure-bar .az-user{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--fg);}
+.azure-bar .az-avatar{width:24px;height:24px;border-radius:50%;background:var(--blue);color:#fff;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;}
+
+/* Azure content area */
+.azure-content{flex:1;display:flex;overflow:hidden;}
+
+/* Azure sidebar */
+.az-sidebar{width:220px;background:var(--sidebar-bg);border-right:1px solid var(--border);overflow-y:auto;padding:8px 0;}
+.az-nav-item{padding:8px 16px;font-size:12px;color:var(--fg);cursor:pointer;display:flex;align-items:center;gap:8px;transition:background .1s;}
+.az-nav-item:hover{background:rgba(255,255,255,.05);}
+.az-nav-item.active{background:var(--selected-bg);color:var(--blue);font-weight:600;border-left:2px solid var(--blue);}
+.az-nav-item .nav-icon{font-size:14px;width:20px;text-align:center;}
+.az-nav-section{padding:8px 16px 4px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--fg-muted);}
+.az-nav-sub{padding:6px 16px 6px 44px;font-size:12px;color:var(--fg);cursor:pointer;display:flex;align-items:center;gap:8px;transition:background .1s;}
+.az-nav-sub:hover{background:rgba(255,255,255,.05);}
+.az-nav-sub.active{color:var(--blue);font-weight:600;}
+
+/* Azure main panel */
+.az-main{flex:1;overflow-y:auto;background:var(--bg);position:relative;}
+
+/* Breadcrumb */
+.az-breadcrumb{padding:12px 24px;font-size:12px;color:var(--breadcrumb);}
+.az-breadcrumb a{color:var(--blue);text-decoration:none;}
+
+/* Page header */
+.az-page-header{padding:0 24px 16px;border-bottom:1px solid var(--border);}
+.az-page-header h2{font-size:20px;color:var(--fg-bright);font-weight:600;}
+.az-page-header .desc{font-size:13px;color:var(--fg-muted);margin-top:2px;}
+
+/* Toolbar */
+.az-toolbar{padding:10px 24px;display:flex;gap:8px;border-bottom:1px solid var(--border);}
+.az-btn{padding:6px 14px;border-radius:4px;font-size:12px;font-family:inherit;cursor:pointer;border:1px solid var(--border);background:transparent;color:var(--fg);display:inline-flex;align-items:center;gap:6px;transition:all .12s;}
+.az-btn:hover{background:rgba(255,255,255,.05);}
+.az-btn.primary{background:var(--blue);color:#fff;border-color:var(--blue);}
+.az-btn.primary:hover{background:var(--blue-hover);}
+.az-btn.highlight{animation:pulse 1.5s infinite;}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(0,120,212,.4);}50%{box-shadow:0 0 0 6px rgba(0,120,212,0);}}
+
+/* Table */
+.az-table{width:100%;border-collapse:collapse;font-size:12px;}
+.az-table th{text-align:left;padding:10px 24px;color:var(--fg-muted);font-weight:600;border-bottom:1px solid var(--border);background:rgba(255,255,255,.02);}
+.az-table td{padding:10px 24px;border-bottom:1px solid var(--border);color:var(--fg);}
+.az-table tr:hover{background:rgba(255,255,255,.03);}
+.az-table .link{color:var(--blue);cursor:pointer;}
+
+/* Form panel (slide-in) */
+.form-panel{position:absolute;top:0;right:0;width:450px;height:100%;background:var(--panel);border-left:1px solid var(--border);z-index:10;display:none;flex-direction:column;box-shadow:-4px 0 16px rgba(0,0,0,.3);}
+.form-panel.open{display:flex;}
+.form-header{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.form-header h3{font-size:16px;color:var(--fg-bright);}
+.form-close{background:none;border:none;color:var(--fg-muted);font-size:18px;cursor:pointer;}
+.form-body{flex:1;overflow-y:auto;padding:20px;}
+.form-group{margin-bottom:16px;}
+.form-group label{display:block;font-size:12px;font-weight:600;color:var(--fg);margin-bottom:4px;}
+.form-group label .required{color:var(--red);}
+.form-input{width:100%;padding:8px 12px;background:var(--input-bg);border:1px solid var(--input-border);border-radius:4px;color:var(--fg-bright);font-size:13px;font-family:inherit;}
+.form-input:focus{outline:none;border-color:var(--blue);}
+.form-select{width:100%;padding:8px 12px;background:var(--input-bg);border:1px solid var(--input-border);border-radius:4px;color:var(--fg-bright);font-size:13px;font-family:inherit;appearance:auto;}
+.form-hint{font-size:11px;color:var(--fg-muted);margin-top:4px;}
+.form-footer{padding:12px 20px;border-top:1px solid var(--border);display:flex;gap:8px;}
+
+/* Member / checkbox sections */
+.member-section{margin-top:12px;padding:12px;background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:6px;}
+.member-item{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:4px;font-size:12px;color:var(--fg);}
+.member-item:hover{background:rgba(255,255,255,.05);}
+.member-item .m-avatar{width:24px;height:24px;border-radius:50%;background:var(--blue);color:#fff;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;}
+.member-item .m-check{margin-left:auto;}
+input[type=checkbox]{accent-color:var(--blue);}
+
+/* App type selector */
+.app-type-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:12px 0;}
+.app-type-card{padding:16px;background:var(--input-bg);border:2px solid var(--border);border-radius:8px;cursor:pointer;transition:all .15s;text-align:center;}
+.app-type-card:hover{border-color:var(--blue);background:rgba(0,120,212,.08);}
+.app-type-card.selected{border-color:var(--blue);background:var(--blue-bg);}
+.app-type-card .atc-icon{font-size:28px;margin-bottom:8px;}
+.app-type-card .atc-name{font-size:13px;font-weight:600;color:var(--fg-bright);}
+.app-type-card .atc-desc{font-size:11px;color:var(--fg-muted);margin-top:4px;}
+
+/* Wizard tabs */
+.wizard-tabs{display:flex;border-bottom:1px solid var(--border);padding:0 24px;}
+.wizard-tab{padding:10px 18px;font-size:12px;color:var(--fg-muted);cursor:pointer;border-bottom:2px solid transparent;transition:all .15s;font-weight:500;}
+.wizard-tab:hover{color:var(--fg);}
+.wizard-tab.active{color:var(--blue);border-bottom-color:var(--blue);font-weight:600;}
+.wizard-tab.completed{color:var(--green);}
+.wizard-tab.disabled{opacity:.4;cursor:default;}
+.wizard-content{padding:24px;}
+
+/* App checkbox list */
+.app-check-list{display:grid;grid-template-columns:1fr 1fr;gap:4px;}
+.app-check-item{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:4px;font-size:12px;color:var(--fg);cursor:pointer;transition:background .1s;}
+.app-check-item:hover{background:rgba(255,255,255,.05);}
+.app-check-item .aci-icon{font-size:16px;width:22px;text-align:center;}
+.app-check-item input[type=checkbox]{margin:0;}
+
+/* Group assignment */
+.assign-section{margin-bottom:16px;}
+.assign-section h4{font-size:12px;font-weight:600;color:var(--fg);margin-bottom:8px;}
+.assign-group{display:flex;align-items:center;gap:8px;padding:8px 12px;background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:6px;font-size:12px;color:var(--fg);}
+.assign-group .ag-icon{font-size:14px;}
+.assign-btn{padding:4px 12px;border-radius:4px;font-size:11px;font-family:inherit;cursor:pointer;border:1px solid var(--blue);background:transparent;color:var(--blue);transition:all .12s;}
+.assign-btn:hover{background:var(--blue-bg);}
+
+/* Group picker modal */
+.group-picker-overlay{display:none;position:absolute;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.5);z-index:20;align-items:center;justify-content:center;}
+.group-picker-overlay.open{display:flex;}
+.group-picker{background:var(--panel);border:1px solid var(--border);border-radius:8px;width:360px;max-height:400px;overflow:hidden;box-shadow:0 8px 24px rgba(0,0,0,.4);}
+.group-picker-header{padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.group-picker-header h4{font-size:14px;color:var(--fg-bright);}
+.group-picker-body{padding:8px;max-height:280px;overflow-y:auto;}
+.group-picker-item{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:4px;font-size:12px;color:var(--fg);cursor:pointer;transition:background .1s;}
+.group-picker-item:hover{background:rgba(255,255,255,.05);}
+.group-picker-item.selected{background:var(--blue-bg);color:var(--blue);}
+.group-picker-footer{padding:10px 16px;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:flex-end;}
+
+/* Summary */
+.summary-section{margin-bottom:16px;}
+.summary-section h4{font-size:12px;font-weight:600;color:var(--fg-muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px;}
+.summary-row{display:flex;justify-content:space-between;padding:6px 0;font-size:12px;border-bottom:1px solid rgba(255,255,255,.05);}
+.summary-row .sr-label{color:var(--fg-muted);}
+.summary-row .sr-value{color:var(--fg-bright);font-weight:500;}
+.summary-tags{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px;}
+.summary-tag{padding:2px 8px;background:var(--blue-bg);color:var(--blue);border-radius:10px;font-size:10px;font-weight:600;}
+
+/* Status badge */
+.status-badge{padding:2px 8px;border-radius:10px;font-size:10px;font-weight:600;}
+.status-badge.success{background:var(--green-bg);color:var(--green);}
+.status-badge.fail{background:rgba(209,52,56,.15);color:var(--red);}
+.status-badge.pending{background:var(--yellow-bg);color:var(--yellow);}
+
+/* Toast */
+.toast{position:fixed;bottom:20px;right:20px;padding:12px 20px;background:var(--green);color:#fff;border-radius:8px;font-size:13px;font-weight:600;z-index:100;display:none;animation:slideUp .3s;}
+.toast.show{display:block;}
+@keyframes slideUp{from{transform:translateY(20px);opacity:0;}to{transform:translateY(0);opacity:1;}}
+
+/* Responsive */
+@media(max-width:900px){.instructions{width:100%;position:fixed;bottom:0;height:40vh;z-index:20;border-top:1px solid #27272a;border-right:none;}.simulator{height:60vh;}}
+</style>
+</head>
+<body>
+
+<div class="lab-layout">
+  <!-- Instructions Panel -->
+  <div class="instructions">
+    <div class="inst-header">
+      <h1>Lab 5 <span class="lab-badge">ハンズオン</span></h1>
+    </div>
+    <div class="inst-body">
+      <a class="back-link" href="../index.html">← トレーニングに戻る</a>
+      <h2>Intune でアプリを配信する</h2>
+      <p class="subtitle">Microsoft Intune を使って Microsoft 365 Apps を組織のデバイスに配信します。所要時間: 約15分</p>
+
+      <div class="progress-bar"><div class="progress-fill" id="labProgress" style="width:0%"></div></div>
+
+      <div class="step active" id="step1" onclick="goStep(1)">
+        <span class="step-num">1</span>
+        <span class="step-title">Intune 管理センターにアクセス</span>
+        <div class="step-desc">サイドバーで「アプリ」→「すべてのアプリ」をクリック</div>
+        <div class="step-hint">💡 ヒント: 左メニューの「アプリ」をクリックしてサブメニューを開き、「すべてのアプリ」を選択しましょう</div>
+      </div>
+
+      <div class="step" id="step2" onclick="goStep(2)">
+        <span class="step-num">2</span>
+        <span class="step-title">「追加」をクリック</span>
+        <div class="step-desc">アプリの種類を選択する画面が開く</div>
+        <div class="step-hint">💡 ヒント: ツールバーの「+ 追加」ボタンをクリックしてください</div>
+      </div>
+
+      <div class="step" id="step3" onclick="goStep(3)">
+        <span class="step-num">3</span>
+        <span class="step-title">アプリの種類を選択</span>
+        <div class="step-desc">「Microsoft 365 Apps (Windows 10 以降)」を選択</div>
+        <div class="step-hint">💡 ヒント: 「Microsoft 365 Apps」のカードをクリックして「選択」ボタンを押してください</div>
+      </div>
+
+      <div class="step" id="step4" onclick="goStep(4)">
+        <span class="step-num">4</span>
+        <span class="step-title">アプリスイート情報を入力</span>
+        <div class="step-desc">スイート名「M365 Apps - Standard」、説明を入力</div>
+        <div class="step-hint">💡 ヒント: スイート名に「M365 Apps - Standard」と入力し、「次へ」をクリック</div>
+      </div>
+
+      <div class="step" id="step5" onclick="goStep(5)">
+        <span class="step-num">5</span>
+        <span class="step-title">アプリスイートを構成</span>
+        <div class="step-desc">含めるアプリを選択（Word, Excel, PowerPoint, Outlook, Teams にチェック）、更新チャネル「月次エンタープライズ」を選択</div>
+        <div class="step-hint">💡 ヒント: アプリにチェックを入れ、更新チャネルを「月次エンタープライズ」に設定して「次へ」をクリック</div>
+      </div>
+
+      <div class="step" id="step6" onclick="goStep(6)">
+        <span class="step-num">6</span>
+        <span class="step-title">割り当てを設定</span>
+        <div class="step-desc">必須グループに「SG-W365-Users」を追加</div>
+        <div class="step-hint">💡 ヒント: 「+ グループを追加」をクリックして「SG-W365-Users」を選択してください</div>
+      </div>
+
+      <div class="step" id="step7" onclick="goStep(7)">
+        <span class="step-num">7</span>
+        <span class="step-title">「作成」をクリックして完了</span>
+        <div class="step-desc">設定を確認して「作成」ボタンをクリック</div>
+        <div class="step-hint">💡 ヒント: サマリーを確認して「作成」ボタンをクリックしてください</div>
+      </div>
+
+      <div class="completion" id="completion">
+        <h3>🎉 Lab 5 完了！</h3>
+        <p>Microsoft 365 Apps を「SG-W365-Users」グループに配信設定しました。<br>Intune に登録されたデバイスにアプリが自動インストールされます。</p>
+        <p style="margin-top:8px;"><a class="back-link" href="../index.html">← トレーニングに戻る</a></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Simulator -->
+  <div class="simulator" style="position:relative;">
+    <!-- Azure top bar -->
+    <div class="azure-bar">
+      <span class="az-logo">Microsoft Intune 管理センター</span>
+      <input class="az-search" type="text" placeholder="🔍 リソース、サービス、ドキュメントの検索" readonly>
+      <div class="az-icons">⚙️ 🔔 ❓</div>
+      <div class="az-user">
+        <div class="az-avatar">T</div>
+        training@contoso.com
+      </div>
+    </div>
+
+    <!-- Azure content -->
+    <div class="azure-content">
+      <!-- Sidebar -->
+      <div class="az-sidebar">
+        <div class="az-nav-section">お気に入り</div>
+        <div class="az-nav-item" onclick="navClick('dashboard')"><span class="nav-icon">📊</span>ダッシュボード</div>
+        <div class="az-nav-item" onclick="navClick('devices')"><span class="nav-icon">💻</span>デバイス</div>
+        <div class="az-nav-item" id="navApps" onclick="navClick('apps')"><span class="nav-icon">📦</span>アプリ</div>
+        <div id="appsSubMenu" style="display:none;">
+          <div class="az-nav-sub" id="navAllApps" onclick="navSubClick('allApps')">すべてのアプリ</div>
+          <div class="az-nav-sub" onclick="return false;">アプリの構成ポリシー</div>
+          <div class="az-nav-sub" onclick="return false;">アプリ保護ポリシー</div>
+        </div>
+        <div class="az-nav-item" onclick="return false;"><span class="nav-icon">👤</span>ユーザー</div>
+        <div class="az-nav-section">管理</div>
+        <div class="az-nav-item" onclick="return false;"><span class="nav-icon">🏢</span>テナント管理</div>
+      </div>
+
+      <!-- Main content -->
+      <div class="az-main" id="azMain">
+        <!-- Dashboard (initial) -->
+        <div id="page-dashboard">
+          <div class="az-breadcrumb">ホーム > ダッシュボード</div>
+          <div class="az-page-header">
+            <h2>Microsoft Intune</h2>
+            <div class="desc">contoso.onmicrosoft.com</div>
+          </div>
+          <div style="padding:24px;color:var(--fg-muted);font-size:13px;">
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;">
+              <div style="padding:20px;background:var(--panel);border:1px solid var(--border);border-radius:8px;">
+                <div style="font-size:24px;font-weight:700;color:var(--fg-bright);">12</div>
+                <div>割り当て済みアプリ</div>
+              </div>
+              <div style="padding:20px;background:var(--panel);border:1px solid var(--border);border-radius:8px;">
+                <div style="font-size:24px;font-weight:700;color:var(--green);">284</div>
+                <div>インストール成功</div>
+              </div>
+              <div style="padding:20px;background:var(--panel);border:1px solid var(--border);border-radius:8px;">
+                <div style="font-size:24px;font-weight:700;color:var(--red);">3</div>
+                <div>インストール失敗</div>
+              </div>
+            </div>
+            <p style="margin-top:20px;">← 左メニューの<b style="color:var(--blue);">「アプリ」</b>をクリックして始めましょう</p>
+          </div>
+        </div>
+
+        <!-- All Apps page -->
+        <div id="page-allApps" style="display:none;">
+          <div class="az-breadcrumb"><a href="#">ホーム</a> > <a href="#">アプリ</a> > すべてのアプリ</div>
+          <div class="az-page-header">
+            <h2>すべてのアプリ</h2>
+            <div class="desc">組織で管理されているアプリの一覧</div>
+          </div>
+          <div class="az-toolbar">
+            <button class="az-btn primary" id="btnAddApp" onclick="clickAddApp()">+ 追加</button>
+            <button class="az-btn">🔄 最新の情報に更新</button>
+            <button class="az-btn">⬇️ エクスポート</button>
+            <button class="az-btn">🗑️ 削除</button>
+          </div>
+          <table class="az-table" id="appTable">
+            <thead>
+              <tr><th>☐</th><th>名前</th><th>種類</th><th>発行元</th><th>状態</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>☐</td><td class="link">Microsoft Edge</td><td>Windows アプリ (Win32)</td><td>Microsoft</td><td><span class="status-badge success">割り当て済み</span></td></tr>
+              <tr><td>☐</td><td class="link">ポータル サイト</td><td>Microsoft Store</td><td>Microsoft</td><td><span class="status-badge success">割り当て済み</span></td></tr>
+              <tr><td>☐</td><td class="link">Adobe Acrobat Reader</td><td>Windows アプリ (Win32)</td><td>Adobe</td><td><span class="status-badge success">割り当て済み</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- App Type Selector page -->
+        <div id="page-appTypeSelect" style="display:none;">
+          <div class="az-breadcrumb"><a href="#">ホーム</a> > <a href="#">アプリ</a> > <a href="#">すべてのアプリ</a> > アプリの追加</div>
+          <div class="az-page-header">
+            <h2>アプリの種類を選択</h2>
+            <div class="desc">追加するアプリの種類を選択してください</div>
+          </div>
+          <div style="padding:24px;">
+            <div class="app-type-grid">
+              <div class="app-type-card" id="appTypeM365" onclick="selectAppType('m365')">
+                <div class="atc-icon">📊</div>
+                <div class="atc-name">Microsoft 365 Apps</div>
+                <div class="atc-desc">Windows 10 以降</div>
+              </div>
+              <div class="app-type-card" onclick="return false;">
+                <div class="atc-icon">💿</div>
+                <div class="atc-name">Windows アプリ (Win32)</div>
+                <div class="atc-desc">.intunewin パッケージ</div>
+              </div>
+              <div class="app-type-card" onclick="return false;">
+                <div class="atc-icon">🏪</div>
+                <div class="atc-name">Microsoft Store</div>
+                <div class="atc-desc">ストア アプリ</div>
+              </div>
+              <div class="app-type-card" onclick="return false;">
+                <div class="atc-icon">🔗</div>
+                <div class="atc-name">Web リンク</div>
+                <div class="atc-desc">Web アプリへのリンク</div>
+              </div>
+            </div>
+            <div style="margin-top:16px;display:flex;gap:8px;">
+              <button class="az-btn primary" id="btnSelectType" onclick="confirmAppType()" style="opacity:.5;cursor:default;">選択</button>
+              <button class="az-btn" onclick="backToAllApps()">キャンセル</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Wizard page -->
+        <div id="page-wizard" style="display:none;">
+          <div class="az-breadcrumb"><a href="#">ホーム</a> > <a href="#">アプリ</a> > <a href="#">すべてのアプリ</a> > Microsoft 365 Apps の追加</div>
+          <div class="az-page-header">
+            <h2>Microsoft 365 Apps (Windows 10 以降) の追加</h2>
+          </div>
+          <div class="wizard-tabs" id="wizardTabs">
+            <div class="wizard-tab active" id="wtab1" onclick="goWizardTab(1)">1. アプリスイート情報</div>
+            <div class="wizard-tab disabled" id="wtab2" onclick="goWizardTab(2)">2. スイートの構成</div>
+            <div class="wizard-tab disabled" id="wtab3" onclick="goWizardTab(3)">3. 割り当て</div>
+            <div class="wizard-tab disabled" id="wtab4" onclick="goWizardTab(4)">4. 確認 + 作成</div>
+          </div>
+
+          <!-- Tab 1: Suite Info -->
+          <div class="wizard-content" id="wpage1">
+            <div class="form-group">
+              <label>スイート名 <span class="required">*</span></label>
+              <input class="form-input" id="suiteName" type="text" placeholder="例: M365 Apps - Standard" oninput="checkStep4Info()">
+            </div>
+            <div class="form-group">
+              <label>説明</label>
+              <input class="form-input" id="suiteDesc" type="text" placeholder="例: 標準デスクトップアプリスイート" oninput="checkStep4Info()">
+            </div>
+            <div class="form-group">
+              <label>発行元</label>
+              <input class="form-input" type="text" value="Microsoft" readonly style="opacity:.7;">
+            </div>
+            <div class="form-group">
+              <label>カテゴリ</label>
+              <select class="form-select">
+                <option>生産性</option>
+                <option>ビジネス</option>
+                <option>コラボレーション</option>
+              </select>
+            </div>
+            <div style="display:flex;gap:8px;margin-top:20px;">
+              <button class="az-btn primary" id="btnNext1" onclick="wizardNext(1)">次へ</button>
+            </div>
+          </div>
+
+          <!-- Tab 2: Configure Suite -->
+          <div class="wizard-content" id="wpage2" style="display:none;">
+            <div class="form-group">
+              <label>含めるアプリを選択 <span class="required">*</span></label>
+              <div class="app-check-list" id="appCheckList">
+                <label class="app-check-item"><input type="checkbox" value="Word" onchange="checkStep5Config()"><span class="aci-icon">📘</span>Word</label>
+                <label class="app-check-item"><input type="checkbox" value="Excel" onchange="checkStep5Config()"><span class="aci-icon">📗</span>Excel</label>
+                <label class="app-check-item"><input type="checkbox" value="PowerPoint" onchange="checkStep5Config()"><span class="aci-icon">📙</span>PowerPoint</label>
+                <label class="app-check-item"><input type="checkbox" value="Outlook" onchange="checkStep5Config()"><span class="aci-icon">📬</span>Outlook</label>
+                <label class="app-check-item"><input type="checkbox" value="Teams" onchange="checkStep5Config()"><span class="aci-icon">💬</span>Teams</label>
+                <label class="app-check-item"><input type="checkbox" value="OneNote" onchange="checkStep5Config()"><span class="aci-icon">📓</span>OneNote</label>
+                <label class="app-check-item"><input type="checkbox" value="Access" onchange="checkStep5Config()"><span class="aci-icon">🗄️</span>Access</label>
+                <label class="app-check-item"><input type="checkbox" value="Publisher" onchange="checkStep5Config()"><span class="aci-icon">📰</span>Publisher</label>
+              </div>
+            </div>
+            <div class="form-group">
+              <label>更新チャネル <span class="required">*</span></label>
+              <select class="form-select" id="updateChannel" onchange="checkStep5Config()">
+                <option value="">選択してください</option>
+                <option value="current">最新チャネル</option>
+                <option value="monthly-enterprise">月次エンタープライズ チャネル</option>
+                <option value="semi-annual">半期エンタープライズ チャネル</option>
+              </select>
+              <div class="form-hint">月次エンタープライズ: 毎月第2火曜日に更新（推奨）</div>
+            </div>
+            <div class="form-group">
+              <label>アーキテクチャ</label>
+              <select class="form-select" id="archSelect">
+                <option value="64bit">64 ビット</option>
+                <option value="32bit">32 ビット</option>
+              </select>
+            </div>
+            <div style="display:flex;gap:8px;margin-top:20px;">
+              <button class="az-btn primary" id="btnNext2" onclick="wizardNext(2)">次へ</button>
+              <button class="az-btn" onclick="wizardPrev(2)">前へ</button>
+            </div>
+          </div>
+
+          <!-- Tab 3: Assignments -->
+          <div class="wizard-content" id="wpage3" style="display:none;">
+            <div class="assign-section">
+              <h4>必須</h4>
+              <p style="font-size:11px;color:var(--fg-muted);margin-bottom:8px;">このアプリは選択したグループのデバイスに自動的にインストールされます</p>
+              <div id="requiredGroups"></div>
+              <button class="assign-btn" id="btnAddGroup" onclick="openGroupPicker()" style="margin-top:8px;">+ グループを追加</button>
+            </div>
+            <div class="assign-section" style="margin-top:20px;">
+              <h4>使用可能 (登録済みデバイス)</h4>
+              <p style="font-size:11px;color:var(--fg-muted);margin-bottom:8px;">ユーザーがポータル サイトからインストール可能</p>
+              <div id="availableGroups" style="color:var(--fg-muted);font-size:12px;font-style:italic;">グループが追加されていません</div>
+            </div>
+            <div style="display:flex;gap:8px;margin-top:20px;">
+              <button class="az-btn primary" id="btnNext3" onclick="wizardNext(3)">次へ</button>
+              <button class="az-btn" onclick="wizardPrev(3)">前へ</button>
+            </div>
+          </div>
+
+          <!-- Tab 4: Review + Create -->
+          <div class="wizard-content" id="wpage4" style="display:none;">
+            <div class="summary-section">
+              <h4>アプリスイート情報</h4>
+              <div class="summary-row"><span class="sr-label">スイート名</span><span class="sr-value" id="sumName">—</span></div>
+              <div class="summary-row"><span class="sr-label">説明</span><span class="sr-value" id="sumDesc">—</span></div>
+              <div class="summary-row"><span class="sr-label">発行元</span><span class="sr-value">Microsoft</span></div>
+            </div>
+            <div class="summary-section">
+              <h4>スイートの構成</h4>
+              <div class="summary-row"><span class="sr-label">含まれるアプリ</span><span class="sr-value" id="sumApps">—</span></div>
+              <div id="sumAppTags" style="margin-bottom:8px;"></div>
+              <div class="summary-row"><span class="sr-label">更新チャネル</span><span class="sr-value" id="sumChannel">—</span></div>
+              <div class="summary-row"><span class="sr-label">アーキテクチャ</span><span class="sr-value" id="sumArch">—</span></div>
+            </div>
+            <div class="summary-section">
+              <h4>割り当て</h4>
+              <div class="summary-row"><span class="sr-label">必須</span><span class="sr-value" id="sumRequired">—</span></div>
+              <div class="summary-row"><span class="sr-label">使用可能</span><span class="sr-value">なし</span></div>
+            </div>
+            <div style="display:flex;gap:8px;margin-top:20px;">
+              <button class="az-btn primary" id="btnCreate" onclick="createApp()">作成</button>
+              <button class="az-btn" onclick="wizardPrev(4)">前へ</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Group Picker Overlay -->
+      <div class="group-picker-overlay" id="groupPickerOverlay">
+        <div class="group-picker">
+          <div class="group-picker-header">
+            <h4>グループを選択</h4>
+            <button class="form-close" onclick="closeGroupPicker()">×</button>
+          </div>
+          <div class="group-picker-body">
+            <div class="group-picker-item" onclick="toggleGroupSelect(this, 'SG-W365-Users')">
+              <span>👥</span> SG-W365-Users
+            </div>
+            <div class="group-picker-item" onclick="toggleGroupSelect(this, 'IT-Admins')">
+              <span>👥</span> IT-Admins
+            </div>
+            <div class="group-picker-item" onclick="toggleGroupSelect(this, '営業部')">
+              <span>👥</span> 営業部
+            </div>
+            <div class="group-picker-item" onclick="toggleGroupSelect(this, '工場スタッフ')">
+              <span>👥</span> 工場スタッフ
+            </div>
+          </div>
+          <div class="group-picker-footer">
+            <button class="az-btn primary" onclick="confirmGroupSelect()">選択</button>
+            <button class="az-btn" onclick="closeGroupPicker()">キャンセル</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Toast -->
+    <div class="toast" id="toast"></div>
+  </div>
+</div>
+
+<script>
+let currentStep = 1;
+const totalSteps = 7;
+let appTypeSelected = false;
+let selectedGroups = [];
+let wizardTab = 1;
+
+function goStep(n) {
+  if (n > currentStep) return;
+  document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+  document.getElementById(`step${n}`).classList.add('active');
+}
+
+function completeStep(n) {
+  const stepEl = document.getElementById(`step${n}`);
+  stepEl.classList.remove('active');
+  stepEl.classList.add('completed');
+
+  if (n < totalSteps) {
+    currentStep = n + 1;
+    const nextStep = document.getElementById(`step${currentStep}`);
+    nextStep.classList.add('active');
+  }
+
+  const pct = Math.round((n / totalSteps) * 100);
+  document.getElementById('labProgress').style.width = pct + '%';
+
+  if (n === totalSteps) {
+    document.getElementById('completion').classList.add('show');
+  }
+}
+
+// Helper to hide all pages
+function hideAllPages() {
+  document.getElementById('page-dashboard').style.display = 'none';
+  document.getElementById('page-allApps').style.display = 'none';
+  document.getElementById('page-appTypeSelect').style.display = 'none';
+  document.getElementById('page-wizard').style.display = 'none';
+}
+
+// Step 1: Click "アプリ" then "すべてのアプリ" in sidebar
+function navClick(page) {
+  document.querySelectorAll('.az-nav-item').forEach(i => i.classList.remove('active'));
+
+  if (page === 'apps') {
+    document.getElementById('navApps').classList.add('active');
+    const sub = document.getElementById('appsSubMenu');
+    sub.style.display = sub.style.display === 'none' ? 'block' : 'none';
+  } else if (page === 'dashboard') {
+    hideAllPages();
+    document.getElementById('page-dashboard').style.display = 'block';
+  }
+}
+
+function navSubClick(sub) {
+  document.querySelectorAll('.az-nav-sub').forEach(s => s.classList.remove('active'));
+
+  if (sub === 'allApps') {
+    document.getElementById('navAllApps').classList.add('active');
+    hideAllPages();
+    document.getElementById('page-allApps').style.display = 'block';
+
+    if (currentStep === 1) {
+      completeStep(1);
+      setTimeout(() => {
+        document.getElementById('btnAddApp').classList.add('highlight');
+      }, 500);
+    }
+  }
+}
+
+// Step 2: Click Add button
+function clickAddApp() {
+  document.getElementById('btnAddApp').classList.remove('highlight');
+  hideAllPages();
+  document.getElementById('page-appTypeSelect').style.display = 'block';
+
+  if (currentStep === 2) {
+    completeStep(2);
+  }
+}
+
+function backToAllApps() {
+  hideAllPages();
+  document.getElementById('page-allApps').style.display = 'block';
+}
+
+// Step 3: Select app type
+function selectAppType(type) {
+  document.querySelectorAll('.app-type-card').forEach(c => c.classList.remove('selected'));
+
+  if (type === 'm365') {
+    document.getElementById('appTypeM365').classList.add('selected');
+    appTypeSelected = true;
+    const btn = document.getElementById('btnSelectType');
+    btn.style.opacity = '1';
+    btn.style.cursor = 'pointer';
+  }
+}
+
+function confirmAppType() {
+  if (!appTypeSelected) return;
+
+  hideAllPages();
+  document.getElementById('page-wizard').style.display = 'block';
+
+  if (currentStep === 3) {
+    completeStep(3);
+  }
+}
+
+// Wizard tab navigation
+function goWizardTab(tab) {
+  const tabEl = document.getElementById(`wtab${tab}`);
+  if (tabEl.classList.contains('disabled')) return;
+
+  wizardTab = tab;
+  for (let i = 1; i <= 4; i++) {
+    document.getElementById(`wtab${i}`).classList.remove('active');
+    document.getElementById(`wpage${i}`).style.display = 'none';
+  }
+  document.getElementById(`wtab${tab}`).classList.add('active');
+  document.getElementById(`wpage${tab}`).style.display = 'block';
+}
+
+function wizardNext(from) {
+  const next = from + 1;
+  if (next > 4) return;
+
+  // Validate before advancing
+  if (from === 1) {
+    const name = document.getElementById('suiteName').value.trim();
+    if (!name) { alert('スイート名を入力してください'); return; }
+  }
+  if (from === 2) {
+    const checked = document.querySelectorAll('#appCheckList input[type=checkbox]:checked');
+    const channel = document.getElementById('updateChannel').value;
+    if (checked.length === 0) { alert('少なくとも1つのアプリを選択してください'); return; }
+    if (!channel) { alert('更新チャネルを選択してください'); return; }
+  }
+  if (from === 3) {
+    if (selectedGroups.length === 0) { alert('必須グループを追加してください'); return; }
+  }
+
+  // Enable and go to next tab
+  document.getElementById(`wtab${next}`).classList.remove('disabled');
+  document.getElementById(`wtab${from}`).classList.add('completed');
+  goWizardTab(next);
+
+  // Populate summary on tab 4
+  if (next === 4) {
+    populateSummary();
+  }
+}
+
+function wizardPrev(from) {
+  const prev = from - 1;
+  if (prev < 1) return;
+  goWizardTab(prev);
+}
+
+// Step 4: Enter suite info
+function checkStep4Info() {
+  const name = document.getElementById('suiteName').value.trim();
+  if (name.length > 0 && currentStep === 4) {
+    completeStep(4);
+  }
+}
+
+// Step 5: Configure apps + channel
+function checkStep5Config() {
+  const checked = document.querySelectorAll('#appCheckList input[type=checkbox]:checked');
+  const channel = document.getElementById('updateChannel').value;
+  if (checked.length > 0 && channel === 'monthly-enterprise' && currentStep === 5) {
+    completeStep(5);
+  }
+}
+
+// Step 6: Assignment - group picker
+function openGroupPicker() {
+  document.getElementById('groupPickerOverlay').classList.add('open');
+}
+
+function closeGroupPicker() {
+  document.getElementById('groupPickerOverlay').classList.remove('open');
+  document.querySelectorAll('.group-picker-item').forEach(i => i.classList.remove('selected'));
+}
+
+let tempSelectedGroup = null;
+function toggleGroupSelect(el, groupName) {
+  document.querySelectorAll('.group-picker-item').forEach(i => i.classList.remove('selected'));
+  el.classList.add('selected');
+  tempSelectedGroup = groupName;
+}
+
+function confirmGroupSelect() {
+  if (!tempSelectedGroup) return;
+
+  if (!selectedGroups.includes(tempSelectedGroup)) {
+    selectedGroups.push(tempSelectedGroup);
+  }
+
+  renderRequiredGroups();
+  closeGroupPicker();
+  tempSelectedGroup = null;
+
+  if (selectedGroups.includes('SG-W365-Users') && currentStep === 6) {
+    completeStep(6);
+  }
+}
+
+function renderRequiredGroups() {
+  const container = document.getElementById('requiredGroups');
+  container.innerHTML = selectedGroups.map(g =>
+    `<div class="assign-group" style="margin-bottom:4px;"><span class="ag-icon">👥</span>${g}<span style="margin-left:auto;font-size:11px;color:var(--fg-muted);">グループ</span></div>`
+  ).join('');
+}
+
+// Populate summary tab
+function populateSummary() {
+  document.getElementById('sumName').textContent = document.getElementById('suiteName').value || '—';
+  document.getElementById('sumDesc').textContent = document.getElementById('suiteDesc').value || '—';
+
+  const checked = document.querySelectorAll('#appCheckList input[type=checkbox]:checked');
+  const appNames = Array.from(checked).map(cb => cb.value);
+  document.getElementById('sumApps').textContent = appNames.length + ' 個のアプリ';
+
+  const tagsContainer = document.getElementById('sumAppTags');
+  tagsContainer.innerHTML = '<div class="summary-tags">' + appNames.map(a => `<span class="summary-tag">${a}</span>`).join('') + '</div>';
+
+  const channelMap = { 'current': '最新チャネル', 'monthly-enterprise': '月次エンタープライズ チャネル', 'semi-annual': '半期エンタープライズ チャネル' };
+  document.getElementById('sumChannel').textContent = channelMap[document.getElementById('updateChannel').value] || '—';
+
+  document.getElementById('sumArch').textContent = document.getElementById('archSelect').value === '64bit' ? '64 ビット' : '32 ビット';
+
+  document.getElementById('sumRequired').textContent = selectedGroups.length > 0 ? selectedGroups.join(', ') : 'なし';
+}
+
+// Step 7: Create
+function createApp() {
+  const name = document.getElementById('suiteName').value.trim() || 'M365 Apps - Standard';
+
+  // Go back to all apps page
+  hideAllPages();
+  document.getElementById('page-allApps').style.display = 'block';
+
+  // Add to table
+  const tbody = document.querySelector('#appTable tbody');
+  const newRow = document.createElement('tr');
+  newRow.innerHTML = `<td>☐</td><td class="link" style="color:var(--green);font-weight:600;">${name}</td><td>Microsoft 365 Apps</td><td>Microsoft</td><td><span class="status-badge pending">展開中...</span></td>`;
+  newRow.style.background = 'var(--green-bg)';
+  tbody.insertBefore(newRow, tbody.firstChild);
+
+  // Toast
+  const toast = document.getElementById('toast');
+  toast.textContent = `✅ 「${name}」が正常に作成されました。対象デバイスへの展開が開始されます。`;
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 4000);
+
+  // After a moment, update status to success
+  setTimeout(() => {
+    const badge = newRow.querySelector('.status-badge');
+    badge.textContent = '割り当て済み';
+    badge.classList.remove('pending');
+    badge.classList.add('success');
+  }, 3000);
+
+  if (currentStep === 7) {
+    completeStep(7);
+  }
+}
+</script>
+</body>
+</html>
