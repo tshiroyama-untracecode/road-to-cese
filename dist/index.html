@@ -3219,17 +3219,17 @@ const prog=()=>{const a=allT();return Math.round(a.filter(t=>done[t.id]).length/
 
 function renderSB(){
   let h='';
-  h+=`<div class="sb-section><div class=sb-item ${view==='welcome'?'active':''} onclick=view='welcome';renderSB();renderMain();upd();window.scrollTo(0,0);><span class=check>🏠</span>はじめに</div></div>`;
+  h+=`<div class="sb-section"><div class="sb-item" ${view==='welcome'?'active':''} onclick="view='welcome';renderSB();renderMain();upd();window.scrollTo(0,0);"><span class="check">🏠</span>はじめに</div></div>`;
   T.forEach(m=>{
     const td=m.topics.filter(t=>done[t.id]).length;
-    h+=`<div class="sb-section><div class=sb-label style=color:${m.color}>Month ${m.month}: ${m.title} (${td}/${m.topics.length})</div>`;
+    h+=`<div class="sb-section"><div class="sb-label" style="color:${m.color}">Month ${m.month}: ${m.title} (${td}/${m.topics.length})</div>`;
     m.topics.forEach(t=>{
-      h+=`<div class="sb-item ${view===t.id?'active':''} ${done[t.id]?'done':''} onclick=go('${t.id}')><span class=check>${done[t.id]?'✅':'○'}</span>${t.title}</div>`;
+      h+=`<div class="sb-item ${view===t.id?'active':''} ${done[t.id]?'done':''} onclick=go('${t.id}')"><span class="check">${done[t.id]?'✅':'○'}</span>${t.title}</div>`;
     });
     h+='</div>';
   });
-  h+=`<div class="sb-section><div class=sb-label style=color:#008B8B>ハンズオン Lab</div><div class=sb-item onclick=window.open('labs/lab1-entra-group.html','_blank')><span class=check>🧪</span>Lab 1: Entra グループ作成</div><div class=sb-item onclick=window.open('labs/lab2-conditional-access.html','_blank')><span class=check>🧪</span>Lab 2: 条件付きアクセス</div><div class=sb-item onclick=window.open('labs/lab3-intune-compliance.html','_blank')><span class=check>🧪</span>Lab 3: Intune コンプライアンス</div><div class=sb-item onclick=window.open('labs/lab4-w365-provisioning.html','_blank')><span class=check>🧪</span>Lab 4: W365 プロビジョニング</div><div class=sb-item onclick=window.open('labs/lab5-intune-app-deploy.html','_blank')><span class=check>🧪</span>Lab 5: Intune アプリ配信</div><div class=sb-item onclick=window.open('labs/lab6-autopilot.html','_blank')><span class=check>🧪</span>Lab 6: Autopilot 登録</div><div class=sb-item onclick=window.open('labs/lab7-defender-baseline.html','_blank')><span class=check>🧪</span>Lab 7: Defender ベースライン</div><div class=sb-item onclick=window.open('labs/lab8-sku-mix.html','_blank')><span class=check>🧪</span>Lab 8: SKUミックス設計</div><div class=sb-item onclick=window.open('labs/lab9-avd-hostpool.html','_blank')><span class=check>🧪</span>Lab 9: AVD ホストプール</div><div class=sb-item onclick=window.open('labs/lab10-global-secure-access.html','_blank')><span class=check>🧪</span>Lab 10: Global Secure Access</div></div>`;
-  h+=`<div class="sb-section><div class=sb-label style=color:#D83B01>卒業テスト</div><div class=sb-item ${view==='quiz'?'active':''} onclick=goQuiz()>📝 卒業テスト（20問）</div></div>`;
+  h+=`<div class="sb-section"><div class="sb-label" style="color:#008B8B">ハンズオン Lab</div><div class="sb-item" onclick="window.open('labs/lab1-entra-group.html','_blank')"><span class="check">🧪</span>Lab 1: Entra グループ作成</div><div class="sb-item" onclick="window.open('labs/lab2-conditional-access.html','_blank')"><span class="check">🧪</span>Lab 2: 条件付きアクセス</div><div class="sb-item" onclick="window.open('labs/lab3-intune-compliance.html','_blank')"><span class="check">🧪</span>Lab 3: Intune コンプライアンス</div><div class="sb-item" onclick="window.open('labs/lab4-w365-provisioning.html','_blank')"><span class="check">🧪</span>Lab 4: W365 プロビジョニング</div><div class="sb-item" onclick="window.open('labs/lab5-intune-app-deploy.html','_blank')"><span class="check">🧪</span>Lab 5: Intune アプリ配信</div><div class="sb-item" onclick="window.open('labs/lab6-autopilot.html','_blank')"><span class="check">🧪</span>Lab 6: Autopilot 登録</div><div class="sb-item" onclick="window.open('labs/lab7-defender-baseline.html','_blank')"><span class="check">🧪</span>Lab 7: Defender ベースライン</div><div class="sb-item" onclick="window.open('labs/lab8-sku-mix.html','_blank')"><span class="check">🧪</span>Lab 8: SKUミックス設計</div><div class="sb-item" onclick="window.open('labs/lab9-avd-hostpool.html','_blank')"><span class="check">🧪</span>Lab 9: AVD ホストプール</div><div class="sb-item" onclick="window.open('labs/lab10-global-secure-access.html','_blank')"><span class="check">🧪</span>Lab 10: Global Secure Access</div></div>`;
+  h+=`<div class="sb-section"><div class="sb-label" style="color:#D83B01">卒業テスト</div><div class="sb-item" ${view==='quiz'?'active':''} onclick="goQuiz()">📝 卒業テスト（20問）</div></div>`;
   document.getElementById('sidebar').innerHTML=h;
 }
 
@@ -3239,7 +3239,7 @@ function renderMain(){
   const t=allT().find(x=>x.id===view);
   if(!t) return renderWelcome();
   const m=T.find(x=>x.topics.includes(t));
-  let h=`<div class="topic-view active><div class=breadcrumb>Month ${m.month}: ${m.title} › ${t.week}</div><div class=topic-title>${t.title}</div><div class=key-msg>${t.keyMsg}</div>`;
+  let h=`<div class="topic-view active"><div class="breadcrumb">Month ${m.month}: ${m.title} › ${t.week}</div><div class="topic-title">${t.title}</div><div class="key-msg">${t.keyMsg}</div>`;
   t.content.forEach(b=>{
     if(b.type==='list') h+=rList(b);
     else if(b.type==='cards') h+=rCards(b);
@@ -3248,49 +3248,49 @@ function renderMain(){
     else if(b.type==='diagram') h+=rDiagram(b);
   });
   if(t.links&&t.links.length){
-    h+=`<div class="block><h3><span class=icon>🔗</span>深掘り学習</h3>`;
-    t.links.forEach(l=>{h+=`<a class="link-box href=${l.url} target=_blank>📄 ${l.title}</a>`;});
+    h+=`<div class="block"><h3><span class="icon">🔗</span>深掘り学習</h3>`;
+    t.links.forEach(l=>{h+=`<a class="link-box" href=${l.url} target="_blank"">📄 ${l.title}</a>`;});
     h+='</div>';
   }
   const all=allT(),idx=all.findIndex(x=>x.id===t.id);
-  h+=`<div class="complete-bar><button class=btn ${done[t.id]?'btn-outline':'btn-green'} onclick=toggle('${t.id}')>${done[t.id]?'✅ 完了済み':'☐ 完了にする'}</button><div style=margin-left:auto;display:flex;gap:8px;>${idx>0?`<button class=btn btn-outline onclick=go('${all[idx-1].id}')>← 前</button>`:''}${idx<all.length-1?`<button class=btn btn-azure onclick=go('${all[idx+1].id}')>次 →</button>`:''}</div></div>`;
+  h+=`<div class="complete-bar"><button class="btn" ${done[t.id]?'btn-outline':'btn-green'} onclick="toggle('${t.id}')">${done[t.id]?'✅ 完了済み':'☐ 完了にする'}</button><div style="margin-left:auto;display:flex;gap:8px;">${idx>0?`<button class=btn btn-outline onclick=go('${all[idx-1].id}')>← 前</button>`:''}${idx<all.length-1?`<button class=btn btn-azure onclick=go('${all[idx+1].id}')>次 →</button>`:''}</div></div>`;
   h+='</div>';
   document.getElementById('main').innerHTML=h;
 }
 
-function rList(b){return `<div class="block><h3><span class=icon>${b.icon||''}</span>${b.title}</h3><ul>${b.items.map(i=>`<li>${e(i)}</li>`).join('')}</ul></div>`;}
-function rCards(b){return `<div class="block><h3><span class=icon>${b.icon||''}</span>${b.title}</h3><div class=card-grid>${b.cards.map(c=>`<div class=card ${c.color}><h4>${c.title}</h4><ul>${c.items.map(i=>`<li>${e(i)}</li>`).join('')}</ul></div>`).join('')}</div></div>`;}
-function rTable(b){return `<div class="block><h3><span class=icon>${b.icon||''}</span>${b.title}</h3><table class=cmp-table><thead><tr>${b.headers.map(h=>`<th>${e(h)}</th>`).join('')}</tr></thead><tbody>${b.rows.map(r=>`<tr>${r.map((c,i)=>`<td${i===0?' style=font-weight:600;color:var(--fg)':''}>${e(c)}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;}
-function rFlow(b){return `<div class="block><h3><span class=icon>${b.icon||''}</span>${b.title}</h3><div class=diagram>${b.steps.map((s,i)=>`${i>0?'<span class=diagram-arrow>→</span>':''}<div class=diagram-step><div class=diagram-box ${s.style||''}><div class=d-icon>${s.icon}</div><h5>${s.label}</h5><p>${s.desc}</p></div></div>`).join('')}</div></div>`;}
-function rDiagram(b){return `<div class="block><h3><span class=icon>${b.icon||''}</span>${b.title}</h3><div class=pillar-row>${b.pillars.map(p=>`<div class=pillar style=background:${p.color}><div style=font-size:18px;margin-bottom:2px;>${p.label}</div><div style=font-size:10px;opacity:.85;>${p.desc}</div></div>`).join('')}</div></div>`;}
+function rList(b){return `<div class="block"><h3><span class="icon">${b.icon||''}</span>${b.title}</h3><ul>${b.items.map(i=>`<li>${e(i)}</li>`).join('')}</ul></div>`;}
+function rCards(b){return `<div class="block"><h3><span class="icon">${b.icon||''}</span>${b.title}</h3><div class="card-grid">${b.cards.map(c=>`<div class=card ${c.color}><h4>${c.title}</h4><ul>${c.items.map(i=>`<li>${e(i)}</li>`).join('')}</ul></div>`).join('')}</div></div>`;}
+function rTable(b){return `<div class="block"><h3><span class="icon">${b.icon||''}</span>${b.title}</h3><table class="cmp-table"><thead><tr>${b.headers.map(h=>`<th>${e(h)}</th>`).join('')}</tr></thead><tbody>${b.rows.map(r=>`<tr>${r.map((c,i)=>`<td${i===0?' style="font-weight:600;color:var(--fg)"':''}>${e(c)}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;}
+function rFlow(b){return `<div class="block"><h3><span class="icon">${b.icon||''}</span>${b.title}</h3><div class="diagram">${b.steps.map((s,i)=>`${i>0?'<span class=diagram-arrow>→</span>':''}<div class=diagram-step><div class=diagram-box ${s.style||''}><div class=d-icon>${s.icon}</div><h5>${s.label}</h5><p>${s.desc}</p></div></div>`).join('')}</div></div>`;}
+function rDiagram(b){return `<div class="block"><h3><span class="icon">${b.icon||''}</span>${b.title}</h3><div class="pillar-row">${b.pillars.map(p=>`<div class=pillar style="background:${p.color}"><div style="font-size:18px;margin-bottom:2px;">${p.label}</div><div style="font-size:10px;opacity:.85;">${p.desc}</div></div>`).join('')}</div></div>`;}
 
 function renderWelcome(){
   const p=prog(),all=allT(),d=all.filter(t=>done[t.id]).length;
   document.getElementById('main').innerHTML=`
-<div class="hero>
+<div class="hero">
   <h2>Cloud Endpoint SE への道</h2>
   <p>Windows 365 / AVD の初回提案ができるソリューションエンジニアへ — 3ヶ月の育成プログラム</p>
-  <div class="hero-stat>${d} / ${all.length}</div>
-  <div class="hero-stat-label>トピック完了 (${p}%)</div>
+  <div class="hero-stat">${d} / ${all.length}</div>
+  <div class="hero-stat-label">トピック完了 (${p}%)</div>
 </div>
 
 <!-- 目的 -->
-<div class="block style=border-left:3px solid var(--azure);>
-  <h3><span class="icon>🎯</span>本ラーニングパスの目的</h3>
-  <p style="font-size:14px;color:var(--fg-sub);margin-bottom:12px;>
+<div class="block style=border-left:3px solid var(--azure);">
+  <h3><span class="icon">🎯</span>本ラーニングパスの目的</h3>
+  <p style="font-size:14px;color:var(--fg-sub);margin-bottom:12px;">
     Windows 365 および Azure Virtual Desktop（AVD）を中心としたクラウドエンドポイントソリューションを、
-    お客様に対して<b style="color:var(--fg);>自信を持って初回提案</b>できるSE（ソリューションエンジニア）を育成します。
+    お客様に対して<b style="color:var(--fg);">自信を持って初回提案</b>できるSE（ソリューションエンジニア）を育成します。
   </p>
-  <p style="font-size:13px;color:var(--fg-sub);>
+  <p style="font-size:13px;color:var(--fg-sub);">
     DaaS/VDI の提案には、製品知識だけでなく、セキュリティ（ゼロトラスト）、ID管理（Entra ID）、
     デバイス管理（Intune）、ネットワーク（SASE）など幅広い周辺知識が必要です。
-    本プログラムでは、これらの知識を<b style="color:var(--fg);>体系的に・段階的に</b>習得します。
+    本プログラムでは、これらの知識を<b style="color:var(--fg);">体系的に・段階的に</b>習得します。
   </p>
 </div>
 
 <!-- ゴール -->
-<div class="block style=border-left:3px solid var(--green);>
-  <h3><span class="icon>🏆</span>3ヶ月後のゴール</h3>
+<div class="block style=border-left:3px solid var(--green);">
+  <h3><span class="icon">🏆</span>3ヶ月後のゴール</h3>
   <ul>
     <li>W365 と AVD の違い、それぞれの強み・弱みを<b>自分の言葉で</b>お客様に説明できる</li>
     <li>お客様の環境をヒアリングし、W365 / AVD / 物理PC の<b>最適な組み合わせを提案</b>できる</li>
@@ -3302,9 +3302,9 @@ function renderWelcome(){
 </div>
 
 <!-- 前提条件 & 対象者 -->
-<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;>
-  <div class="block style=border-left:3px solid var(--purple);>
-    <h3><span class="icon>👤</span>対象者</h3>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+  <div class="block style=border-left:3px solid var(--purple);">
+    <h3><span class="icon">👤</span>対象者</h3>
     <ul>
       <li>新入社員（IT基礎知識あり）</li>
       <li>中途入社（他分野からの転職）</li>
@@ -3312,72 +3312,72 @@ function renderWelcome(){
       <li>提案スキルを体系的に学び直したい方</li>
     </ul>
   </div>
-  <div class="block style=border-left:3px solid var(--yellow);>
-    <h3><span class="icon>📋</span>前提条件</h3>
+  <div class="block style=border-left:3px solid var(--yellow);">
+    <h3><span class="icon">📋</span>前提条件</h3>
     <ul>
       <li>基本的なIT用語を理解している（TCP/IP、DNS、AD、VM 等）</li>
       <li>Windows の基本操作ができる</li>
       <li>クラウドの概念（IaaS/PaaS/SaaS）を知っている</li>
-      <li style="border-left-color:var(--green);>ゼロトラスト・SASE・Intune 等は未経験でOK（本プログラムで学ぶ）</li>
+      <li style="border-left-color:var(--green);">ゼロトラスト・SASE・Intune 等は未経験でOK（本プログラムで学ぶ）</li>
     </ul>
   </div>
 </div>
 
 <!-- 学習の進め方 -->
-<div class="block style=border-left:3px solid var(--teal);>
-  <h3><span class="icon>📖</span>学習の進め方</h3>
-  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:8px;>
-    <div style="text-align:center;padding:14px 8px;background:var(--azure-light);border-radius:8px;>
-      <div style="font-size:24px;margin-bottom:4px;>📚</div>
-      <div style="font-size:12px;font-weight:600;color:var(--fg);>1. 概要を読む</div>
-      <div style="font-size:11px;color:var(--fg-sub);>各トピック15分で<br>基本概念を理解</div>
+<div class="block style=border-left:3px solid var(--teal);">
+  <h3><span class="icon">📖</span>学習の進め方</h3>
+  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:8px;">
+    <div style="text-align:center;padding:14px 8px;background:var(--azure-light);border-radius:8px;">
+      <div style="font-size:24px;margin-bottom:4px;">📚</div>
+      <div style="font-size:12px;font-weight:600;color:var(--fg);">1. 概要を読む</div>
+      <div style="font-size:11px;color:var(--fg-sub);">各トピック15分で<br>基本概念を理解</div>
     </div>
-    <div style="text-align:center;padding:14px 8px;background:var(--green-bg);border-radius:8px;>
-      <div style="font-size:24px;margin-bottom:4px;>🔗</div>
-      <div style="font-size:12px;font-weight:600;color:var(--fg);>2. 深掘りリンク</div>
-      <div style="font-size:11px;color:var(--fg-sub);>MS Learn で<br>詳細を学習</div>
+    <div style="text-align:center;padding:14px 8px;background:var(--green-bg);border-radius:8px;">
+      <div style="font-size:24px;margin-bottom:4px;">🔗</div>
+      <div style="font-size:12px;font-weight:600;color:var(--fg);">2. 深掘りリンク</div>
+      <div style="font-size:11px;color:var(--fg-sub);">MS Learn で<br>詳細を学習</div>
     </div>
-    <div style="text-align:center;padding:14px 8px;background:var(--purple-bg);border-radius:8px;>
-      <div style="font-size:24px;margin-bottom:4px;>✅</div>
-      <div style="font-size:12px;font-weight:600;color:var(--fg);>3. 完了チェック</div>
-      <div style="font-size:11px;color:var(--fg-sub);>理解したら<br>完了ボタンを押す</div>
+    <div style="text-align:center;padding:14px 8px;background:var(--purple-bg);border-radius:8px;">
+      <div style="font-size:24px;margin-bottom:4px;">✅</div>
+      <div style="font-size:12px;font-weight:600;color:var(--fg);">3. 完了チェック</div>
+      <div style="font-size:11px;color:var(--fg-sub);">理解したら<br>完了ボタンを押す</div>
     </div>
-    <div style="text-align:center;padding:14px 8px;background:var(--red-bg);border-radius:8px;>
-      <div style="font-size:24px;margin-bottom:4px;>📝</div>
-      <div style="font-size:12px;font-weight:600;color:var(--fg);>4. 卒業テスト</div>
-      <div style="font-size:11px;color:var(--fg-sub);>全20問に挑戦<br>合格で修了</div>
+    <div style="text-align:center;padding:14px 8px;background:var(--red-bg);border-radius:8px;">
+      <div style="font-size:24px;margin-bottom:4px;">📝</div>
+      <div style="font-size:12px;font-weight:600;color:var(--fg);">4. 卒業テスト</div>
+      <div style="font-size:11px;color:var(--fg-sub);">全20問に挑戦<br>合格で修了</div>
     </div>
   </div>
 </div>
 
 <!-- ロードマップ -->
-<div class="block>
-  <h3><span class="icon>🗺️</span>3ヶ月ロードマップ</h3>
-  <div class="month-cards style=max-width:100%;>
-    ${T.map(m=>{const td=m.topics.filter(t=>done[t.id]).length;const mp=m.topics.length?Math.round(td/m.topics.length*100):0;return `<div class="month-card onclick=go('${m.topics[0].id}')><div class=mc-num style=color:${m.color}>${m.month}</div><h3>Month ${m.month}: ${m.title}</h3><p>${m.period} — ${td}/${m.topics.length} 完了</p><div class=mc-prog><div class=mc-prog-fill style=width:${mp}%;background:${m.color}></div></div></div>`;}).join('')}
+<div class="block">
+  <h3><span class="icon">🗺️</span>3ヶ月ロードマップ</h3>
+  <div class="month-cards" style=max-width:100%;">
+    ${T.map(m=>{const td=m.topics.filter(t=>done[t.id]).length;const mp=m.topics.length?Math.round(td/m.topics.length*100):0;return `<div class="month-card" onclick=go('${m.topics[0].id}')><div class=mc-num style="color:${m.color}">${m.month}</div><h3>Month ${m.month}: ${m.title}</h3><p>${m.period} — ${td}/${m.topics.length} 完了</p><div class=mc-prog><div class=mc-prog-fill style=width:${mp}%;background:${m.color}></div></div></div>`;}).join('')}
   </div>
 </div>
 
 <!-- 合格基準 -->
-<div class="block style=border-left:3px solid var(--red);>
-  <h3><span class="icon>🎓</span>卒業テストの合格基準</h3>
+<div class="block style=border-left:3px solid var(--red);">
+  <h3><span class="icon">🎓</span>卒業テストの合格基準</h3>
   <ul>
     <li>基礎知識（Q1-7）: 7問中 <b>5問以上</b>正答</li>
     <li>専門知識（Q8-14）: 7問中 <b>5問以上</b>正答</li>
     <li>提案シナリオ（Q15-20）: 先輩SEレビューで<b>「顧客に出せるレベル」</b>の評価</li>
-    <li style="border-left-color:var(--green);>合格後 → 先輩SE同行で<b>実際の顧客提案に参加</b>（OJT フェーズ）</li>
-    <li style="border-left-color:var(--yellow);>不合格 → 該当セクションを1週間復習し再テスト</li>
+    <li style="border-left-color:var(--green);">合格後 → 先輩SE同行で<b>実際の顧客提案に参加</b>（OJT フェーズ）</li>
+    <li style="border-left-color:var(--yellow);">不合格 → 該当セクションを1週間復習し再テスト</li>
   </ul>
 </div>
 `;
 }
 
 function renderQuiz(){
-  let h='<div class="topic-view active><div class=topic-title>卒業テスト（20問）</div><div class=key-msg>各問1-2文で回答。「ヒント」で参考回答を表示</div>';
+  let h='<div class="topic-view active"><div class=topic-title>卒業テスト（20問）</div><div class=key-msg>各問1-2文で回答。「ヒント」で参考回答を表示</div>';
   let lc='';
   Q.forEach((q,i)=>{
-    if(q.cat!==lc){lc=q.cat;h+=`<div class="section-divider><h3>${lc==='基礎'?'📘 基礎知識（Q1-7）':lc==='専門'?'📗 専門知識（Q8-14）':'📙 提案シナリオ（Q15-20）'}</h3></div>`;}
-    h+=`<div class="quiz-q ${q.cat==='提案'?'scenario':''}><h4>Q${i+1}. ${e(q.q)}</h4><textarea class=quiz-answer placeholder=回答を入力...></textarea><button class=hint-btn onclick=this.nextElementSibling.classList.toggle('active')>💡 ヒント</button><div class=quiz-hint>${e(q.h)}</div></div>`;
+    if(q.cat!==lc){lc=q.cat;h+=`<div class="section-divider"><h3>${lc==='基礎'?'📘 基礎知識（Q1-7）':lc==='専門'?'📗 専門知識（Q8-14）':'📙 提案シナリオ（Q15-20）'}</h3></div>`;}
+    h+=`<div class="quiz-q" ${q.cat==='提案'?'scenario':''}"><h4>Q${i+1}. ${e(q.q)}</h4><textarea class="quiz-answer" placeholder="回答を入力..."></textarea><button class="hint-btn" onclick="this.nextElementSibling.classList.toggle('active')">💡 ヒント</button><div class="quiz-hint">${e(q.h)}</div></div>`;
   });
   h+='</div>';
   document.getElementById('main').innerHTML=h;
