@@ -217,6 +217,19 @@ const T=[{month:1,title:"基礎固め",color:"#0078D4",period:"Week 1-4",topics:
 // Topic 1: ゼロトラスト
 // ═══════════════════════════════════════════════════════
 {id:"zt",title:"ゼロトラスト",week:"Week 1",time:"3h",keyMsg:"「社内は安全」を捨て、全アクセスを常に検証するモデル",content:[
+{type:"list",title:"ゼロトラストとは何か — 基礎から理解する",icon:"📖",items:[
+"ゼロトラストとは「何も信頼しない(Zero Trust)」を前提としたセキュリティモデルのことで、2010年にForrester Researchのジョン・キンダーバーグ氏が提唱した考え方です",
+"従来のセキュリティは「城と堀(Castle and Moat)」モデルと呼ばれ、企業ネットワークの境界(ファイアウォール/VPN)を守れば中は安全という考え方でした。社内LANに入れば信頼されたユーザーとして扱われていました",
+"しかしクラウド(M365/SaaS)の普及とリモートワークの一般化により、「社内ネットワーク」という境界自体が曖昧になりました。データはクラウドに、ユーザーは自宅や外出先にいます",
+"ゼロトラストでは、アクセス元が社内であっても社外であっても、全てのアクセス要求を毎回検証します。「信頼するが検証する(Trust but Verify)」ではなく「検証してから信頼する(Verify then Trust)」という発想転換です",
+"なぜ今ゼロトラストが必要か: ランサムウェア攻撃の85%以上がVPN/リモートアクセス経由で侵入しています(2023年統計)。境界防御だけでは防げない攻撃が主流になっています",
+"お客様への説明の仕方: 「ゼロトラスト=何も信じないではなく、毎回確認する仕組みです。銀行ATMのように、カードを入れてもPINを入力しても、毎回本人確認をしますよね。あれと同じ考え方です」"]},
+{type:"flow",title:"ゼロトラスト導入の段階的ステップ",icon:"📈",steps:[
+{icon:"🔑",label:"Step 1: MFA導入",desc:"全ユーザーにMFA必須化",style:"blue"},
+{icon:"📋",label:"Step 2: CA設定",desc:"条件付きアクセスポリシー",style:""},
+{icon:"📱",label:"Step 3: デバイス管理",desc:"Intune準拠チェック",style:""},
+{icon:"🛡️",label:"Step 4: EDR導入",desc:"Defender for Endpoint",style:""},
+{icon:"🌐",label:"Step 5: SASE/GSA",desc:"NWセキュリティ統合",style:"green"}]},
 {type:"cards",title:"3つの原則 — 具体例で理解する",icon:"🛡️",cards:[
 {title:"原則1: 明示的に検証する",color:"red",items:[
 "全てのアクセス要求で認証・認可を実施する",
@@ -243,6 +256,12 @@ const T=[{month:1,title:"基礎固め",color:"#0078D4",period:"Week 1-4",topics:
 "EDR/XDR: 侵害後の検知・対応を自動化(Defender)",
 "暗号化: データは保存時も転送中も常に暗号化",
 "ポイント: 「侵入されないこと」ではなく「侵入されても大丈夫」を目指す"]}]},
+{type:"table",title:"ゼロトラスト成熟度モデル — 現在地を把握する",icon:"📊",headers:["段階","ID","デバイス","ネットワーク","状態","次のアクション"],rows:[
+["Level 0: 未着手","パスワードのみ","管理なし","VPNのみ","多くの中小企業が該当","MFA導入から開始"],
+["Level 1: 基本","MFA導入済み","Intune登録開始","レガシー認証ブロック","M365 E3導入済み企業","CAポリシー強化"],
+["Level 2: 標準","CA+準拠デバイス","Intune完全管理","条件付きNWアクセス","セキュリティ意識の高い企業","ID Protection導入"],
+["Level 3: 高度","パスワードレス+PIM","EDR+自動隔離","SASE/GSA導入","先進的な大企業","ゼロトラスト完成"],
+["Level 4: 最適化","継続的なリスク評価","自動修復","全通信の可視化","ゼロトラスト先進企業","継続的な改善"]]},
 {type:"diagram",title:"ゼロトラストの6つの柱",icon:"🏛️",pillars:[
 {label:"ID",color:"#0078D4",desc:"本人確認"},{label:"デバイス",color:"#5C2D91",desc:"端末検証"},
 {label:"NW",color:"#008B8B",desc:"通信保護"},{label:"アプリ",color:"#107C10",desc:"権限管理"},
@@ -275,6 +294,19 @@ const T=[{month:1,title:"基礎固め",color:"#0078D4",period:"Week 1-4",topics:
 "GSA/SASE: Cloud PCのNWアクセス制御(NWの柱)",
 "Purview: Cloud PC上のデータ保護(データの柱)",
 "全てMicrosoft統合で管理画面が1つ→運用効率最大化"]}]},
+{type:"flow",title:"ゼロトラスト × DaaS 提案の推奨ストーリー",icon:"📖",steps:[
+{icon:"❌",label:"現状の課題提示",desc:"VPN/物理PCのリスクを説明",style:""},
+{icon:"💡",label:"ゼロトラストの必要性",desc:"境界型→ゼロトラストへ",style:"blue"},
+{icon:"☁️",label:"DaaSの位置づけ",desc:"ゼロトラストの中核としてDaaS",style:""},
+{icon:"🛡️",label:"Microsoft統合の価値",desc:"Entra+Intune+Defender統合",style:""},
+{icon:"✅",label:"具体的な提案",desc:"W365/AVD+セキュリティスタック",style:"green"}]},
+{type:"table",title:"よくある誤解と正しい理解",icon:"❌",headers:["よくある誤解","正しい理解","なぜ誤解が危険か"],rows:[
+["ゼロトラスト=全部ブロック","必要なアクセスは許可する。ただし毎回検証する","過度な制限と誤解して導入を避けてしまう"],
+["VPNがあれば安全","VPN認証情報が漏洩すれば社内NW全体にアクセスされる","VPN装置の脆弱性が攻撃者の主要な入口になっている"],
+["社内NWは安全","攻撃者が既に内部にいる前提で設計すべき","横方向移動(ラテラルムーブメント)で被害が拡大する"],
+["導入には全面的な刷新が必要","MFA+条件付きアクセスから段階的に始められる","初期投資の大きさを理由に先送りしてしまう"],
+["中小企業には不要","M365 E3の標準機能で実現可能。規模に関係なく必要","中小企業の方がセキュリティ人材が不足しており被害が深刻"],
+["ユーザー体験が悪化する","SSO+パスワードレスで逆に利便性が向上する","利便性低下を理由に経営層が反対してしまう"]]},
 {type:"list",title:"顧客会話のヒント — よくある反論と対応",icon:"💬",items:[
 "顧客:「うちは社内システムだからセキュリティは大丈夫」→ 回答: ランサムウェアの80%は社内NW侵入後に拡散。境界の中が安全という前提が最大のリスク",
 "顧客:「VPNがあるからリモートも安全」→ 回答: VPN認証情報の漏洩が急増。VPN=NW全体へのアクセス権付与と同じ。ゼロトラストなら必要なアプリだけにアクセス",
@@ -284,6 +316,20 @@ const T=[{month:1,title:"基礎固め",color:"#0078D4",period:"Week 1-4",topics:
 "実際のインシデント例: 2023年某製造業でVPN装置の脆弱性を突かれランサムウェア感染。社内NW全体に拡散し2週間の業務停止。ゼロトラストなら被害は限定的だった",
 "実際のインシデント例: 2024年某金融機関で退職者のADアカウント未削除→不正アクセス。Entra ID+PIMなら退職時の自動無効化と権限のJIT管理で防止可能",
 "提案のコツ: 「ゼロトラスト」という言葉より「どこでも安全に働ける環境」と表現すると経営層に響く"]
+},
+{type:"cards",title:"W365/AVD提案でのゼロトラスト訴求ポイント",icon:"🎯",cards:[
+{title:"経営層向け訴求",color:"purple",items:[
+"「データが端末に残らない」→ PC紛失・盗難時の情報漏洩リスクがゼロ",
+"「どこからでも同じセキュリティ」→ リモートワーク時も出張先でも安全",
+"「コンプライアンス対応」→ データの所在地が明確(日本リージョン)",
+"「セキュリティ投資の最適化」→ M365の標準機能で多くを実現",
+"「BCP/DR対策」→ 物理PCが壊れてもCloud PCにすぐアクセス可能"]},
+{title:"IT部門向け訴求",color:"teal",items:[
+"「管理画面の統合」→ Entra ID+Intune+Defenderで一元管理",
+"「自動化による運用負荷軽減」→ 条件付きアクセスで自動制御",
+"「パッチ管理の簡素化」→ Windows Autopatch+Defenderベースライン",
+"「監視の統合」→ Microsoft Defender XDRで全脅威を1画面で監視",
+"「ゼロトラストスコア」→ Microsoft Secure Scoreで現状を数値化"]}]
 }],
 links:[{title:"MS Learn: ゼロトラストとは",url:"https://learn.microsoft.com/ja-jp/security/zero-trust/"},{title:"MS Learn: M365 ゼロトラスト展開",url:"https://learn.microsoft.com/ja-jp/security/zero-trust/microsoft-365-zero-trust"}]},
 
@@ -291,6 +337,17 @@ links:[{title:"MS Learn: ゼロトラストとは",url:"https://learn.microsoft.
 // Topic 2: Entra ID
 // ═══════════════════════════════════════════════════════
 {id:"eid",title:"Entra ID",week:"Week 1",time:"4h",keyMsg:"Microsoft のクラウド ID 管理基盤。W365/AVDの認証・認可の中核",content:[
+{type:"list",title:"なぜEntra IDが重要なのか — W365/AVD提案の起点",icon:"📖",items:[
+"Entra ID(旧Azure AD)は、Microsoftクラウドサービス全体の認証・認可を司る中核基盤です。W365やAVDを提案する際、まず最初に確認すべきは「お客様のEntra IDの状態」です",
+"お客様への説明の仕方: 「Entra IDはMicrosoftクラウドの「身分証明書発行所」です。M365もW365もAVDも、全てEntra IDで本人確認してからアクセスを許可します」",
+"なぜW365/AVD提案で必須か: Cloud PCへのサインイン認証、条件付きアクセスによるアクセス制御、Intuneとの連携、全てEntra IDが起点になります",
+"Active Directory(AD)との違い: ADはオンプレミスのWindowsサーバー上で動くディレクトリサービスで、Kerberos/NTLMプロトコルを使用します。Entra IDはクラウドネイティブのIDaaS(Identity as a Service)で、OAuth 2.0/OpenID Connect/SAMLを使用します",
+"歴史: Azure Active Directory として2013年にリリースされ、2023年7月にMicrosoft Entra IDに名称変更されました。機能は変わっていないので、「名前が変わっただけ」とお客様に説明できます",
+"提案時のポイント: Entra IDのライセンス(Free/P1/P2)によって使える機能が大きく異なるため、W365/AVD提案時には必ずお客様のM365ライセンスを確認しましょう"]},
+{type:"flow",title:"オンプレADからEntra IDへの進化",icon:"🔄",steps:[
+{icon:"🏢",label:"オンプレAD時代",desc:"社内NW内で認証",style:""},
+{icon:"🔗",label:"ハイブリッド期",desc:"AD+Entra Connect同期",style:"blue"},
+{icon:"☁️",label:"クラウドネイティブ",desc:"Entra ID単独運用",style:"green"}]},
 {type:"list",title:"基本概念 — 詳細解説",icon:"🔑",items:[
 "テナント: 組織のID管理の単位（1社=1テナント）。Azure ADからEntra IDに名称変更(2023年7月)",
 "ユーザーオブジェクト: 社員(メンバー)とゲスト(B2Bコラボレーション)の2種類。それぞれ権限が異なる",
@@ -301,6 +358,21 @@ links:[{title:"MS Learn: ゼロトラストとは",url:"https://learn.microsoft.
 "マネージドID: Azure上のサービスに自動的にIDを付与。パスワード管理不要でセキュリティ向上",
 "カスタムドメイン: 既定は xxx.onmicrosoft.com。自社ドメイン(例: contoso.com)を追加して使用",
 "ディレクトリ同期: オンプレADとEntra IDをEntra Connectで同期。ハイブリッド環境の基盤"]},
+{type:"cards",title:"SSO(シングルサインオン) — 1回の認証で全アプリにアクセス",icon:"🔓",cards:[
+{title:"SSOの仕組みと利点",color:"",items:[
+"SSO = 1回サインインすれば、M365/SaaS/社内アプリ等に追加認証なしでアクセスできる仕組み",
+"ユーザー体験の向上: アプリごとにパスワードを入力する必要がなくなる",
+"セキュリティ向上: パスワードの使い回しが不要→1つの強力なパスワード(またはパスワードレス)で済む",
+"IT管理の効率化: パスワードリセット対応の削減(ヘルプデスク問合せの約30%がパスワード関連)",
+"対応プロトコル: SAML 2.0 / OpenID Connect / OAuth 2.0 / WS-Federation",
+"お客様への説明: 「一度PCにサインインすれば、Teams、Outlook、SharePoint、Salesforceなど全てのアプリに自動的にサインインされます」"]},
+{title:"W365/AVDでのSSOの効果",color:"green",items:[
+"Cloud PCへのSSO: Windows端末からCloud PCにシームレスに接続(追加認証不要)",
+"Cloud PC内のアプリもSSO: M365アプリ/SaaSアプリに追加サインイン不要",
+"Entra参加+Windows Hello: 顔認証でPCにログイン→Cloud PC→M365アプリまで全てパスワード不要",
+"ユーザーの実感: 「パスワードを入力する場面がほぼなくなった」",
+"導入効果: パスワード関連のヘルプデスク対応が70%削減された実績あり",
+"提案トーク: 「W365+パスワードレスで、セキュリティを強化しながらユーザー体験も向上」"]}]},
 {type:"table",title:"ライセンスと機能の詳細比較",icon:"📋",headers:["機能","Free","P1 (M365 E3)","P2 (M365 E5)"],rows:[
 ["基本ユーザー管理","○","○","○"],
 ["SSO (制限なし)","○","○","○"],
@@ -347,6 +419,15 @@ links:[{title:"MS Learn: ゼロトラストとは",url:"https://learn.microsoft.
 "Intuneとの連携: 動的デバイスグループに構成プロファイルを適用",
 "W365: プロビジョニングポリシーの対象に動的グループを使用",
 "注意: 反映に最大24時間かかる場合あり(通常は数分)"]}]},
+{type:"table",title:"M365ライセンスとEntra ID機能の対応 — 提案時の必須知識",icon:"🔑",headers:["M365ライセンス","Entra IDレベル","条件付きアクセス","ID Protection","PIM","W365対応"],rows:[
+["M365 F1","Entra ID P1(含む)","○","×","×","W365 FL前提OK"],
+["M365 F3","Entra ID P1(含む)","○","×","×","W365 FL/Ent前提OK"],
+["M365 E3","Entra ID P1(含む)","○","×","×","W365 Ent前提OK"],
+["M365 E5","Entra ID P2(含む)","○","○","○","W365 Ent前提OK"],
+["M365 Business Premium","Entra ID P1(含む)","○","×","×","W365 Ent前提OK(注)"],
+["Entra ID Free","Free(O365に含む)","×","×","×","W365 Business のみ"],
+["Entra ID P1(単体)","P1","○","×","×","CA+Intune条件クリア"],
+["Entra ID P2(単体)","P2","○","○","○","全機能利用可能"]]},
 {type:"flow",title:"関連サービスの連携図",icon:"🔗",steps:[
 {icon:"🔑",label:"Entra ID",desc:"ID管理・認証",style:"blue"},
 {icon:"📋",label:"条件付きアクセス",desc:"アクセス制御",style:""},
@@ -362,6 +443,18 @@ links:[{title:"MS Learn: ゼロトラストとは",url:"https://learn.microsoft.
 "提案のコツ: 「Entra IDはMicrosoft製品の全てのセキュリティの起点」と説明すると、投資の重要性が伝わる",
 "提案のコツ: P1→P2へのアップグレードは「ID Protectionによるリスク自動検知」が最大の訴求ポイント"]
 },
+{type:"table",title:"オンプレAD vs Entra ID — 徹底比較",icon:"⚖️",headers:["比較軸","オンプレ Active Directory","Microsoft Entra ID"],rows:[
+["動作場所","社内Windows Server上","Microsoftクラウド上(グローバル)"],
+["プロトコル","Kerberos / NTLM / LDAP","OAuth 2.0 / OpenID Connect / SAML"],
+["認証範囲","社内NW内のリソース","クラウドアプリ+オンプレ(プロキシ)"],
+["デバイス参加","ドメイン参加(GPO適用)","Entra参加(Intune管理)"],
+["グループポリシー","GPO(数千の設定項目)","Intune構成プロファイル"],
+["MFA","別製品が必要(NPS等)","標準機能として統合"],
+["条件付きアクセス","なし(NACで代替)","標準機能(P1以上)"],
+["リスクベース認証","なし","ID Protection(P2)"],
+["管理画面","ADUCやActive Directory管理センター","Entra管理センター(Web)"],
+["冗長性","DC2台以上の構築が必要","Microsoftが自動で冗長化"],
+["更新/パッチ","手動でWindows Updateを適用","Microsoftが自動更新"]]},
 {type:"flow",title:"Entra ID を中心としたサービス連携フロー",icon:"🔗",steps:[
 {icon:"👤",label:"ユーザー",desc:"認証を開始",style:"blue"},
 {icon:"🔑",label:"Entra ID",desc:"ID管理・SSO基盤",style:"blue"},
@@ -374,6 +467,13 @@ links:[{title:"MS Learn: Entra IDの基礎",url:"https://learn.microsoft.com/ja-
 // Topic 3: 条件付きアクセス
 // ═══════════════════════════════════════════════════════
 {id:"ca",title:"条件付きアクセス",week:"Week 1-2",time:"4h",keyMsg:"「もし〜なら〜を要求する」ルールベースのアクセス制御。ゼロトラストの要",content:[
+{type:"list",title:"条件付きアクセスとは — 基礎から理解する",icon:"📖",items:[
+"条件付きアクセス(Conditional Access / CA)は、Entra IDの機能の一つで、「もし〜の条件なら、〜の制御を適用する」というIF-THENルールでアクセスを制御する仕組みです",
+"なぜ必要か: 単純なパスワード+MFAだけでは不十分です。「社外からのアクセスにはMFA必須だが、社内の準拠デバイスからならMFA不要」といった柔軟な制御が求められます",
+"お客様への説明の仕方: 「条件付きアクセスは、建物のセキュリティゲートのようなものです。社員証(ID)だけでなく、入る時間帯(場所/時間)、入る人の役職(ロール)、持ち物(デバイスの状態)を総合的にチェックして入館を判断します」",
+"ゼロトラストとの関係: ゼロトラストの「明示的に検証する」原則を実装する中核機能です。全てのアクセスに対して条件を評価し、適切な制御を適用します",
+"ライセンス要件: Entra ID P1以上(M365 E3に含まれる)が必要です。無料版(Free)では使えません。これはW365 Enterprise導入の前提条件でもあります",
+"W365/AVD提案での重要性: Cloud PCへのアクセスを「誰が」「どこから」「どのデバイスで」「どのようなリスクレベルで」アクセスしているかに基づいて制御できます"]},
 {type:"flow",title:"評価フロー — アクセス要求から判定まで",icon:"🔄",steps:[
 {icon:"👤",label:"アクセス要求",desc:"アプリへサインイン",style:"blue"},
 {icon:"🔍",label:"シグナル収集",desc:"ユーザー/デバイス/場所",style:""},
@@ -418,6 +518,16 @@ links:[{title:"MS Learn: Entra IDの基礎",url:"https://learn.microsoft.com/ja-
 ["8","国外アクセスブロック","全ユーザー","許可国以外","アクセスをブロック"],
 ["9","W365専用MFA","Cloud PCユーザー","W365アプリ","MFA+準拠デバイス"],
 ["10","ゲストアクセス制限","ゲストユーザー","全てのアプリ","MFA+セッション制御"]]},
+{type:"table",title:"条件付きアクセスのシグナル一覧 — 何を条件にできるか",icon:"📋",headers:["シグナル種類","設定例","W365/AVDでの活用"],rows:[
+["ユーザー/グループ","営業部グループ / 管理者ロール","Cloud PCユーザーグループに限定してポリシー適用"],
+["クラウドアプリ","Windows 365 / Office 365","W365アプリに対してのみMFA要求"],
+["場所(Named Location)","日本国内のIP / 社内IP","社外からのCloud PCアクセスにMFA強制"],
+["デバイスプラットフォーム","Windows / iOS / Android","WindowsからのみCloud PCアクセスを許可"],
+["デバイス状態","Intune準拠 / Entra参加済み","非準拠デバイスからのCloud PCアクセスをブロック"],
+["クライアントアプリ","ブラウザ / RDクライアント","レガシー認証プロトコルをブロック"],
+["サインインリスク(P2)","高 / 中 / 低","高リスクサインインをCloud PCから即ブロック"],
+["ユーザーリスク(P2)","認証情報漏洩","パスワード変更を強制してからCloud PC接続を許可"],
+["認証コンテキスト","機密データへのアクセス","Cloud PC上で機密ファイルを開く際に追加認証"]]},
 {type:"list",title:"設計ベストプラクティス",icon:"🏗️",items:[
 "命名規則を統一する: 例「CA-[対象]-[条件]-[制御]」→ CA-AllUsers-AllApps-RequireMFA",
 "必ずレポート専用モードでテストしてから有効化する(本番影響を事前確認)",
@@ -468,13 +578,44 @@ links:[{title:"MS Learn: Entra IDの基礎",url:"https://learn.microsoft.com/ja-
 "診断ツール: Entra管理センター > サインインログ > 条件付きアクセスタブで詳細を確認",
 "What Ifツール: トラブル前のシミュレーションに最適。ユーザー/アプリ/場所を指定して結果を予測",
 "W365固有: Cloud PCへのCA適用はWindows 365アプリ(App ID)を対象に指定する"]
-}],
+},
+{type:"list",title:"お客様からよくある質問と回答",icon:"💬",items:[
+"Q: 条件付きアクセスで何が一番効果的？ → A: まず「全ユーザーにMFA必須」と「レガシー認証ブロック」の2つを有効にするだけで、パスワード攻撃の99.9%を防御できます",
+"Q: 条件付きアクセスとVPNの違いは？ → A: VPNは「ネットワーク接続」を制御しますが、CAは「アプリへのアクセス」を制御します。CAの方が粒度が細かく、ユーザー/デバイス/場所/リスクなど多くの条件を組み合わせられます",
+"Q: CAのポリシーが多すぎて管理できない → A: 推奨ポリシー数は10-15個程度。テンプレートを使ってシンプルに保ち、命名規則を統一しましょう。定期的なレビュー(四半期ごと)で不要なポリシーを整理します",
+"Q: 海外出張時にブロックされないか → A: Named Locationに出張先の国を「許可」に追加するか、出張者グループをポリシーから一時除外する運用が一般的です。事前申請制にするのが安全です",
+"Q: W365のCloud PCにCAはどう適用される？ → A: 「Windows 365」アプリをCAの対象クラウドアプリに追加します。これでCloud PCへのアクセス時にCAポリシーが評価されます。物理PCと同じCAポリシーの他に、W365専用のポリシーも追加できます"]},
+{type:"flow",title:"W365/AVD向けCA設定の推奨導入ステップ",icon:"🖥️",steps:[
+{icon:"📋",label:"Step 1: 設計",desc:"ポリシー一覧と命名規則を策定",style:"blue"},
+{icon:"🔍",label:"Step 2: レポート専用",desc:"全ポリシーをレポート専用で作成",style:""},
+{icon:"📊",label:"Step 3: 検証",desc:"サインインログで影響を確認(2週間)",style:""},
+{icon:"✅",label:"Step 4: 有効化",desc:"問題なければ段階的に有効化",style:"green"}]},
+{type:"table",title:"条件付きアクセスのBefore/After — 導入効果",icon:"📈",headers:["項目","CA導入前","CA導入後"],rows:[
+["アクセス制御","VPN接続の有無だけで判定","ユーザー/デバイス/場所/リスクを総合評価"],
+["MFA適用","全員に同じMFA要求(または未実施)","リスクに応じた柔軟なMFA適用"],
+["非準拠デバイス","管理外デバイスからもアクセス可能","Intune非準拠デバイスを自動ブロック"],
+["退職者対応","AD無効化を忘れるとアクセス継続","リスク検知で自動ブロック+管理者通知"],
+["レガシー認証","POP/IMAPで平文パスワード送信","レガシー認証を完全ブロック"],
+["管理者保護","一般ユーザーと同じ認証方式","フィッシング耐性MFAを強制"],
+["可視性","誰がどこからアクセスしたか不明","サインインログで全アクセスを記録・分析"]]}
+],
 links:[{title:"MS Learn: 条件付きアクセス概要",url:"https://learn.microsoft.com/ja-jp/entra/identity/conditional-access/overview"}]},
 
 // ═══════════════════════════════════════════════════════
 // Topic 4: MFA / パスワードレス
 // ═══════════════════════════════════════════════════════
 {id:"mfa",title:"MFA / パスワードレス",week:"Week 2",time:"2h",keyMsg:"パスワードだけでは不十分。管理者にはフィッシング耐性MFAを強く推奨",content:[
+{type:"list",title:"なぜMFAが必要なのか — パスワードの限界を理解する",icon:"📖",items:[
+"MFA(Multi-Factor Authentication / 多要素認証)とは、パスワード(知識要素)に加えて、スマートフォン(所持要素)や指紋(生体要素)など複数の要素で本人確認する仕組みです",
+"パスワードだけの認証がなぜ危険か: Microsoftの統計によると、MFAを有効にするだけでアカウント侵害攻撃の99.9%を防御できます。逆に言えば、パスワードだけではほぼ無防備です",
+"パスワード攻撃の種類: ブルートフォース(総当たり)、パスワードスプレー(よくあるパスワードを多数のアカウントに試行)、フィッシング(偽サイトで入力させる)、認証情報の漏洩(ダークウェブで売買)があります",
+"お客様への説明の仕方: 「パスワードは鍵のようなもの。鍵だけだとコピーされたら終わりですが、MFAは鍵+指紋認証のようなもの。鍵をコピーされても指紋は複製できません」",
+"W365/AVD提案での位置づけ: Cloud PCへのアクセスにMFAを必須にすることで、不正アクセスリスクを劇的に低減できます。条件付きアクセスと組み合わせて適用します",
+"パスワードレスの目標: 最終的にはパスワード自体を廃止し、Windows Hello(顔/指紋)+FIDO2セキュリティキーだけで認証する世界を目指します。パスワードがなければパスワード攻撃自体が成立しません"]},
+{type:"flow",title:"認証の3要素 — MFAの仕組み",icon:"🔐",steps:[
+{icon:"🔑",label:"知識要素",desc:"パスワード/PIN",style:"blue"},
+{icon:"📱",label:"所持要素",desc:"スマホ/セキュリティキー",style:""},
+{icon:"👆",label:"生体要素",desc:"指紋/顔/虹彩",style:"green"}]},
 {type:"table",title:"認証方法の詳細比較",icon:"🔐",headers:["方法","フィッシング耐性","利便性","コスト","推奨対象","備考"],rows:[
 ["FIDO2セキュリティキー","最高(耐性あり)","中(物理キー必要)","キー購入¥5,000-10,000/個","管理者・特権アカウント","YubiKey等。紛失リスクあり→2本登録推奨"],
 ["Passkey(デバイスバウンド)","最高(耐性あり)","高(生体認証)","なし","全ユーザー(今後の標準)","Windows Hello/Touch ID/Face IDと連携"],
@@ -509,6 +650,12 @@ links:[{title:"MS Learn: 条件付きアクセス概要",url:"https://learn.micr
 "Temporary Access Pass(TAP)でパスワードレスオンボーディング",
 "パスワードスプレー/ブルートフォース攻撃のリスクをゼロに",
 "最終目標: パスワードに依存しない組織"]}]},
+{type:"flow",title:"AiTM攻撃の仕組み — フィッシング耐性MFAが必要な理由",icon:"⚠️",steps:[
+{icon:"📧",label:"フィッシングメール",desc:"偽サイトへのリンク送付",style:""},
+{icon:"🌐",label:"偽ログインページ",desc:"正規サイトそっくりの偽造",style:""},
+{icon:"👤",label:"ユーザー入力",desc:"パスワード+MFAコード入力",style:"blue"},
+{icon:"🔓",label:"攻撃者が中継",desc:"リアルタイムで認証情報窃取",style:""},
+{icon:"💀",label:"セッション乗っ取り",desc:"クッキーを横取りしてアクセス",style:""}]},
 {type:"list",title:"AiTMフィッシング攻撃 — なぜSMSは危険か",icon:"⚠️",items:[
 "AiTM(Adversary-in-the-Middle)攻撃: 攻撃者が偽サイトを中継し、ユーザーのMFAトークンをリアルタイムで窃取",
 "攻撃の流れ: フィッシングメール→偽ログインページ→ユーザーが正規認証情報+MFA入力→攻撃者がセッションクッキーを横取り",
@@ -525,13 +672,51 @@ links:[{title:"MS Learn: 条件付きアクセス概要",url:"https://learn.micr
 "Q: 費用はかかる？ → A: Authenticatorアプリは無料。FIDO2キーは¥5,000-10,000/個。ライセンスはM365 E3(P1)以上で条件付きアクセスが使える",
 "Q: ユーザーの抵抗が心配 → A: パスワードレス(Windows Hello)は「パスワード入力が不要になる」ので逆に利便性UP。体験させると納得する",
 "Q: 既存のRSA SecurIDから移行したい → A: Entra IDの認証方法に段階的に移行。外部認証方法(EAM)でRSA連携も一時的に可能"]
-}],
+},
+{type:"table",title:"MFA導入のBefore/After — ユーザー体験の変化",icon:"📈",headers:["場面","MFA導入前","MFA導入後(パスワードレス)"],rows:[
+["PCログイン","パスワード入力(15秒)","Windows Hello顔認証(1秒)"],
+["M365アクセス","パスワード入力+再入力","SSO+自動認証(操作不要)"],
+["管理者操作","パスワードのみ(危険)","FIDO2キー+PIM承認(安全)"],
+["新デバイス","パスワード手入力","Authenticatorプッシュ(3秒)"],
+["パスワード忘れ","ヘルプデスク電話(20分待ち)","SSPR+MFAで自己解決(2分)"],
+["退職者対応","AD無効化忘れ→不正アクセスリスク","Entra ID無効化→全サービス即時遮断"],
+["セキュリティ","パスワード漏洩→全サービス侵害","パスワードレス→漏洩するパスワードがない"]]},
+{type:"cards",title:"W365/AVD提案でのMFA訴求ポイント",icon:"🎯",cards:[
+{title:"セキュリティ訴求(経営層向け)",color:"red",items:[
+"「Cloud PCへのアクセスに必ずMFAを適用し、不正アクセスリスクを99.9%削減」",
+"「管理者にはフィッシング耐性MFA(FIDO2)を義務化し、最高レベルの保護」",
+"「パスワード漏洩時もMFAがあれば被害を防止。追加の保険として最小限の投資」",
+"「サイバー保険の要件としてMFAが必須になりつつある→導入しないリスク」"]},
+{title:"利便性訴求(ユーザー向け)",color:"green",items:[
+"「Windows Helloで顔認証→Cloud PCに自動接続。パスワード入力ゼロ」",
+"「SSO+パスワードレスで、1日に何十回もパスワードを入力する手間がなくなる」",
+"「スマホのAuthenticatorアプリでワンタップ認証。数秒で完了」",
+"「パスワードを覚える必要がない→パスワード忘れのヘルプデスク問合せもゼロ」"]}]},
+{type:"flow",title:"パスワードレス導入のロードマップ",icon:"🗺️",steps:[
+{icon:"🔑",label:"現状",desc:"パスワード+SMS MFA",style:""},
+{icon:"📱",label:"Phase 1",desc:"Authenticator番号一致",style:"blue"},
+{icon:"👆",label:"Phase 2",desc:"Windows Hello展開",style:""},
+{icon:"🔐",label:"Phase 3",desc:"FIDO2/Passkey標準化",style:""},
+{icon:"✅",label:"最終目標",desc:"パスワード廃止",style:"green"}]}
+],
 links:[{title:"MS Learn: 認証方法",url:"https://learn.microsoft.com/ja-jp/entra/identity/authentication/"}]},
 
 // ═══════════════════════════════════════════════════════
 // Topic 5: Entra ID Protection
 // ═══════════════════════════════════════════════════════
 {id:"idp",title:"Entra ID Protection",week:"Week 2",time:"2h",keyMsg:"AIがサインインリスクをリアルタイム評価し、怪しいアクセスを自動ブロック",content:[
+{type:"list",title:"ID Protectionとは — なぜ必要なのか",icon:"📖",items:[
+"Entra ID Protectionは、MicrosoftのAI/機械学習がサインインのリスクをリアルタイムで評価し、異常なアクセスを自動的にブロックまたは追加認証を要求する機能です",
+"なぜ必要か: MFAだけでは防げない高度な攻撃(AiTMフィッシング、認証情報漏洩、内部不正)に対して、AIベースのリスク検知で自動的に防御します",
+"お客様への説明の仕方: 「ID Protectionは、銀行のAI不正検知と同じ仕組みです。いつもと違う場所・時間・デバイスからのアクセスを自動検知して、本人確認を追加したりブロックしたりします」",
+"Microsoftの規模の利点: 毎日6.5兆以上のシグナルを分析するMicrosoftの脅威インテリジェンスを活用。1社だけでは検知できない攻撃パターンも、グローバルな知見で検知可能です",
+"W365/AVD提案での位置づけ: Cloud PCへの不正アクセスをAIが自動検知。「認証情報が漏洩しても、異常なサインインを検知して自動ブロック」という安心感を提供できます",
+"ライセンス: Entra ID P2が必要(M365 E5に含まれる)。E3のお客様にはE5アップグレードの訴求ポイントになります"]},
+{type:"flow",title:"ID Protectionのリスク検知から自動対応までの流れ",icon:"🔄",steps:[
+{icon:"👤",label:"サインイン試行",desc:"ユーザーがアクセス",style:"blue"},
+{icon:"🤖",label:"AI分析",desc:"6.5兆のシグナルと比較",style:""},
+{icon:"⚠️",label:"リスク判定",desc:"低/中/高にスコアリング",style:""},
+{icon:"🛡️",label:"自動対応",desc:"MFA要求/ブロック/通知",style:"green"}]},
 {type:"cards",title:"リスク検知の種類と具体例",icon:"🛡️",cards:[
 {title:"サインインリスク検知",color:"red",items:[
 "匿名IPアドレス: Tor/VPN経由のサインインを検知",
@@ -549,6 +734,18 @@ links:[{title:"MS Learn: 認証方法",url:"https://learn.microsoft.com/ja-jp/en
 "サインインリスクとは独立して評価される",
 "高リスク時の推奨対応: パスワード変更+MFA再登録を強制",
 "セキュリティ管理者による手動確認・却下も可能"]}]},
+{type:"list",title:"お客様からよくある質問と回答",icon:"💬",items:[
+"Q: ID Protectionは本当に必要か → A: MFAだけでは防げないAiTM攻撃や認証情報漏洩に対して、AIベースのリスク検知で自動防御します。2022年以降のサイバー攻撃はMFA突破型が増加しており、ID Protectionの必要性が高まっています",
+"Q: P2ライセンスが必要なのがネック → A: M365 E5に含まれます。E3→E5へのアップグレード訴求では「ID Protectionによるリアルタイムリスク検知」が最大のポイントです。年間数千万円の被害を防ぐ投資として、ライセンスコストは十分に正当化できます",
+"Q: 誤検知(False Positive)が多くないか → A: Microsoftの6.5兆シグナルを活用したAIのため、誤検知率は非常に低いです。万が一誤検知があった場合は、管理者が「安全」として却下できます。リスクポリシーの閾値も調整可能です",
+"Q: 既存のSIEMと連携できるか → A: Microsoft Sentinel(SIEM)とネイティブ連携し、サードパーティSIEM(Splunk/QRadar等)にもSyslog/API経由でリスクイベントを送信できます",
+"Q: Cloud PC(W365)のアクセスにもID Protectionは有効か → A: 有効です。Cloud PCへのサインイン時のリスクを検知し、高リスクの場合はアクセスをブロックまたはMFAを追加要求します"]},
+{type:"table",title:"リスクレベル別の推奨対応 — CAポリシーとの連携",icon:"📋",headers:["リスクレベル","サインインリスクの対応","ユーザーリスクの対応","Cloud PCへの影響"],rows:[
+["なし","通常通りアクセス許可","通常通りアクセス許可","Cloud PCに通常接続"],
+["低","ログに記録(監視のみ)","ログに記録(監視のみ)","Cloud PCに通常接続"],
+["中","MFA要求(追加認証)","MFA+パスワード変更推奨","Cloud PC接続時にMFA再要求"],
+["高","アクセスブロック","アクセスブロック+パスワード変更強制","Cloud PCへのアクセス完全遮断"],
+["管理者の手動対応","リスクの確認→安全なら却下","パスワードリセット+MFA再登録","対応完了後にCloud PCアクセス復旧"]]},
 {type:"list",title:"設定手順と推奨構成",icon:"⚙️",items:[
 "前提: Entra ID P2ライセンス(M365 E5に含む)が必要",
 "Step 1: Entra管理センター > 保護 > ID Protection > リスクポリシーを開く",
@@ -575,13 +772,31 @@ links:[{title:"MS Learn: 認証方法",url:"https://learn.microsoft.com/ja-jp/en
 "自動修復の効果測定: 自動ブロック/MFA強制でどれだけの攻撃を防いだかをレポート",
 "週次レビュー推奨: 高リスクユーザーの確認と対応を定期的に実施",
 "提案ポイント: 「IPアドレス制限だけでは不十分。AIベースのリスク検知で未知の攻撃にも対応」"]
-}],
+},
+{type:"table",title:"ID Protection導入のBefore/After",icon:"📈",headers:["シナリオ","導入前の対応","導入後の対応"],rows:[
+["認証情報がダークウェブに漏洩","気づかず放置→不正アクセスされるまで分からない","自動検知→ユーザーリスク「高」→パスワード変更を自動強制"],
+["海外からの不審なサインイン","IP制限がなければ通過→サインインログで事後発見","特殊な移動を自動検知→即座にMFA要求またはブロック"],
+["パスワードスプレー攻撃","ログイン失敗の監視を手動で実施(見落としあり)","AIが攻撃パターンを自動検知→対象アカウントを即座に保護"],
+["内部不正(退職予定者)","行動監視なし→情報持ち出しに気づけない","異常なアクティビティを検知→管理者にアラート通知"],
+["AiTMフィッシング攻撃","SMS-MFAでは防げず、セッショントークン窃取","リスクベースCAでセッション無効化+再認証要求"]]}
+],
 links:[{title:"MS Learn: ID Protection",url:"https://learn.microsoft.com/ja-jp/entra/id-protection/"}]},
 
 // ═══════════════════════════════════════════════════════
 // Topic 6: Intune
 // ═══════════════════════════════════════════════════════
 {id:"intune",title:"Intune",week:"Week 3",time:"4h",keyMsg:"物理PCもW365もAVDも、Intuneで統一管理。最大の提案ポイント",content:[
+{type:"list",title:"Intuneとは — なぜW365/AVD提案の最重要ポイントなのか",icon:"📖",items:[
+"Microsoft Intune(旧Microsoft Endpoint Manager)は、クラウドベースのデバイス管理(MDM)とアプリ管理(MAM)を提供する統合エンドポイント管理(UEM)サービスです",
+"なぜW365/AVD提案で最重要か: W365 Enterpriseの利用にはIntuneが必須です。つまりW365を提案する=Intune導入を提案することになります。物理PCもCloud PCもIntuneで統一管理できることが最大の差別化ポイントです",
+"お客様への説明の仕方: 「Intuneは、会社のPC・スマホ・タブレット・Cloud PCの全てを1つの管理画面から管理できるサービスです。新しいPCを追加しても、Cloud PCを導入しても、管理ツールが変わらないので教育コストがかかりません」",
+"従来のPC管理との違い: SCCM(System Center Configuration Manager)はオンプレミスに管理サーバーが必要でしたが、Intuneはクラウドサービスなので管理サーバーの構築・運用が不要です",
+"ライセンス: M365 E3/E5に含まれます(Intune Plan 1)。高度な機能(Intune Plan 2)はM365 E3にアドオンとして追加できます。W365 Enterprise導入時にはM365 E3が前提なので、Intuneは「追加費用なし」で使えます",
+"競合との差別化: Citrix DaaSやVMware HorizonではVDIと物理PCの管理ツールが別々になりますが、Microsoft環境ならIntuneで全て統一できます。管理コンソールが1つ=運用コスト削減です"]},
+{type:"flow",title:"GPO管理からIntune管理への進化",icon:"🔄",steps:[
+{icon:"🏢",label:"GPO時代",desc:"オンプレAD+SCCM",style:""},
+{icon:"🔗",label:"共存管理期",desc:"GPO+Intune並行",style:"blue"},
+{icon:"☁️",label:"クラウド管理",desc:"Intune単独運用",style:"green"}]},
 {type:"cards",title:"3つの管理機能 — 詳細解説",icon:"📱",cards:[
 {title:"MDM（デバイス管理）",color:"",items:[
 "デバイス全体を組織が管理(フルコントロール)",
@@ -649,6 +864,15 @@ links:[{title:"MS Learn: ID Protection",url:"https://learn.microsoft.com/ja-jp/e
 "プロキシ設定の自動構成",
 "Windowsファイアウォール規則",
 "ネットワーク保護(Defender連携)"]}]},
+{type:"table",title:"Intune管理画面の主要メニュー一覧 — 何がどこにあるか",icon:"📋",headers:["メニュー","機能","W365での使い方"],rows:[
+["デバイス > 概要","全デバイスの一覧と状態","物理PC+Cloud PCの統合ビュー"],
+["デバイス > コンプライアンス","準拠/非準拠デバイスの管理","Cloud PCの準拠状態をCAに連携"],
+["デバイス > 構成","構成プロファイルの作成/配布","セキュリティ設定をCloud PCに適用"],
+["アプリ > すべてのアプリ","アプリの配布と管理","Cloud PCにLOBアプリを自動インストール"],
+["エンドポイントセキュリティ","Defenderポリシー/ASR管理","Cloud PCのDefender設定を一括管理"],
+["デバイス > Windows 365","Cloud PC固有の管理","プロビジョニング/リサイズ/再プロビジョニング"],
+["テナント管理","Intune全体の設定","MAA/コネクタ/サブスクリプションの管理"],
+["レポート","デバイス/アプリ/コンプライアンスレポート","Cloud PCの稼働状況とコンプライアンス率"]]},
 {type:"list",title:"W365/AVDとの統合管理",icon:"🔗",items:[
 "W365 Enterpriseは Intuneが必須前提（ライセンス要件）",
 "Cloud PCを物理PCと同じIntune管理コンソールで一元管理",
@@ -659,6 +883,21 @@ links:[{title:"MS Learn: ID Protection",url:"https://learn.microsoft.com/ja-jp/e
 "AVD: セッションホストVMはIntune登録可能(Entra参加時)。ただし主にはAzure Portalで管理",
 "提案:「DaaS移行しても管理ツールが変わらない=教育コスト・運用コストが増えない」",
 "統合管理のメリット: 1つの管理画面で物理PC+Cloud PC+モバイルを全て管理→IT部門の負荷軽減"]},
+{type:"cards",title:"Intune活用シナリオ — 実践的なポリシー例",icon:"🎯",cards:[
+{title:"W365 Cloud PC向けセキュリティ設定",color:"red",items:[
+"コンプライアンスポリシー: BitLocker有効+Defender有効+FW有効を必須に",
+"構成プロファイル: USBストレージの接続禁止(データ流出防止)",
+"構成プロファイル: スクリーンキャプチャのブロック(機密情報保護)",
+"構成プロファイル: クリップボードリダイレクトの制限(コピペ制御)",
+"Defenderベースライン: ASRルール+ネットワーク保護+Web保護を有効化",
+"セッションタイムアウト: 非アクティブ15分でロック、8時間で自動サインアウト"]},
+{title:"物理PC(Autopilot)向け設定",color:"green",items:[
+"Autopilotプロファイル: ユーザー主導モード+Entra参加",
+"ESPページ: アプリインストール完了まで待機(ユーザー体験向上)",
+"コンプライアンスポリシー: TPM必須+セキュアブート+最低OSバージョン",
+"構成プロファイル: Wi-Fi(社内SSID)+VPN(必要時)+証明書の自動配布",
+"Windows Hello for Business: 顔認証/指紋認証の有効化(パスワードレス)",
+"Autopatch: Windows/Office/Edge/Teamsの更新を自動管理"]}]},
 {type:"flow",title:"デバイス登録ライフサイクル — 購入からアクセス許可まで",icon:"🔄",steps:[
 {icon:"📦",label:"デバイス購入",desc:"PC調達・受領",style:""},
 {icon:"⚡",label:"Autopilot/手動",desc:"登録方式の選択",style:"blue"},
@@ -675,6 +914,23 @@ links:[{title:"MS Learn: ID Protection",url:"https://learn.microsoft.com/ja-jp/e
 "最低2名の承認者が必要(1名は要求者以外)",
 "承認待ちの操作は一定期間後に自動的に期限切れ",
 "提案ポイント: 「内部脅威対策として管理者操作の相互チェック体制を構築」"]
+},
+{type:"table",title:"SCCM/GPO vs Intune — 管理手法の比較",icon:"⚖️",headers:["比較軸","SCCM + GPO(従来)","Microsoft Intune(クラウド)"],rows:[
+["管理サーバー","オンプレミスにSCCMサーバー必要","クラウドサービス(サーバー不要)"],
+["GPOの適用","ドメイン参加PCにGPOで一括配布","Intune構成プロファイルで配布"],
+["対応デバイス","主にWindows PC","Windows/iOS/Android/macOS/Linux"],
+["アプリ配布","SCCMパッケージで配布","Intuneアプリ配布(Win32/.intunewin)"],
+["OS更新管理","WSUS/SCCM SUP","Windows Update for Business/Autopatch"],
+["管理場所の制約","社内NW接続時のみ管理","インターネット接続があればどこでも管理"],
+["Cloud PC管理","非対応(物理PCのみ)","W365 Cloud PCも同一画面で管理"],
+["初期構築コスト","サーバー構築+運用(数百万円)","サブスクリプション(M365に含む)"],
+["運用負荷","サーバー維持管理+パッチ適用が必要","クラウドサービスのため運用最小限"]]},
+{type:"list",title:"お客様からよくある質問と回答",icon:"💬",items:[
+"Q: SCCMからIntuneに移行するにはどうすればいい？ → A: 共同管理(Co-management)モードで段階的に移行できます。GPOとIntuneを並行運用しながら、ワークロードを1つずつIntuneに移していきます",
+"Q: Intuneだけで従来のGPOと同じことができる？ → A: 主要な設定は設定カタログ(Settings Catalog)でカバーされています。3000+の設定項目があり、GPOの大部分をカバーします。カバーしきれないものはPowerShellスクリプトで対応可能です",
+"Q: BYODのスマホも管理が必要？ → A: MAM(アプリ保護ポリシー)でデバイス管理なしにOfficeアプリのデータだけ保護できます。個人スマホのプライバシーを尊重しながら会社データを守れます",
+"Q: Intuneの費用は？ → A: M365 E3/E5に含まれているため追加費用なしです。W365 Enterprise導入時にはM365 E3が前提なので、Intuneは「無料」で使えます",
+"Q: W365とIntuneの関係は？ → A: W365 EnterpriseはIntuneが必須前提です。Cloud PCの構成管理・コンプライアンス・アプリ配布・リサイズなど全てIntune管理センターから操作します"]
 }],
 links:[{title:"MS Learn: Intuneの概要",url:"https://learn.microsoft.com/ja-jp/intune/fundamentals/"}]},
 
@@ -682,6 +938,18 @@ links:[{title:"MS Learn: Intuneの概要",url:"https://learn.microsoft.com/ja-jp
 // Topic 7: デバイス参加方式
 // ═══════════════════════════════════════════════════════
 {id:"dj",title:"デバイス参加方式",week:"Week 3",time:"3h",keyMsg:"Entra参加 vs ハイブリッド参加 — 必ず聞かれるポイント",content:[
+{type:"list",title:"デバイス参加方式とは — なぜ理解が必要なのか",icon:"📖",items:[
+"デバイス参加方式とは、PCやモバイルデバイスを組織のID管理基盤(Entra IDやオンプレAD)に「参加」させる方式のことです。参加方式によって管理方法やアクセスできるリソースが変わります",
+"なぜW365/AVD提案で重要か: Cloud PCのプロビジョニング設定で「Entra参加」か「ハイブリッドEntra参加」かを選択する必要があります。この選択がネットワーク設計(MHN vs ANC)やオンプレ接続可否に直結します",
+"お客様への説明の仕方: 「デバイスの参加方式は、その端末がどの身分証明書を持つかを決めるものです。Entra参加はクラウドの身分証、ハイブリッドはクラウドとオンプレ両方の身分証を持ちます」",
+"お客様から必ず聞かれる質問: 「うちのPCはどっちにすべきですか？」→ 回答の鍵は「オンプレADに依存するアプリ(Kerberos/NTLM認証)があるかどうか」です",
+"よくある誤解: 「Entra参加するとオンプレのファイルサーバーにアクセスできなくなる」→ 実際はEntra Private Access(GSA)やAzure Filesへの移行で対応可能です",
+"推奨の方向性: 新規導入はEntra参加を推奨。既存環境はハイブリッドEntra参加で移行期間を設け、段階的にEntra参加に移行するのがベストプラクティスです"]},
+{type:"flow",title:"参加方式の選択フロー — 顧客ヒアリング",icon:"🔄",steps:[
+{icon:"❓",label:"オンプレADあるか",desc:"ADサーバーの有無確認",style:"blue"},
+{icon:"🏢",label:"Kerberos依存アプリ",desc:"NTLM/Kerberos認証アプリ",style:""},
+{icon:"📅",label:"移行計画の有無",desc:"クラウド移行のタイムライン",style:""},
+{icon:"✅",label:"方式を推奨",desc:"Entra参加 or ハイブリッド",style:"green"}]},
 {type:"table",title:"3つの方式 — 詳細比較",icon:"💻",headers:["比較軸","Entra参加","ハイブリッドEntra参加","Entra登録"],rows:[
 ["概要","クラウドのみでデバイスを管理","オンプレAD+Entra IDの両方に参加","個人デバイスの軽量登録(BYOD)"],
 ["管理ツール","Intuneのみ","GPO+Intune(共存管理)","MAMのみ(デバイス管理なし)"],
@@ -698,6 +966,14 @@ links:[{title:"MS Learn: Intuneの概要",url:"https://learn.microsoft.com/ja-jp
 {icon:"🏢",label:"オンプレアプリ依存？",desc:"Kerberos/NTLM",style:""},
 {icon:"☁️",label:"クラウド移行予定？",desc:"1-2年以内",style:""},
 {icon:"✅",label:"方式決定",desc:"最適な選択",style:"green"}]},
+{type:"table",title:"参加方式のBefore/After — 移行で何が変わるか",icon:"📈",headers:["項目","ハイブリッドEntra参加(Before)","Entra参加(After)"],rows:[
+["管理ツール","GPO+Intune(2つ)","Intune のみ(1つ)"],
+["AD依存","オンプレADサーバー+Entra Connect必須","ADサーバー不要(撤廃可能)"],
+["認証","Kerberos+OAuth(2プロトコル)","OAuth/OIDC のみ"],
+["PC展開","GPOの適用に社内NW接続が必要","どこでもIntune経由で自動配布"],
+["VPN","AD通信のためVPN必要な場合あり","VPN不要(クラウド直結)"],
+["運用コスト","ADサーバー運用+Entra Connect保守","サーバー運用費ゼロ"],
+["W365対応","ANC構成が必要(複雑)","MHNで即座に展開(シンプル)"]]},
 {type:"list",title:"ハイブリッドからEntra参加への移行パス",icon:"🔄",items:[
 "移行の背景: GPO→Intuneへの移行により、ADへの依存を段階的に減らせる",
 "Step 1: Entra Connect設定でハイブリッドEntra参加を有効化(現状維持)",
@@ -729,6 +1005,13 @@ links:[{title:"MS Learn: Intuneの概要",url:"https://learn.microsoft.com/ja-jp
 "Entra参加の場合: Azure Files+Entra Kerberos認証でFSLogix対応",
 "将来的にはEntra参加が標準になる見込み",
 "既存のAVD環境はハイブリッドが多い→移行提案のチャンス"]}]
+},
+{type:"list",title:"お客様への参加方式の説明テクニック",icon:"💬",items:[
+"お客様の反応: 「ハイブリッドEntra参加が安全そう」→ 回答: ハイブリッドはAD依存が残るため移行が遅れます。新規導入ならEntra参加を推奨します。オンプレアクセスはGSA Private Accessで代替できます",
+"お客様の反応: 「GPOがないと困る」→ 回答: Intuneの設定カタログで3000+の設定項目をカバーしています。GPOの主要な設定は移行可能です。GPO Analytics(Intune機能)で移行可能な設定を自動分析できます",
+"お客様の反応: 「全PCをEntra参加に変更するのは大変」→ 回答: 一気に変更する必要はありません。新規購入PCからEntra参加にし、既存PCは自然リプレースに合わせて段階的に移行します。移行期間は2-3年が一般的です",
+"お客様の反応: 「どちらにするか社内で決められない」→ 回答: まず小規模なパイロットグループ(10-20名)でEntra参加を試しましょう。問題がなければ全社展開、問題があればハイブリッドに方針を修正できます",
+"提案の鉄則: 参加方式の選定は「現在のオンプレ依存度」と「クラウド移行のタイムライン」で判断します。お客様の5年後のIT戦略をヒアリングした上で推奨しましょう"]
 }],
 links:[{title:"MS Learn: デバイスID",url:"https://learn.microsoft.com/ja-jp/entra/identity/devices/"}]},
 
@@ -736,6 +1019,20 @@ links:[{title:"MS Learn: デバイスID",url:"https://learn.microsoft.com/ja-jp/
 // Topic 8: Autopilot
 // ═══════════════════════════════════════════════════════
 {id:"ap",title:"Autopilot",week:"Week 4",time:"3h",keyMsg:"箱から出して電源ONするだけで業務PCが完成。W365なら不要",content:[
+{type:"list",title:"Autopilotとは — 基礎から理解する",icon:"📖",items:[
+"Windows Autopilotは、新しいPCを箱から出して電源を入れるだけで、業務に必要なアプリ・設定・セキュリティポリシーが自動的に適用される仕組みです。IT部門がキッティング(手動セットアップ)する必要がなくなります",
+"なぜ必要か: 従来のPC展開では、IT部門が1台ずつ手作業でOS設定・ドメイン参加・アプリインストールを行っていました。1台あたり2-4時間、年間100台リプレースなら200-400時間のIT工数がかかっていました",
+"お客様への説明の仕方: 「新しいPCをAmazonで買って社員の自宅に直送できます。社員が電源を入れてサインインするだけで、会社のPCとして自動設定されます。IT部門は一切触る必要がありません」",
+"W365との関係: W365 Cloud PCはAutopilotが不要です(ライセンス割当だけで自動プロビジョニング)。ただし物理PCが残る限り、Autopilotとの併用が現実的です",
+"よくある誤解: 「Autopilotは新品PCしか使えない」→ 既存PCもハードウェアハッシュ登録でAutopilot対象にできます。また、Autopilot Resetで既存PCをリセットして再展開することも可能です",
+"ライセンス: M365 E3/E5に含まれます(Intune連携が前提)。追加費用なしで利用開始できます"]},
+{type:"table",title:"PC展開のBefore/After — Autopilotの効果",icon:"📈",headers:["項目","従来のPC展開","Autopilot展開"],rows:[
+["IT部門の作業","1台あたり2-4時間(手動セットアップ)","設定は事前にクラウドで完了(0時間)"],
+["PCの配送","IT部門で受け取り→セットアップ→ユーザーに渡す","ベンダーからユーザーに直送"],
+["新入社員対応","入社日までにIT部門がPCを準備(数日前から)","入社日にPC到着→電源ON→30分で業務開始"],
+["リモート対応","オフィスでセットアップ→配送 or VPN越しに作業","自宅でも電源ON→自動セットアップ"],
+["PCリプレース","旧PC回収→新PC手動セットアップ→配布","新PC直送→旧PCは回収(データはOneDrive同期済み)"],
+["年間100台の場合","200-400時間のIT工数","ほぼ0時間(プロファイル設定は初回のみ)"]]},
 {type:"flow",title:"Autopilotの展開フロー",icon:"📦",steps:[
 {icon:"📦",label:"PC到着",desc:"ベンダーから届く",style:""},{icon:"⚡",label:"電源ON",desc:"ユーザーが起動",style:"blue"},
 {icon:"🔑",label:"サインイン",desc:"Entra IDで認証",style:""},{icon:"📋",label:"ポリシー適用",desc:"Intune構成配布",style:""},{icon:"✅",label:"業務開始",desc:"アプリ準備完了",style:"green"}]},
@@ -773,6 +1070,16 @@ links:[{title:"MS Learn: デバイスID",url:"https://learn.microsoft.com/ja-jp/
 "完全なワイプより高速(OSインストール不要)",
 "PC返却→リセット→次のユーザーに再配布",
 "異動/退職時のPC再利用が効率化"]}]},
+{type:"table",title:"物理PC(Autopilot) vs Cloud PC(W365) — 展開方法の比較",icon:"⚖️",headers:["比較軸","物理PC + Autopilot","W365 Cloud PC"],rows:[
+["展開のトリガー","PCの電源ON+サインイン","ライセンス割当(自動プロビジョニング)"],
+["展開にかかる時間","30-60分(アプリDL含む)","20-40分(バックグラウンドで完了)"],
+["IT部門の作業","プロファイル事前設定(初回のみ)","プロビジョニングポリシー設定(初回のみ)"],
+["ハードウェア調達","PCの購入・配送が必要","不要(クラウドで即座に作成)"],
+["ユーザーの操作","電源ON→サインイン→待機","Webブラウザでアクセス(待機なし)"],
+["データ移行","OneDrive KFMで自動同期","OneDrive KFMで自動同期"],
+["リモート対応","自宅でも電源ON→自動設定","自宅でもブラウザでアクセス"],
+["コスト","PC購入費(¥100,000-200,000/台)","月額ライセンス費(¥5,247-24,737)"],
+["リプレース","新PCを再度Autopilot展開","SKUリサイズ or 再プロビジョニング"]]},
 {type:"list",title:"W365との比較 — Autopilotは不要？",icon:"⚖️",items:[
 "W365のプロビジョニング: ライセンス割当→数分でCloud PC自動生成。Autopilotすら不要",
 "W365はOS/アプリ/設定を含むカスタムイメージを使用→全ユーザーに同一環境を即座に展開",
@@ -782,6 +1089,18 @@ links:[{title:"MS Learn: デバイスID",url:"https://learn.microsoft.com/ja-jp/
 "Autopilotの価値: 「物理PCが必要な場面でも、クラウドと同じ自動化体験を提供」",
 "移行シナリオ: 現在Autopilotで物理PC管理→W365移行で物理PC台数減→Autopilot管理対象も減少",
 "提案トーク: 「まず物理PCのAutopilot移行で運用効率化、次にW365で物理PC自体を削減」"]
+},
+{type:"flow",title:"Autopilot + W365 の併用ロードマップ",icon:"🗺️",steps:[
+{icon:"📦",label:"Phase 1",desc:"物理PCをAutopilotで展開",style:"blue"},
+{icon:"☁️",label:"Phase 2",desc:"一部ユーザーをW365に移行",style:""},
+{icon:"📊",label:"Phase 3",desc:"効果測定・最適化",style:""},
+{icon:"🖥️",label:"Phase 4",desc:"物理PC台数を段階的に削減",style:"green"}]},
+{type:"list",title:"お客様からよくある質問と回答",icon:"💬",items:[
+"Q: Autopilotに対応していないPCはどうする？ → A: 既存PCでもハードウェアハッシュをCSVでエクスポートしてIntuneに登録すれば、Autopilot対象にできます。PowerShellスクリプトで取得可能です",
+"Q: Autopilotの展開にかかる時間は？ → A: ユーザー主導モードで30-60分、事前プロビジョニングなら技術者10分+ユーザー5分です。アプリの数と大きさによって変動します",
+"Q: ベンダーからの直送は本当に可能？ → A: Dell/HP/Lenovoの主要ベンダーがAutopilot対応済みです。ベンダーにハードウェアIDの登録を依頼するだけで、工場出荷状態のPCをユーザーの自宅に直送できます",
+"Q: W365があればAutopilotは不要？ → A: Cloud PCにはAutopilotは不要です。ただし物理PCが残る限りAutopilotは必要です。ハイブリッド(W365+物理PC)が現実的な構成です",
+"Q: Autopilotで展開したPCの管理方法は？ → A: Autopilotで展開したPCは自動的にIntuneに登録されます。以降の管理(構成プロファイル/コンプライアンス/アプリ配布)は全てIntuneから行います"]
 }],
 links:[{title:"MS Learn: Autopilot",url:"https://learn.microsoft.com/ja-jp/autopilot/"}]},
 
@@ -789,6 +1108,19 @@ links:[{title:"MS Learn: Autopilot",url:"https://learn.microsoft.com/ja-jp/autop
 // Topic 9: Defender for Endpoint
 // ═══════════════════════════════════════════════════════
 {id:"def",title:"Defender for Endpoint",week:"Week 4",time:"3h",keyMsg:"端末の脅威をリアルタイム検知・対応するEDR/XDR",content:[
+{type:"list",title:"Defender for Endpointとは — なぜCloud PCにも必要なのか",icon:"📖",items:[
+"Microsoft Defender for Endpoint(MDE)は、PC・サーバーなどのエンドポイント(端末)に対する脅威をリアルタイムで検知・調査・対応するEDR(Endpoint Detection and Response)ソリューションです",
+"なぜCloud PCにも必要か: 「Cloud PCはクラウドにあるから安全」は誤解です。Cloud PCもWindowsが動いている以上、マルウェア感染・フィッシング・ランサムウェアのリスクは物理PCと同じです",
+"お客様への説明の仕方: 「Defenderは24時間365日、PCの中を監視するAIセキュリティガードです。不審な動きを検知したら自動的に隔離し、管理者にアラートを送ります。物理PCにもCloud PCにも同じように適用できます」",
+"EDRとアンチウイルスの違い: 従来のアンチウイルスは「既知のマルウェアをパターンマッチで検知」する方式。EDRは「端末の振る舞い(挙動)を監視し、未知の攻撃も検知」します。さらにXDRはメール・ID・クラウドアプリまで含めた統合検知を行います",
+"Intune+CA連携: Defenderが端末を「高リスク」と判定→Intuneが「非準拠」に設定→条件付きアクセスがアクセスブロック。この自動連携が最大の強みです",
+"ライセンス: M365 E5に含まれます。E3の場合はDefender for Endpoint P1(基本機能)が含まれ、P2(フル機能)はアドオンが必要です"]},
+{type:"flow",title:"脅威検知から自動隔離までの流れ",icon:"🔄",steps:[
+{icon:"⚠️",label:"脅威検知",desc:"不審なプロセス/ファイル",style:""},
+{icon:"🤖",label:"AI分析",desc:"振る舞い分析+脅威インテリジェンス",style:"blue"},
+{icon:"🔒",label:"自動隔離",desc:"ファイル隔離/プロセス停止",style:""},
+{icon:"📋",label:"調査",desc:"インシデントタイムライン表示",style:""},
+{icon:"✅",label:"修復",desc:"自動修復 or 管理者対応",style:"green"}]},
 {type:"cards",title:"主な機能 — 詳細解説",icon:"🛡️",cards:[
 {title:"検知と対応(EDR/XDR)",color:"red",items:[
 "EDR: エンドポイント(端末)上の脅威をリアルタイム検知・調査・対応",
@@ -819,6 +1151,12 @@ links:[{title:"MS Learn: Autopilot",url:"https://learn.microsoft.com/ja-jp/autop
 ["ランサムウェア保護","振る舞いベースでランサムウェアをブロック","ブロック","ランサムウェア全般"],
 ["難読化スクリプトブロック","難読化されたスクリプト(JS/VBS/PS)の実行を防止","ブロック","スクリプトベース攻撃"],
 ["USB経由の実行ブロック","USBからの未署名プロセス実行を防止","ブロック","USBドロップ攻撃"]]},
+{type:"flow",title:"Defender + Intune + CA の自動連携フロー",icon:"🔗",steps:[
+{icon:"⚠️",label:"Defender検知",desc:"端末上で脅威を検知",style:""},
+{icon:"📊",label:"リスクスコア更新",desc:"デバイスリスクレベル→高",style:"blue"},
+{icon:"📱",label:"Intune非準拠",desc:"コンプライアンス→非準拠に変更",style:""},
+{icon:"🔒",label:"CAブロック",desc:"条件付きアクセスで自動ブロック",style:""},
+{icon:"✅",label:"修復後復帰",desc:"脅威解決→準拠に復帰→アクセス再開",style:"green"}]},
 {type:"list",title:"セキュリティベースラインとIntune連携",icon:"📋",items:[
 "セキュリティベースライン: Microsoft推奨のDefender設定テンプレート(Intuneから展開)",
 "Windows 11セキュリティベースライン: 300+の推奨設定を1クリックで適用",
@@ -829,6 +1167,13 @@ links:[{title:"MS Learn: Autopilot",url:"https://learn.microsoft.com/ja-jp/autop
 "デバイスリスクスコア: Defender for Endpointが各デバイスのリスクを0-100でスコアリング",
 "このスコアをIntuneコンプライアンスの条件に使用→自動的に非準拠→CAでブロック",
 "提案ポイント: 「Defender+Intune+CAの三位一体で、脅威検知→自動隔離が実現」"]},
+{type:"diagram",title:"Microsoft Defender XDR — 統合脅威検知の全体像",icon:"🏛️",pillars:[
+{label:"Endpoint",color:"#D83B01",desc:"PC/サーバー保護"},
+{label:"Office 365",color:"#0078D4",desc:"メール/ファイル保護"},
+{label:"Identity",color:"#5C2D91",desc:"ID脅威検知"},
+{label:"Cloud Apps",color:"#008B8B",desc:"SaaS保護(CASB)"},
+{label:"IoT",color:"#107C10",desc:"IoTデバイス保護"},
+{label:"Vulnerability",color:"#FFB900",desc:"脆弱性管理"}]},
 {type:"list",title:"W365/AVDでのDefender展開",icon:"🖥️",items:[
 "W365 Cloud PC: Intuneから自動的にDefenderセンサーを展開(Intune管理下なので簡単)",
 "AVDセッションホスト: カスタムイメージにDefenderを含めるか、起動スクリプトで展開",
@@ -837,6 +1182,22 @@ links:[{title:"MS Learn: Autopilot",url:"https://learn.microsoft.com/ja-jp/autop
 "パフォーマンス考慮: Cloud PCのスペック選定時にDefenderのリソース消費(CPU/メモリ)を考慮",
 "推奨最低スペック: 2vCPU/4GBでもDefenderは動作するが、快適には2vCPU/8GB以上を推奨",
 "提案ポイント: 「Cloud PCだからセキュリティは不要」は誤り。エンドポイント保護は同等以上に必要"]
+},
+{type:"table",title:"サードパーティEDR vs Defender for Endpoint",icon:"⚖️",headers:["比較軸","サードパーティEDR","Defender for Endpoint"],rows:[
+["M365統合","APIで別途連携が必要","ネイティブ統合(Intune/CA/Entra)"],
+["Intune連携","リスクスコア連携に追加設定","自動連携(コンプライアンス条件に使用)"],
+["管理コンソール","別の管理画面が必要","Microsoft Defenderポータルに統合"],
+["ライセンス","別途契約(年間¥5,000-10,000/台)","M365 E5に含まれる(追加費用なし)"],
+["Cloud PC対応","動作確認が必要","完全対応(Intune経由で自動展開)"],
+["XDR範囲","エンドポイントのみ(拡張要別製品)","メール+ID+クラウドアプリまで統合"],
+["脅威インテリジェンス","ベンダー独自","Microsoftの6.5兆/日のシグナル活用"],
+["運用人材","専門のSOC人材が必要","自動調査・修復で運用負荷軽減"]]},
+{type:"list",title:"お客様からよくある質問と回答",icon:"💬",items:[
+"Q: 既にサードパーティEDRを導入済みだが切り替えるべきか → A: M365 E5をお使いならDefenderが含まれています。別途EDRの費用を削減でき、さらにIntune/CAとのネイティブ統合でセキュリティレベルが向上します",
+"Q: Defenderの検知精度はサードパーティに劣るのでは → A: Gartner Magic Quadrant/MITRE ATT&CK評価で毎年トップクラスの評価を獲得しています。検知精度は業界トップレベルです",
+"Q: Cloud PCにもEDRが必要な理由は → A: Cloud PCもWindowsが動いている以上、マルウェア感染のリスクがあります。むしろCloud PCは重要なデータにアクセスする端末なので、物理PC以上にEDR保護が重要です",
+"Q: 運用体制がない場合はどうする → A: Defender for Endpointの自動調査・修復(AIR)機能で、多くの脅威は自動的に対処されます。SOCを外部委託するマネージドサービス(MDR)もMicrosoftが提供しています",
+"提案の鉄則: 「Defender+Intune+条件付きアクセスの三位一体」を説明する。脅威検知→自動的にデバイスを非準拠→アクセスブロックという自動連携が、他社にはないMicrosoft独自の強みです"]
 }],
 links:[{title:"MS Learn: Defender for Endpoint",url:"https://learn.microsoft.com/ja-jp/defender-endpoint/"}]}
 
@@ -851,6 +1212,20 @@ links:[{title:"MS Learn: Defender for Endpoint",url:"https://learn.microsoft.com
 // Topic 10: W365 アーキテクチャ
 // ═══════════════════════════════════════════════════════
 {id:"w3a",title:"W365 アーキテクチャ",week:"Week 5",time:"4h",keyMsg:"Cloud PCはMSテナント内で稼働。インフラは全てMS管理のSaaS",content:[
+{type:"list",title:"W365とは — SaaS型DaaSの革新性を理解する",icon:"📖",items:[
+"Windows 365(W365)は、Microsoftが2021年8月にリリースしたSaaS型のクラウドPC(Desktop as a Service)サービスです。ユーザーごとに専用のWindows PCがクラウド上に作成され、どこからでもアクセスできます",
+"最大の特徴は「SaaS」であること: 従来のVDI(Citrix/VMware/AVD)はインフラの管理が必要でしたが、W365はMicrosoftがインフラ(サーバー/ネットワーク/ストレージ)を全て管理します。お客様はユーザーにライセンスを割り当てるだけです",
+"お客様への説明の仕方: 「W365はクラウド上にある自分専用のWindowsパソコンです。M365のライセンスを持っている方なら、追加のW365ライセンスを割り当てるだけで数分でPCが使えるようになります。サーバーの構築も、ネットワークの設計も不要です」",
+"物理PCとの違い: 物理PCはハードウェアが手元にありますが、W365のCloud PCはMicrosoftのデータセンターで稼働しています。ユーザーのデバイス(PC/タブレット/スマホ)には画面だけが転送されるため、データがデバイスに残りません",
+"なぜ今W365なのか: Windows 10のサポート終了(2025年10月)を機にPCリプレースが発生します。物理PCを買い替える代わりにW365に移行すれば、ハードウェア管理から解放されます。このタイミングが最大の提案チャンスです",
+"日本リージョン: Cloud PCは東日本リージョンまたは西日本リージョンに配置されます。国内に配置されるためレイテンシが低く(10-30ms)、データ主権(Data Residency)の要件も満たせます"]},
+{type:"diagram",title:"W365の責任分界 — SaaSモデル",icon:"🏛️",pillars:[
+{label:"ハードウェア",color:"#0078D4",desc:"MS管理"},
+{label:"ネットワーク",color:"#0078D4",desc:"MS管理(MHN)"},
+{label:"OS更新",color:"#0078D4",desc:"MS管理"},
+{label:"セキュリティ",color:"#5C2D91",desc:"共同責任"},
+{label:"アプリ",color:"#107C10",desc:"顧客管理"},
+{label:"データ",color:"#107C10",desc:"顧客管理"}]},
 {type:"flow",title:"接続の流れ — エンドツーエンド",icon:"🌐",steps:[
 {icon:"👤",label:"ユーザーアクセス",desc:"Web/RDクライアント",style:"blue"},
 {icon:"🔑",label:"Entra認証",desc:"MFA/CA評価",style:""},
@@ -876,6 +1251,12 @@ links:[{title:"MS Learn: Defender for Endpoint",url:"https://learn.microsoft.com
 "NSGでCloud PCのNW通信を制御可能",
 "カスタムDNS設定でオンプレDNSを参照",
 "推奨: オンプレファイルサーバー/基幹システムへのアクセスが必要な場合"]}]},
+{type:"flow",title:"W365 Enterprise セットアップ手順の全体像",icon:"🛠️",steps:[
+{icon:"📋",label:"1. 前提確認",desc:"M365 E3+Intune+Entra P1",style:"blue"},
+{icon:"⚙️",label:"2. プロビジョニング設定",desc:"ポリシー+グループ作成",style:""},
+{icon:"🔑",label:"3. ライセンス割当",desc:"ユーザーにW365ライセンス付与",style:""},
+{icon:"📱",label:"4. CA/Intune設定",desc:"セキュリティポリシー適用",style:""},
+{icon:"✅",label:"5. ユーザー展開",desc:"通知+接続方法の案内",style:"green"}]},
 {type:"list",title:"プロビジョニングプロセス — 詳細手順",icon:"⚙️",items:[
 "Step 1: プロビジョニングポリシー作成 — 参加方式(Entra/ハイブリッド)+NW方式(MHN/ANC)+イメージ+言語を指定",
 "Step 2: ユーザーグループの割り当て — 動的グループ推奨(例: 部署=営業部のユーザーに自動割当)",
@@ -886,6 +1267,16 @@ links:[{title:"MS Learn: Defender for Endpoint",url:"https://learn.microsoft.com
 "カスタムイメージの活用: 業務アプリ/設定/ドライバーを事前にインストール→展開後即利用可能",
 "リサイズ: SKU変更(例: 2vCPU/8GB→4vCPU/16GB)はIntune管理センターから数クリックで完了",
 "再プロビジョニング: 問題発生時にCloud PCをリセット(ユーザーデータはOneDrive/KFM経由で復元)"]},
+{type:"table",title:"MHN vs ANC — 選択基準の早見表",icon:"📋",headers:["判断基準","MHN推奨","ANC推奨"],rows:[
+["オンプレ依存アプリ","なし","あり(ファイルサーバー/基幹系)"],
+["Azureサブスクリプション","なし","あり"],
+["参加方式","Entra参加","ハイブリッドEntra参加"],
+["NW設計スキル","なし","あり(VNet/サブネット)"],
+["導入スピード","最短(数分で展開)","数日〜(NW設計が必要)"],
+["コスト","追加なし","VNet/帯域/VPN GWコスト"],
+["カスタムDNS","不可","可能(オンプレDNS参照)"],
+["NSGによる通信制御","不可","可能(送受信フィルタ)"],
+["推奨ケース","クラウドファースト/新規導入","オンプレ移行期/ハイブリッド"]]},
 {type:"cards",title:"セキュリティアーキテクチャ",icon:"🔒",cards:[
 {title:"データ保護",color:"green",items:[
 "Cloud PC内のデータはMicrosoftデータセンター内に保存",
@@ -923,6 +1314,14 @@ links:[{title:"MS Learn: Defender for Endpoint",url:"https://learn.microsoft.com
 "プロキシ: Cloud PCからのインターネットアクセスにプロキシを設定する場合はPACファイルまたはWPAD推奨",
 "Split Tunnel: VPN経由の場合はCloud PC通信をSplit Tunnelしてパフォーマンス確保",
 "接続テスト: windows365.microsoft.com/connectiontest でユーザー環境からの接続品質をテスト可能"]
+},
+{type:"list",title:"お客様からよくある質問と回答",icon:"💬",items:[
+"Q: Cloud PCのデータはどこに保存される？ → A: Microsoftのデータセンター(日本リージョン選択可)に保存されます。データ主権(Data Residency)の要件を満たし、日本国内にデータが留まります",
+"Q: ネットワーク障害時にCloud PCは使えない？ → A: インターネット接続が必要ですが、W365 Offlineモード(プレビュー)が今後提供されます。また、99.9%のSLAが保証されており、物理PCの故障率(年3-5%)よりも高い可用性です",
+"Q: Cloud PCのバックアップはどうなる？ → A: OneDrive Known Folder Move(KFM)でデスクトップ/ドキュメント/ピクチャが自動的にクラウドにバックアップされます。Cloud PCを再プロビジョニングしてもデータは維持されます",
+"Q: どんなデバイスからアクセスできる？ → A: Windows/Mac/iPad/Android/Chromebook/Linuxから、Webブラウザまたは専用RDクライアント経由でアクセスできます。シンクライアントからもアクセス可能です",
+"Q: Teams会議のパフォーマンスは大丈夫？ → A: W365ではTeams AV Redirect(メディア最適化)により、音声/ビデオはローカルデバイスで処理されます。Cloud PCのCPU負荷を軽減し、快適な会議体験を提供します",
+"Q: 印刷はできる？ → A: ユニバーサルプリントまたはリダイレクトプリンターで対応可能です。ユニバーサルプリント(Enterpriseのみ)ならクラウド経由でプリンターを管理でき、ドライバーのインストールが不要です"]
 }],
 links:[{title:"MS Learn: W365概要",url:"https://learn.microsoft.com/ja-jp/windows-365/enterprise/"}]},
 
@@ -930,6 +1329,18 @@ links:[{title:"MS Learn: W365概要",url:"https://learn.microsoft.com/ja-jp/wind
 // Topic 11: 3つのエディション
 // ═══════════════════════════════════════════════════════
 {id:"w3e",title:"3つのエディション",week:"Week 5",time:"3h",keyMsg:"Frontlineが提案の武器。1ライセンス3ユーザーで50%削減",content:[
+{type:"list",title:"なぜエディション選定が重要か — コスト最適化の出発点",icon:"📖",items:[
+"W365には3つのエディション(Business/Enterprise/Frontline)があり、お客様の規模・要件・ライセンス状況に応じて適切なエディションを選定することがSEの腕の見せ所です",
+"最も多い間違い: お客様が「全員Enterprise」で見積もる→コストが高く見える→「W365は高い」と判断してしまう。実際にはSKUミックス+Frontline活用で30-50%削減可能です",
+"お客様への説明の仕方: 「W365には3つのプランがあります。Businessは中小企業向けのシンプルプラン、Enterpriseは大企業向けのフル機能プラン、そしてFrontlineは交代制で働く方向けの1ライセンスを3名で共有できるお得なプランです」",
+"Frontlineが「最強の武器」である理由: 工場3交代制(8時間×3シフト)なら1ライセンスで3名がカバーできるため、実質的にEnterpriseの1/3のコストになります。これは競合(WorkSpaces/Citrix)にはないW365独自の機能です",
+"よくある誤解: 「FrontlineはEnterpriseより機能が劣る」→ 基本的にFrontlineとEnterpriseの機能は同じです。違いはセッション時間制限(8時間)と同時利用者数(1名)のみです",
+"提案のコツ: 最初に「お客様の中に、シフト制で働いている部門はありますか？」と聞く。工場・コールセンター・店舗・受付など、Frontline対象者がいればコスト提案のインパクトが劇的に変わります"]},
+{type:"flow",title:"エディション選定の判断フロー",icon:"🔄",steps:[
+{icon:"👥",label:"社員数確認",desc:"300名以下→Business検討",style:"blue"},
+{icon:"📋",label:"M365ライセンス確認",desc:"E3/E5あり→Enterprise",style:""},
+{icon:"⏰",label:"勤務形態確認",desc:"シフト制あり→Frontline",style:""},
+{icon:"💰",label:"コスト試算",desc:"SKUミックスで最適化",style:"green"}]},
 {type:"cards",title:"エディション詳細比較",icon:"📦",cards:[
 {title:"Business",color:"",items:[
 "対象: 300名以下の中小企業",
@@ -1007,6 +1418,13 @@ links:[{title:"MS Learn: W365概要",url:"https://learn.microsoft.com/ja-jp/wind
 "リサイズの影響: 再プロビジョニングなし(ダウンタイム15分程度で完了)",
 "リージョン変更: Cloud PCのリージョン変更は再プロビジョニングが必要(データはリセットされる)",
 "提案のコツ: 「まずBusinessで小規模検証→効果確認後にEnterpriseで全社展開」の段階的アプローチ"]
+},
+{type:"list",title:"お客様からよくある質問と回答",icon:"💬",items:[
+"Q: BusinessとEnterpriseのどちらを選ぶべき？ → A: M365 E3/E5を既にお持ちなら、追加のW365 Enterpriseライセンスだけで済むためEnterprise推奨。M365未導入で300名以下ならBusinessが最もシンプルです",
+"Q: Frontlineは全社員に使える？ → A: 8時間のセッション制限があるため、フルタイム(8時間超)の社員にはEnterprise推奨。シフト制/パートタイム/時短勤務の方にはFrontlineが最適です",
+"Q: Frontlineの8時間制限は延長できる？ → A: 延長はできません。8時間経過すると自動的にセッションが切断されます。残業が頻繁に発生する部門にはEnterprise推奨です",
+"Q: Business→Enterpriseの移行は簡単か → A: テナント内で移行可能です。ただしM365 E3/E5の追加購入が前提となります。Cloud PCのデータはOneDrive KFM経由で維持できます",
+"Q: Frontlineで3人以上のシフトを組める？ → A: 1ライセンスで最大3ユーザーです。4交代制の場合は、Enterprise+Frontlineの併用またはライセンスの追加が必要です"]
 }],
 links:[{title:"W365日本公式価格",url:"https://www.microsoft.com/ja-jp/windows-365/enterprise/all-pricing"}]},
 
@@ -1014,6 +1432,19 @@ links:[{title:"W365日本公式価格",url:"https://www.microsoft.com/ja-jp/wind
 // Topic 12: 料金体系 & SKUミックス
 // ═══════════════════════════════════════════════════════
 {id:"w3p",title:"料金体系 & SKUミックス",week:"Week 6",time:"3h",keyMsg:"全員同じSKUにせず用途別最適化がコスト提案の鍵",content:[
+{type:"list",title:"なぜSKUミックスが重要か — コスト最適化の本質",icon:"📖",items:[
+"SKUミックスとは、組織内のユーザーを業務内容に応じてグループ分けし、それぞれに最適なスペック(SKU)を割り当てる戦略です。全員に同じ高スペックを割り当てる「一律方式」は大きな無駄を生みます",
+"お客様がやりがちな見積もり方法: 「安全のために全員4vCPU/16GBで見積もってください」→ 実際には一般事務の70%は2vCPU/8GBで十分→年間で数千万円のコスト差が出ます",
+"お客様への説明の仕方: 「スマートフォンと同じです。全員に最新のiPhone Proを配る必要はありません。メール中心の方は標準モデルで十分で、動画編集する方だけProにすればコストを大幅に削減できます」",
+"SKU選定の具体的な手順: (1)部門・職種のリストを作成→(2)各部門の主要業務アプリを確認→(3)必要なCPU/RAM/Storageを判定→(4)SKUを割当→(5)コストを試算。このプロセスを提案書に含めることで説得力が増します",
+"PoC(Proof of Concept)の活用: 「まず各部門から2-3名ずつ代表者を選んで、異なるSKUを割り当てて2週間使ってもらいましょう。実際のパフォーマンスを体験してからSKUを確定すればリスクゼロです」",
+"リサイズの安心感: W365はSKU変更(リサイズ)が簡単にできます。「もし足りなければすぐにアップグレードできるので、まずは低いSKUから始めましょう」と提案すると、お客様の心理的ハードルが下がります"]},
+{type:"flow",title:"SKUミックス設計の5ステップ",icon:"📋",steps:[
+{icon:"👥",label:"Step 1: ユーザー分類",desc:"部門/職種でグループ分け",style:"blue"},
+{icon:"📱",label:"Step 2: 業務分析",desc:"使用アプリと負荷を調査",style:""},
+{icon:"📏",label:"Step 3: SKU割当",desc:"各グループに最適SKUを選定",style:""},
+{icon:"💰",label:"Step 4: コスト試算",desc:"月額/年額をシミュレーション",style:""},
+{icon:"✅",label:"Step 5: PoC検証",desc:"実際に使って確認・調整",style:"green"}]},
 {type:"table",title:"W365 Enterprise SKU 全価格表（日本公式・税抜）",icon:"💰",headers:["vCPU","RAM","Storage","月額(税抜)","年額概算","推奨用途"],rows:[
 ["2","4GB","64GB","¥5,247","¥62,964","超軽量業務(Web閲覧・メール)"],
 ["2","4GB","128GB","¥6,059","¥72,708","軽量業務(データ保存多め)"],
@@ -1081,6 +1512,17 @@ links:[{title:"W365日本公式価格",url:"https://www.microsoft.com/ja-jp/wind
 "コールセンター(シフト制) → Frontline 2vCPU/8GB(¥7,683の1/3) — 最大のコスト効果",
 "工場端末(3交代) → Frontline 2vCPU/4GB(¥5,247の1/3) — 最軽量+最安",
 "重要: ユーザーヒアリングシートを作成し、部門ごとの業務内容と必要スペックを事前調査"]},
+{type:"table",title:"部門別SKU推奨マトリクス — ヒアリング結果の早見表",icon:"📋",headers:["部門/職種","主要業務","推奨vCPU","推奨RAM","推奨Storage","推奨SKU月額"],rows:[
+["一般事務","メール・Word・Excel(軽量)","2","4GB","64GB","¥5,247"],
+["営業","M365全般・CRM・プレゼン資料","2","8GB","128GB","¥7,683"],
+["経理/財務","Excel大量処理・会計ソフト","4","16GB","128GB","¥12,368"],
+["人事/総務","M365全般・人事システム","2","8GB","128GB","¥7,683"],
+["開発者","IDE(VS Code/Visual Studio)・コンパイル","4","16GB","256GB","¥13,993"],
+["データ分析","Power BI・Python/R・大量データ処理","8","32GB","256GB","¥22,613"],
+["CADエンジニア","AutoCAD/SolidWorks(GPU推奨)","8","32GB","512GB","¥24,737"],
+["コールセンター(シフト)","CRM・電話システム・チャット","2","8GB","128GB","FL ¥2,561(実質)"],
+["工場(3交代)","MES・品質管理・簡易報告","2","4GB","64GB","FL ¥1,749(実質)"],
+["店舗(シフト)","POS・在庫管理・メール","2","4GB","64GB","FL ¥1,749(実質)"]]},
 {type:"cards",title:"Frontline 深堀り — 最大の武器を使いこなす",icon:"⭐",cards:[
 {title:"Frontlineの仕組み",color:"green",items:[
 "1ライセンス=1 Cloud PC=最大3ユーザーが共有",
@@ -1107,6 +1549,13 @@ links:[{title:"W365日本公式価格",url:"https://www.microsoft.com/ja-jp/wind
 "5年TCO比較の例(100名): 物理PC=¥230M(4年目にリプレース)vs W365=¥158M → 31%削減",
 "ポイント: 月額だけ見ると物理PCが安く見える→TCOで逆転させるのがSEの仕事",
 "提案ツール: Microsoft TCO Calculatorや自社テンプレートを使って試算を可視化"]
+},
+{type:"list",title:"お客様からよくある価格に関する質問",icon:"💬",items:[
+"Q: 月額¥7,683は高くないか？ → A: 物理PCの月額換算(購入費¥150,000÷48ヶ月=¥3,125)+隠れコスト(¥2,000-3,000/月)=実質¥5,000-6,000/月。差額は¥1,500-2,500程度で、セキュリティ+運用効率化の価値を含めると十分な投資対効果です",
+"Q: M365 E3のライセンスも必要なのか？ → A: Enterprise/FrontlineにはM365 E3(またはE5/F1/F3)が前提です。ただし多くのお客様は既にM365を使っているため、追加はW365ライセンスのみです。M365未導入ならBusinessエディション(M365不要)を検討します",
+"Q: 年間契約でディスカウントはある？ → A: EA(Enterprise Agreement)やCSP(Cloud Solution Provider)の契約形態により、ボリュームディスカウントが適用される場合があります。パートナー(販売代理店)経由で見積もりを依頼すると最適な価格が出ます",
+"Q: PoC(トライアル)は無料？ → A: W365の無料トライアル(最大1ヶ月)が利用可能です。まず10-20名で試してからSKUを確定するアプローチを推奨します",
+"Q: SKUは後から変更(リサイズ)できる？ → A: 可能です。Intune管理センターから数クリックで変更でき、ダウンタイムは約15分です。まずは低いSKUで始めて、足りなければアップグレードする方法がリスクゼロです"]
 }],
 links:[{title:"W365全SKU価格",url:"https://www.microsoft.com/ja-jp/windows-365/enterprise/all-pricing"}]},
 
@@ -1114,6 +1563,20 @@ links:[{title:"W365全SKU価格",url:"https://www.microsoft.com/ja-jp/windows-36
 // Topic 13: AVD アーキテクチャ
 // ═══════════════════════════════════════════════════════
 {id:"avd",title:"AVD アーキテクチャ",week:"Week 7",time:"4h",keyMsg:"セッションホストは顧客Azure内。柔軟だが管理責任も顧客側",content:[
+{type:"list",title:"AVDとは — W365との違いを理解する",icon:"📖",items:[
+"Azure Virtual Desktop(AVD)は、Azure上でWindows仮想デスクトップを提供するPaaS型のDaaSサービスです。W365がSaaS(全部おまかせ)であるのに対し、AVDはPaaS(インフラの柔軟性がある分、管理責任も顧客側)です",
+"AVDの最大の特徴: マルチセッション方式で1台のVMに複数ユーザーが同時接続できるため、大規模環境ではW365よりもコスト効率が良くなります。また、GPU搭載VM(NVシリーズ)やAutoscaleによるコスト最適化が可能です",
+"お客様への説明の仕方: 「AVDは『自分で設計できるクラウドPC』です。W365は全部おまかせで楽ですが、AVDは自由に設計できます。サーバーのスペック、ネットワーク構成、スケーリング方法を細かく指定できます。ただしその分、管理の手間も増えます」",
+"W365との使い分け: 一般業務→W365(運用が楽)、マルチセッション/GPU/大規模環境→AVD(コスト最適化)、という棲み分けが基本です。多くのお客様にはW365+AVDの併用を提案します",
+"責任分界の重要性: AVDの制御プレーン(ゲートウェイ/ブローカー)はMicrosoft管理ですが、データプレーン(セッションホストVM/ネットワーク/ストレージ)は顧客管理です。この責任分界をお客様に明確に説明することが重要です",
+"コストモデル: AVDのコストは「Azure VM(時間課金)+ストレージ+ネットワーク」の従量課金です。Autoscaleで夜間/休日にVMを停止すればコストを大幅に削減できますが、設計・管理のスキルが必要です"]},
+{type:"diagram",title:"AVDの責任分界 — PaaSモデル",icon:"🏛️",pillars:[
+{label:"Gateway",color:"#0078D4",desc:"MS管理"},
+{label:"Broker",color:"#0078D4",desc:"MS管理"},
+{label:"VM管理",color:"#107C10",desc:"顧客管理"},
+{label:"NW設計",color:"#107C10",desc:"顧客管理"},
+{label:"ストレージ",color:"#107C10",desc:"顧客管理"},
+{label:"セキュリティ",color:"#5C2D91",desc:"共同責任"}]},
 {type:"cards",title:"構成要素 — 詳細解説",icon:"🏗️",cards:[
 {title:"制御プレーン（MS管理）",color:"",items:[
 "ゲートウェイ: ユーザーからの接続を受け付け、適切なセッションホストにルーティング",
@@ -1153,6 +1616,13 @@ links:[{title:"W365全SKU価格",url:"https://www.microsoft.com/ja-jp/windows-36
 ["イメージ更新","VMを置き換え(プロファイルは外部)","個別にWindows Update","プールドはイメージ更新が容易"],
 ["用途","一般業務(コスト重視)","開発/CAD(パフォーマンス重視)","大多数の企業はプールドで十分"],
 ["max session limit","推奨: 4-8ユーザー/VM(D4s v5)","1","VMスペックに応じて調整"]]},
+{type:"table",title:"AVDセッションホスト推奨VMサイズ — 用途別ガイド",icon:"📏",headers:["VM SKU","vCPU","RAM","推奨ユーザー数(マルチ)","月額概算","推奨用途"],rows:[
+["D2s v5","2","8GB","2-4名","約¥8,000","テスト/軽量業務"],
+["D4s v5","4","16GB","4-8名","約¥15,000","一般業務(最も一般的)"],
+["D8s v5","8","32GB","8-15名","約¥30,000","パワーユーザー/開発"],
+["D16s v5","16","64GB","15-25名","約¥60,000","大規模マルチセッション"],
+["NV12s v3","12","112GB(GPU)","1-2名(シングル)","約¥90,000","CAD/3D/動画編集"],
+["NV36ads A10 v5","36","440GB(GPU)","1-4名","約¥200,000","ハイエンドGPU処理"]]},
 {type:"list",title:"セッションホスト管理のベストプラクティス",icon:"⚙️",items:[
 "ゴールドイメージ管理: Azure Compute GalleryでバージョニングされたOSイメージを管理",
 "イメージ更新フロー: ゴールドイメージ更新→新VMをホストプールに追加→旧VMをドレインモード→ユーザー移行→旧VM削除",
@@ -1190,6 +1660,21 @@ links:[{title:"W365全SKU価格",url:"https://www.microsoft.com/ja-jp/windows-36
 "幅優先(Breadth-first): ユーザーを均等分散(パフォーマンス最適)",
 "ドレインモード: スケールダウン時に既存セッションは維持→ユーザーログオフ後にVM停止",
 "容量しきい値: CPUやセッション数でVM追加/削除をトリガー"]}]
+},
+{type:"table",title:"AVDコスト最適化テクニック一覧",icon:"💰",headers:["テクニック","効果","適用条件","削減率目安"],rows:[
+["Reserved Instances(RI)","常時稼働VMのコスト削減","24時間稼働が必要なVM","最大60%(3年)"],
+["Autoscale","夜間/休日のVM停止","業務時間が限定されている場合","40-50%"],
+["マルチセッション","1VMで複数ユーザー","一般業務(Office/Teams)","70-80%(vs シングル)"],
+["VM SKU最適化","適切なスペック選定","ユーザー業務を分析済み","10-30%"],
+["Spot VM","バッチ処理/テスト環境","中断されても問題ない場合","最大90%"],
+["Azure Hybrid Benefit","既存ライセンス活用","Windows Server CALを保有","最大40%"],
+["Dev/Test価格","開発/テスト環境","開発/テスト用途に限定","最大50%"]]},
+{type:"list",title:"お客様からよくある質問と回答",icon:"💬",items:[
+"Q: AVDの月額費用を予測できるか → A: Azure Pricing Calculatorで概算可能です。ただしAutoScaleの効果やユーザー数の変動で実際の費用は変わるため、1-2ヶ月の実運用後に精緻な予測ができるようになります",
+"Q: AVDとW365のどちらが安い → A: 一概には言えません。100名以下ならW365が総コスト(運用含む)で有利、大規模でマルチセッション+Autoscaleを使えるならAVDが有利です。お客様の規模と要件で試算が必要です",
+"Q: 既存のCitrix/VMware環境からAVDに移行できるか → A: 可能です。アプリの互換性確認→パイロット→段階的移行のアプローチを推奨します。Citrixライセンスの年額(¥50K-80K/ユーザー)をAVDのAzure費用に充当できます",
+"Q: GPU処理(CAD/3D)はAVDで可能か → A: NVシリーズ(NVIDIA GPU搭載)のVMを使用すれば可能です。ただしGPU VMは高額なのでAutoscaleで稼働時間を最小化する設計が重要です",
+"提案のポイント: AVDの見積もりは「Azure VM費用+ストレージ+運用人件費」の3要素で構成されます。特に運用人件費を忘れると「安い」と見積もってしまい、後から問題になります"]
 }],
 links:[{title:"MS Learn: AVD概要",url:"https://learn.microsoft.com/ja-jp/azure/virtual-desktop/"}]},
 
@@ -1197,6 +1682,19 @@ links:[{title:"MS Learn: AVD概要",url:"https://learn.microsoft.com/ja-jp/azure
 // Topic 14: FSLogix
 // ═══════════════════════════════════════════════════════
 {id:"fsl",title:"FSLogix",week:"Week 7",time:"3h",keyMsg:"AVDマルチセッションではほぼ必須。W365では不要（差別化ポイント）",content:[
+{type:"list",title:"FSLogixとは — なぜ必要で、なぜW365との差別化ポイントなのか",icon:"📖",items:[
+"FSLogixは、Microsoftが2018年に買収したプロファイル管理ソリューションです。ユーザーのプロファイル(デスクトップ設定/ドキュメント/アプリ設定/Outlookキャッシュ)をVHD(仮想ハードディスク)ファイルに格納し、外部ストレージに保存します",
+"なぜAVDマルチセッションで必要か: マルチセッションでは複数ユーザーが1台のVMを共有します。Autoscaleでは接続するVMが毎回変わる可能性があるため、ユーザーのデータ/設定を外部に保存して、どのVMに接続しても同じ環境を提供する必要があります",
+"お客様への説明の仕方: 「FSLogixは、カプセルホテルのロッカーのようなものです。部屋(VM)は毎回変わりますが、自分の荷物(プロファイル)はロッカー(外部ストレージ)に預けてあるので、どの部屋に入っても自分の環境が復元されます」",
+"W365との重要な差別化ポイント: W365は1ユーザー=1 Cloud PC(専用VM)なので、プロファイルはVM内に保存されます。FSLogixの設計・構築・運用が一切不要です。これはAVD対比でのW365の大きなメリット(運用コスト削減)です",
+"よくあるトラブル: FSLogixの運用で最もよくある問題は「サインインが遅い(30秒以上)」と「ディスク容量の肥大化」です。ストレージのIOPS不足やVHDの自動拡張が原因になることが多く、設計段階での考慮が重要です",
+"提案での活用方法: 「AVDの場合はFSLogixの設計・運用が必要ですが、W365なら不要です。FSLogix運用にかかるIT工数(月あたり10-20時間)を人件費換算すると年間¥60-120万の削減になります」"]},
+{type:"flow",title:"FSLogixの動作の仕組み — サインインからサインアウトまで",icon:"🔄",steps:[
+{icon:"👤",label:"サインイン",desc:"ユーザーがVMに接続",style:"blue"},
+{icon:"💾",label:"VHDマウント",desc:"外部ストレージからVHDを取得",style:""},
+{icon:"🖥️",label:"プロファイル復元",desc:"デスクトップ/アプリ設定が復元",style:""},
+{icon:"📝",label:"業務実施",desc:"変更がリアルタイムでVHDに保存",style:""},
+{icon:"💾",label:"サインアウト",desc:"VHDをアンマウント→ストレージに保存",style:"green"}]},
 {type:"list",title:"FSLogixの基本概念 — 詳細解説",icon:"📁",items:[
 "FSLogixとは: ユーザープロファイル(デスクトップ・ドキュメント・アプリ設定)をVHD/VHDXファイルに格納するソリューション",
 "動作原理: サインイン時にVHDをマウント→ユーザーには通常のCドライブとして見える→サインアウト時にアンマウント",
@@ -1206,6 +1704,12 @@ links:[{title:"MS Learn: AVD概要",url:"https://learn.microsoft.com/ja-jp/azure
 "Cloud Cache: 複数のストレージ先にプロファイルを同時書き込み(高可用性/DR)",
 "ライセンス: M365 E3/E5/F1/F3、またはRDS CALに含まれる(追加費用なし)",
 "W365との違い: W365はCloud PC=専用VM→プロファイルはVM内に保存→FSLogix不要"]},
+{type:"flow",title:"FSLogixストレージ選定の判断フロー",icon:"🔄",steps:[
+{icon:"👥",label:"ユーザー数確認",desc:"100名以下→Azure Files",style:"blue"},
+{icon:"⚡",label:"パフォーマンス要件",desc:"高IOPS→Premium/NetApp",style:""},
+{icon:"💰",label:"コスト確認",desc:"予算に合わせて選定",style:""},
+{icon:"🌍",label:"DR要件",desc:"GRS/CRR対応が必要か",style:""},
+{icon:"✅",label:"ストレージ決定",desc:"要件に最適なオプション",style:"green"}]},
 {type:"table",title:"ストレージオプション比較",icon:"💾",headers:["ストレージ","IOPS","遅延","コスト","DR","推奨シナリオ"],rows:[
 ["Azure Files Standard(HDD)","最大20,000","高(数ms)","最安","GRS対応","小規模/コスト重視"],
 ["Azure Files Premium(SSD)","最大100,000","低(1ms以下)","中","LRS/ZRS","一般的な推奨(大多数のケース)"],
@@ -1231,6 +1735,22 @@ links:[{title:"MS Learn: AVD概要",url:"https://learn.microsoft.com/ja-jp/azure
 "問題: 一時プロファイルでログインしてしまう → 原因: 同一ユーザーが複数セッションに接続。対処: セッション制限+VHDLocationの確認",
 "監視: FSLogixのイベントログ(Applications and Services Logs > Microsoft > FSLogix)で詳細を確認",
 "提案ポイント: 「FSLogixの運用負荷がW365にはない=運用コスト削減の大きな差別化要素」"]
+},
+{type:"table",title:"FSLogix有り(AVD) vs FSLogix無し(W365) — 運用コスト比較",icon:"⚖️",headers:["運用項目","AVD(FSLogix有り)","W365(FSLogix不要)"],rows:[
+["ストレージ設計","必要(Azure Files/NetApp設計)","不要(Cloud PC内蔵)"],
+["ストレージ費用","月額¥170/ユーザー(100名の場合)","¥0(ライセンスに含む)"],
+["プロファイルサイジング","必要(ユーザーあたりIOPS/容量計算)","不要"],
+["ストレージ監視","必要(IOPS/容量/遅延の監視)","不要"],
+["VHD肥大化対策","必要(定期圧縮スクリプト運用)","不要"],
+["トラブル対応","月5-10件(サインイン遅延/ロック/容量)","ほぼなし"],
+["IT工数(月間)","10-20時間","0-2時間"],
+["年間運用コスト","¥60-120万(人件費+ストレージ費)","¥0"]]},
+{type:"list",title:"お客様からよくある質問と回答",icon:"💬",items:[
+"Q: FSLogixはAVDを使うなら絶対に必要？ → A: マルチセッション(プールドホストプール)では必須です。パーソナル(専用VM)では任意ですが、イメージ更新時のプロファイル保持のために推奨されます",
+"Q: FSLogixのストレージ費用はどれくらい → A: Azure Files Premium 1TB(100ユーザー想定)で約¥17,000/月。ユーザーあたり¥170/月。大規模環境ではAzure NetApp Files(高性能・高額)も検討します",
+"Q: W365にFSLogixは必要ないのか → A: 不要です。W365は1ユーザー=1 Cloud PCの専用VM構成なので、プロファイルはVM内に直接保存されます。これがW365の大きなメリットの一つです",
+"Q: FSLogixの運用が大変だと聞いた → A: 確かにストレージの監視・VHDの肥大化対策・トラブル対応など、継続的な運用が必要です。この運用負荷を避けたい場合はW365を推奨します",
+"提案での活用: AVDとW365の比較時に「FSLogixの運用コスト」を可視化するとW365の優位性が明確になります。年間¥60-120万の運用コスト削減は経営層にも響くポイントです"]
 }],
 links:[{title:"MS Learn: FSLogixとは",url:"https://learn.microsoft.com/ja-jp/fslogix/overview-what-is-fslogix"}]},
 
@@ -1238,6 +1758,19 @@ links:[{title:"MS Learn: FSLogixとは",url:"https://learn.microsoft.com/ja-jp/f
 // Topic 15: W365 vs AVD 比較
 // ═══════════════════════════════════════════════════════
 {id:"cmp",title:"W365 vs AVD 比較",week:"Week 8",time:"3h",keyMsg:"SaaSのシンプルさ vs PaaSの柔軟性 — 顧客状況で使い分け",content:[
+{type:"list",title:"なぜW365 vs AVDの理解が最重要か",icon:"📖",items:[
+"お客様から最も多い質問は「W365とAVDのどちらがいいですか？」です。SEとして自信を持って回答できることが、信頼獲得の第一歩です。答えは「お客様の状況次第」ですが、根拠を持って説明できることが重要です",
+"結論から言うと: 「運用のシンプルさを重視するならW365、コスト最適化と柔軟性を重視するならAVD、そして多くのお客様には両方の併用が最適解です」と説明します",
+"お客様への説明の仕方: 「W365は自家用車(月額固定で楽)、AVDはカーシェア(使った分だけ課金で効率的)のようなものです。通勤用には自家用車(W365)が便利ですが、月に数回しか使わないならカーシェア(AVD)の方がお得です」",
+"よくある誤解: 「W365とAVDは競合製品」→ 実際にはMicrosoft自身が併用を推奨しています。同じ管理画面(Intune管理センター)で両方を管理でき、同じ認証基盤(Entra ID)を使用します",
+"提案での差別化: 競合(Citrix/VMware/AWS)はこのような「SaaS+PaaS併用」の柔軟性を提供できません。W365+AVDの最適な組み合わせを設計できることがMicrosoft SEの強みです",
+"このトピックの位置づけ: Month 1-2で学んだ全ての知識(ゼロトラスト/Entra ID/CA/Intune/W365/AVD)を統合して、お客様に最適な提案ができるようになることがゴールです"]},
+{type:"flow",title:"W365 vs AVD — 判断フロー",icon:"🔄",steps:[
+{icon:"❓",label:"マルチセッション必要？",desc:"No→W365、Yes→AVD",style:"blue"},
+{icon:"💰",label:"コスト予測性重視？",desc:"Yes→W365固定月額",style:""},
+{icon:"🎨",label:"GPU処理必要？",desc:"本格的→AVD NVシリーズ",style:""},
+{icon:"👥",label:"IT部門の規模？",desc:"少人数→W365(運用楽)",style:""},
+{icon:"✅",label:"最適解を提案",desc:"W365+AVD併用も検討",style:"green"}]},
 {type:"table",title:"W365 vs AVD — 完全比較表",icon:"⚖️",headers:["比較軸","W365（SaaS）","AVD（PaaS）"],rows:[
 ["管理ツール","Intune管理センター","Azure Portal + Intune(連携)"],
 ["コストモデル","固定月額(予測しやすい)","従量課金(最適化で削減可能)"],
@@ -1278,6 +1811,15 @@ links:[{title:"MS Learn: FSLogixとは",url:"https://learn.microsoft.com/ja-jp/f
 "Azureの運用スキルがあるIT部門",
 "RemoteApp(アプリ配信のみ)が必要",
 "Autoscaleで夜間/休日のコストを最小化したい"]}]},
+{type:"table",title:"DaaS導入のBefore/After — 経営層向け訴求ポイント",icon:"📈",headers:["項目","物理PC環境(Before)","W365/AVD環境(After)"],rows:[
+["PCセットアップ","IT部門が1台2-4時間で手動設定","ライセンス割当→数分で自動展開"],
+["PCリプレース","4年ごとに全台買い替え(数千万円)","SKUアップグレードで対応(再購入不要)"],
+["セキュリティ","端末ごとにパッチ管理+EDR運用","一元管理+自動パッチ+Defenderネイティブ"],
+["リモートワーク","VPN設定+接続トラブル対応","どこからでもブラウザでアクセス"],
+["PC紛失/盗難","データ流出リスク(ディスク暗号化でも不安)","データはクラウドに存在(端末にデータなし)"],
+["BCP/DR","物理PCが使えない=業務停止","別デバイスからCloud PCにアクセス=業務継続"],
+["IT人件費","ヘルプデスク+パッチ管理+キッティング","大幅削減(SaaS型の自動管理)"],
+["スケーラビリティ","PC調達に数週間〜数ヶ月","ライセンス追加で即座にスケール"]]},
 {type:"list",title:"ハイブリッド戦略 — W365 + AVD の併用",icon:"🔗",items:[
 "W365とAVDは競合ではなく「補完関係」。併用が最適解になるケースが多い",
 "パターン1: 一般業務→W365 + 専門業務(CAD/GPU)→AVD",
@@ -1295,6 +1837,35 @@ links:[{title:"MS Learn: FSLogixとは",url:"https://learn.microsoft.com/ja-jp/f
 ["月額合計","¥968,300","¥987,000","ほぼ同等だが運用負荷が大きく異なる"],
 ["年額合計","¥11,619,600","¥11,844,000","運用負荷を含めるとW365有利"],
 ["注意","Frontline適用で更に削減可","RI適用で更に削減可","シナリオにより最適解は変わる"]]
+},
+{type:"cards",title:"実践シナリオ — お客様にはどちらを提案する？",icon:"🎯",cards:[
+{title:"製造業500名(工場+オフィス)",color:"green",items:[
+"工場300名(3交代制): W365 Frontline(100ライセンス×3名)",
+"オフィス200名(フルタイム): W365 Enterprise(SKUミックス)",
+"CADエンジニア20名: AVD(NVシリーズGPU VM)",
+"結論: W365 Frontline + Enterprise + AVD(GPU)の3層構成",
+"理由: Frontlineで大幅コスト削減、GPU需要のみAVDで対応"]},
+{title:"金融業1000名(セキュリティ重視)",color:"red",items:[
+"全員W365 Enterprise: 固定月額で予算管理が容易",
+"ANC構成: オンプレ基幹システムへのアクセス必要",
+"セキュリティ: CA+MFA+ID Protection+Defender全て必須",
+"結論: W365 Enterprise一択(SaaS型のシンプルさを重視)",
+"理由: 金融庁ガイドライン対応にはSLA付きのSaaSが有利"]},
+{title:"IT企業200名(コスト最適化重視)",color:"purple",items:[
+"開発者100名: AVD(マルチセッション+Autoscale)で大幅削減",
+"営業+管理50名: W365 Enterprise(2vCPU/8GB)",
+"パート/アルバイト50名: W365 Frontline(17ライセンス×3名)",
+"結論: AVD + W365 Enterprise + Frontlineの併用が最安",
+"理由: 開発者のマルチセッション+Autoscaleが最大のコスト効果"]}]},
+{type:"list",title:"提案時のヒアリングチェックリスト",icon:"📋",items:[
+"1. 現在のPC/VDI環境: 物理PCの台数、既存VDI(Citrix/VMware)の有無、PCリプレース時期",
+"2. ユーザー構成: 部門ごとの人数、シフトワーカーの有無、BYOD利用の有無",
+"3. 業務アプリ: 使用アプリ一覧(Office/Teams/業界アプリ/CAD等)、GPU需要の有無",
+"4. セキュリティ要件: コンプライアンス要件(ISMS/Pマーク/業界規制)、データ所在地要件",
+"5. ネットワーク環境: オンプレ依存アプリの有無、VPN利用状況、インターネット回線速度",
+"6. IT部門の体制: IT管理者の人数、Azure運用スキルの有無、外部委託の有無",
+"7. 予算: 月額 or 年額の予算枠、現在のPC/VDI関連支出総額、コスト削減の目標値",
+"8. タイムライン: 導入希望時期、PCリプレース計画、VPN更新時期"]
 }],
 links:[{title:"MS Learn: W365概要",url:"https://learn.microsoft.com/ja-jp/windows-365/enterprise/overview"}]}
 
@@ -1309,6 +1880,17 @@ links:[{title:"MS Learn: W365概要",url:"https://learn.microsoft.com/ja-jp/wind
 // Topic 16: SASE & Global Secure Access
 // ═══════════════════════════════════════════════════════
 {id:"sase",title:"SASE & Global Secure Access",week:"Week 9",time:"5h",keyMsg:"VPNをなくせるか？ — SASEの知識が提案の説得力を決める",content:[
+{type:"list",title:"SASEとは — VPN時代からの転換を理解する",icon:"📖",items:[
+"SASE(Secure Access Service Edge、読み方: サシー)は、2019年にGartnerが提唱した概念で、ネットワーク(SD-WAN)とセキュリティ(SWG/CASB/ZTNA/FWaaS)をクラウドで統合したアーキテクチャです",
+"なぜ今SASEが注目されるか: リモートワークとクラウド利用の普及により、従来の「本社データセンターを中心とした境界型ネットワーク」では対応できなくなりました。VPN経由で全トラフィックを本社に集約すると帯域がボトルネックになります",
+"お客様への説明の仕方: 「従来のVPNは高速道路の料金所のようなもの。全ての車(通信)が1箇所の料金所(VPN装置)を通るので渋滞します。SASEは各インターチェンジにETCゲートを設置するようなもの。どこからでもスムーズに安全に通れます」",
+"W365/AVD提案との関係: Cloud PCを導入しても、オンプレミスのファイルサーバーや基幹システムにアクセスする必要がある場合、VPNが必要になります。SASEがあればVPNなしでオンプレアクセスが可能になり、Cloud PC+SASEで真のVPN撤廃が実現します",
+"Microsoftの戦略: MicrosoftはGlobal Secure Access(GSA)というSSE(Security Service Edge)ソリューションを提供しています。Entra IDとネイティブ統合しているため、条件付きアクセスのポリシーでネットワークセキュリティも制御できます",
+"VPN更新タイミングが最大のチャンス: 多くのお客様がVPN装置の保守期限切れを3-5年周期で迎えます。このタイミングで「VPN装置を更新する代わりにGSA+W365に移行しませんか」と提案するのが最も効果的です"]},
+{type:"flow",title:"VPN時代からSASE時代への転換",icon:"📈",steps:[
+{icon:"🏢",label:"VPN時代",desc:"全通信が本社経由",style:""},
+{icon:"🔗",label:"ハイブリッド期",desc:"VPN+クラウド直結混在",style:"blue"},
+{icon:"🌐",label:"SASE時代",desc:"どこからでも安全にアクセス",style:"green"}]},
 {type:"cards",title:"SASE(サシー)の全体像",icon:"🌐",cards:[
 {title:"SASEとは",color:"purple",items:[
 "Secure Access Service Edge: NW+セキュリティをクラウドに統合",
@@ -1328,12 +1910,37 @@ links:[{title:"MS Learn: W365概要",url:"https://learn.microsoft.com/ja-jp/wind
 "ソースIP復元: テナント制限やCA場所条件でユーザーの実IPを使用",
 "ダッシュボード: アクセスログ・セキュリティイベントを一元表示",
 "Entra IDとの統合: CAポリシーで準拠ネットワークを条件に使用可能"]}]},
+{type:"table",title:"SASE構成要素の詳細 — 各機能の役割と対応サービス",icon:"📋",headers:["機能","役割","従来の対応製品","Microsoft対応サービス"],rows:[
+["SWG (Secure Web Gateway)","Webフィルタリング・マルウェアスキャン","プロキシサーバー(Squid/BlueCoat)","Entra Internet Access"],
+["CASB","SaaSアプリの利用制御・シャドーIT検知","Netskope/McAfee CASB","Defender for Cloud Apps"],
+["ZTNA","アプリ単位のリモートアクセス(VPN代替)","VPN装置(FortiGate/Pulse)","Entra Private Access"],
+["FWaaS","クラウド型ファイアウォール","物理FW(Palo Alto/Fortinet)","Azure Firewall(補完)"],
+["SD-WAN","WANの最適化・クラウド直結","Cisco SD-WAN/VMware SD-WAN","Microsoft 365 Trafficプロファイル"]]},
 {type:"diagram",title:"SASEの5つの柱 — セキュリティ+ネットワーク統合スタック",icon:"🏛️",pillars:[
 {label:"SWG",color:"#0078D4",desc:"Web保護"},
 {label:"CASB",color:"#5C2D91",desc:"SaaS制御"},
 {label:"ZTNA",color:"#107C10",desc:"VPN代替"},
 {label:"FWaaS",color:"#D83B01",desc:"クラウドFW"},
 {label:"SD-WAN",color:"#008B8B",desc:"WAN最適化"}]},
+{type:"cards",title:"Global Secure Access の3つのトラフィックプロファイル",icon:"🔒",cards:[
+{title:"Microsoft 365 Trafficプロファイル",color:"",items:[
+"M365(Teams/Outlook/SharePoint等)のトラフィックをGSA経由で最適化",
+"テナント制限: 個人テナントや未承認テナントへのアクセスをブロック",
+"ソースIP復元: 条件付きアクセスの場所条件でユーザーの実IPを使用可能",
+"最もリスクが低い導入ステップ(既存のM365通信に影響が少ない)",
+"導入推奨順序: まずこのプロファイルから開始"]},
+{title:"Internet Accessプロファイル",color:"teal",items:[
+"インターネット全体のトラフィックをSWGで保護(Webフィルタリング)",
+"カテゴリベースのフィルタリング: ギャンブル/マルウェア/フィッシングサイトをブロック",
+"FQDN/URLベースのフィルタリング: 特定のサイトを許可/ブロック",
+"TLS検査: 暗号化通信の中身を検査してマルウェアを検知",
+"従来のプロキシサーバーの代替として使用可能"]},
+{title:"Private Accessプロファイル",color:"green",items:[
+"オンプレミスアプリへのZTNA(VPN代替)",
+"アプリ単位のアクセス制御(ネットワーク全体へのアクセスは不要)",
+"条件付きアクセスと連携(MFA/準拠デバイスを条件に)",
+"コネクタ: オンプレミス側にGSAコネクタを設置して通信を中継",
+"VPN装置の完全撤廃に向けた最終ステップ"]}]},
 {type:"flow",title:"Global Secure Access 接続フロー",icon:"🔄",steps:[
 {icon:"👤",label:"ユーザー",desc:"クライアントアプリ",style:"blue"},
 {icon:"🌐",label:"GSAクライアント",desc:"トラフィック転送",style:""},
@@ -1373,6 +1980,28 @@ links:[{title:"MS Learn: W365概要",url:"https://learn.microsoft.com/ja-jp/wind
 "条件付きアクセス連携: 「準拠ネットワーク」条件でGSA経由のアクセスのみ許可→VPNバイパスを防止",
 "テナント制限: GSA経由で未承認テナント(個人M365/他社テナント)へのアクセスをブロック",
 "提案のコツ: VPN更新時期が最大のチャンス。「VPN更新の代わりにGSA+W365で次世代NW環境へ」"]
+},
+{type:"flow",title:"GSA導入の推奨段階 — リスクの低い順に導入",icon:"📈",steps:[
+{icon:"☁️",label:"Phase 1",desc:"M365 Traffic (低リスク)",style:"blue"},
+{icon:"🌐",label:"Phase 2",desc:"Internet Access (SWG)",style:""},
+{icon:"🔒",label:"Phase 3",desc:"Private Access (ZTNA)",style:""},
+{icon:"❌",label:"Phase 4",desc:"VPN装置の撤廃",style:"green"}]},
+{type:"table",title:"VPN vs SASE(GSA) — 徹底比較",icon:"⚖️",headers:["比較軸","従来VPN","SASE / Global Secure Access"],rows:[
+["アクセス範囲","ネットワーク全体にアクセス(過剰)","アプリ単位でアクセス制御(最小特権)"],
+["認証","VPN接続時に1回認証","アクセスごとに条件付きアクセスで検証"],
+["帯域","全通信がVPN装置経由(ボトルネック)","クラウド直結+必要な通信のみ経由"],
+["セキュリティ","VPN装置の脆弱性が攻撃対象","クラウドネイティブ(装置の脆弱性なし)"],
+["スケーラビリティ","VPN装置のライセンス/性能上限","クラウドで自動スケール"],
+["運用","VPN装置のOS更新/証明書管理/FW設定","クラウドサービスのため運用不要"],
+["コスト","VPN装置(数百万)+年間保守費(数十万)","月額サブスクリプション(ユーザーあたり)"],
+["ユーザー体験","VPN接続操作が必要(接続忘れ→無保護)","常時保護(ユーザー操作不要)"]
+]},
+{type:"list",title:"お客様の反論への対応 — VPN撤廃の不安を解消",icon:"💬",items:[
+"「VPNをなくして本当に安全なのか」→ 回答: VPN装置自体が攻撃対象になっている現実があります。FortiGate/Pulse Secureの脆弱性を突いた攻撃で多数の企業が被害を受けています。SASEはクラウドベースなので装置の脆弱性リスクがありません",
+"「既存のVPN投資が無駄になる」→ 回答: 段階的に移行できます。まずM365トラフィックをGSA経由にし(リスク低)、次にインターネットアクセスをSWGで保護し、最後にオンプレアクセスをZTNAに置き換えます。VPNは最後まで残して並行稼働できます",
+"「レガシーアプリがVPN経由でしか使えない」→ 回答: Entra Private Access(ZTNA)でアプリ単位のアクセスを提供できます。VPN同様のTCPアクセスに加えて、条件付きアクセス連携でセキュリティが向上します",
+"「パフォーマンスが心配」→ 回答: GSAはMicrosoftのグローバルネットワーク(Azure Backbone)を使用。VPN装置のボトルネックがなくなるため、むしろパフォーマンスは向上します",
+"「導入実績が少ないのでは」→ 回答: Microsoft自身が数十万人規模でGSAを利用しています。また、Entra IDの条件付きアクセスはすでに数億ユーザーが利用しており、GSAはその延長線上の技術です"]
 }],
 links:[{title:"MS: SASEとは",url:"https://www.microsoft.com/ja-jp/security/business/security-101/what-is-sase"},{title:"MS Learn: Global Secure Access",url:"https://learn.microsoft.com/ja-jp/entra/global-secure-access/overview-what-is-global-secure-access"}]},
 
@@ -1380,6 +2009,19 @@ links:[{title:"MS: SASEとは",url:"https://www.microsoft.com/ja-jp/security/bus
 // Topic 17: コスト提案の組み立て方
 // ═══════════════════════════════════════════════════════
 {id:"cost",title:"コスト提案の組み立て方",week:"Week 10",time:"3h",keyMsg:"月額比較ではなくTCOで「隠れコスト」を可視化して提案",content:[
+{type:"list",title:"コスト提案の考え方 — なぜ月額比較では負けるのか",icon:"📖",items:[
+"DaaS(W365/AVD)提案で最も多い失敗パターンは「月額だけで比較する」ことです。物理PCの月額は¥0に見えるため(購入時に一括払い済み)、W365の月額¥7,683が「高い」と判断されてしまいます",
+"TCO(Total Cost of Ownership / 総所有コスト)で比較することが必須です。TCOには購入費だけでなく、キッティング人件費・ヘルプデスク対応費・修理費・電力費・セキュリティ管理費・PCリプレース費など全てのコストを含みます",
+"お客様への説明の仕方: 「自家用車の月額を『ローン返済額だけ』で計算する人はいませんよね。ガソリン代・保険料・車検費・駐車場代・修理費を含めた総額で比較するのと同じです。PCも月額ライセンス料だけでなく、隠れたコストを全て含めて比較しましょう」",
+"物理PCの隠れコストTOP5: (1)キッティング人件費(1台3時間×人件費)、(2)ヘルプデスク対応(月平均20件×2時間/件)、(3)セキュリティパッチ管理(緊急パッチの夜間対応含む)、(4)ハードウェア故障対応(年間故障率3-5%)、(5)4年後のPCリプレース費(再び発生)",
+"最も効果的な提案方法: 「御社の100台のPCにかかっている年間総コストを一緒に計算してみましょう」と切り出し、隠れコストを一つずつ洗い出す。お客様自身が「こんなにかかっていたのか」と気づくプロセスが重要です",
+"コスト提案の3大ポイント: (1)TCOで物理PCの隠れコストを可視化、(2)SKUミックス+Frontlineでコスト最適化、(3)定性効果(セキュリティ向上・展開速度・BCP)を金額換算して追加"]},
+{type:"flow",title:"コスト提案の5ステップ",icon:"📋",steps:[
+{icon:"📊",label:"Step 1: 現状TCO算出",desc:"物理PCの全コストを棚卸し",style:"blue"},
+{icon:"👥",label:"Step 2: ユーザー分類",desc:"SKUミックスの設計",style:""},
+{icon:"💰",label:"Step 3: DaaS TCO算出",desc:"W365/AVDの総コスト計算",style:""},
+{icon:"⚖️",label:"Step 4: 比較表作成",desc:"3年/5年のTCO比較",style:""},
+{icon:"📄",label:"Step 5: 提案書化",desc:"ROI+定性効果を含む提案",style:"green"}]},
 {type:"cards",title:"隠れコストの可視化 — 物理PC vs DaaS",icon:"💰",cards:[
 {title:"物理PCの隠れコスト(年間/100台あたり)",color:"red",items:[
 "PC購入費: ¥15,000,000(¥150,000/台×4年償却=¥3,750,000/年)",
@@ -1409,6 +2051,19 @@ links:[{title:"MS: SASEとは",url:"https://www.microsoft.com/ja-jp/security/bus
 "Step 6: リスクコストの算出 — 情報漏洩時の損害賠償額、業務停止の機会損失を概算で提示",
 "重要: 月額比較だけでは物理PCが安く見える(隠れコストが見えない)→TCOで逆転させる",
 "ツール: Microsoft公式TCO Calculator(azure.microsoft.com/pricing/tco/calculator)を活用"]},
+{type:"table",title:"3年/5年TCO比較テンプレート — 100名の例",icon:"📊",headers:["コスト項目","物理PC(3年)","W365(3年)","物理PC(5年)","W365(5年)"],rows:[
+["PC購入(4年償却)","¥11,250,000","¥0","¥22,500,000","¥0"],
+["W365ライセンス(SKUミックス)","¥0","¥27,000,000","¥0","¥45,000,000"],
+["M365 E3(既存想定)","¥17,460,000","¥17,460,000","¥29,100,000","¥29,100,000"],
+["キッティング人件費","¥1,125,000","¥0","¥2,250,000","¥0"],
+["ヘルプデスク","¥3,600,000","¥1,200,000","¥6,000,000","¥2,000,000"],
+["セキュリティ管理","¥2,160,000","¥720,000","¥3,600,000","¥1,200,000"],
+["修理/故障対応","¥540,000","¥0","¥900,000","¥0"],
+["電力/冷房","¥324,000","¥0","¥540,000","¥0"],
+["合計","¥36,459,000","¥46,380,000","¥64,890,000","¥77,300,000"],
+["M365既存時の合計","¥19,000,000","¥28,920,000","¥35,790,000","¥48,200,000"],
+["差額","","▲¥9,920,000","","▲¥12,410,000"],
+["+ Frontline適用(30%)","","▲¥5,920,000","","▲¥6,410,000"]]},
 {type:"cards",title:"提案書テンプレート構成",icon:"📄",cards:[
 {title:"提案書の基本構成(8スライド)",color:"",items:[
 "1. 表紙: 提案タイトル+日付+顧客名",
@@ -1427,6 +2082,25 @@ links:[{title:"MS: SASEとは",url:"https://www.microsoft.com/ja-jp/security/bus
 "PoCの提案: 10-20名規模の無料トライアルを提示",
 "競合比較は聞かれたら出す(自分からは出さない)",
 "経営層向け: コスト+セキュリティ、IT部門向け: 運用効率+管理性"]}]},
+{type:"flow",title:"提案書作成の推奨プロセス",icon:"📄",steps:[
+{icon:"🔍",label:"Step 1: ヒアリング",desc:"現状の課題/要件/予算",style:"blue"},
+{icon:"📊",label:"Step 2: TCO試算",desc:"物理PC vs DaaS比較",style:""},
+{icon:"🏗️",label:"Step 3: 構成設計",desc:"SKUミックス/NW方式/セキュリティ",style:""},
+{icon:"📄",label:"Step 4: 提案書作成",desc:"8枚構成のプレゼン",style:""},
+{icon:"🎯",label:"Step 5: PoC提案",desc:"10-20名の無料トライアル",style:"green"}]},
+{type:"cards",title:"定性効果の金額換算 — 見えないコスト削減を可視化",icon:"📈",cards:[
+{title:"セキュリティ効果の金額換算",color:"red",items:[
+"ランサムウェア被害の平均損害額: 約1.7億円(復旧費用+業務停止損失)",
+"PC紛失による情報漏洩の損害: 1件あたり約5,000万円(対応費用+信用失墜)",
+"W365導入でPC紛失リスクをゼロに→年間リスク軽減効果: 数千万円相当",
+"VPN脆弱性攻撃のリスク排除(GSA連携)→年間リスク軽減効果: 数千万円相当",
+"これらのリスクコストをTCO比較に「定性効果」として追加提示"]},
+{title:"運用効率化の金額換算",color:"green",items:[
+"PC展開時間: 2時間/台→0分/台 × 年間50台 = 100時間削減 × ¥5,000 = ¥500,000/年",
+"ヘルプデスク: 月20件×2時間→月5件×1時間 = 年間420時間削減 = ¥2,100,000/年",
+"パッチ管理: 月8時間→月1時間 = 年間84時間削減 = ¥420,000/年",
+"故障対応: 年5台×4時間→0台 = 年間20時間削減 = ¥100,000/年",
+"合計: 年間約¥3,120,000の人件費削減(100台規模)"]}]},
 {type:"list",title:"顧客の反論に対する切り返し",icon:"💬",items:[
 "「月額が高い」→ 回答: 月額だけではなくTCOで比較。隠れコスト(人件費/修理/電力)を含めると逆転。さらにFrontline適用で大幅削減",
 "「オフラインで使えない」→ 回答: 業務の90%以上はオンラインで完結。残り10%は物理PC併用で対応。W365 Offlineモードも将来対応予定",
@@ -1436,6 +2110,27 @@ links:[{title:"MS: SASEとは",url:"https://www.microsoft.com/ja-jp/security/bus
 "「既存のVDIがある」→ 回答: VDI更新時期に合わせてW365/AVDに移行。運用コスト削減+最新セキュリティ。Citrixからの移行支援プログラムもある",
 "「クラウド障害が心配」→ 回答: W365のSLA 99.9%。物理PCも故障する(年5%)。BCP観点ではクラウドの方が強固(自動フェイルオーバー)",
 "「社内のファイルサーバーにアクセスできない」→ 回答: ANC構成でオンプレ接続可能。段階的にSharePoint Online/OneDriveに移行するのが理想"]
+},
+{type:"table",title:"ROI計算例 — 300名の製造業(Frontline活用)",icon:"📈",headers:["項目","物理PC(3年)","W365(3年)","差額(削減)"],rows:[
+["PC購入費(4年償却)","¥33,750,000","¥0","¥33,750,000"],
+["W365ライセンス(SKUミックス+FL)","¥0","¥64,800,000","▲¥64,800,000"],
+["M365ライセンス","¥21,600,000(既存)","¥21,600,000(既存)","¥0"],
+["キッティング人件費","¥4,500,000","¥0","¥4,500,000"],
+["ヘルプデスク人件費","¥10,800,000","¥3,600,000","¥7,200,000"],
+["セキュリティ管理","¥7,200,000","¥2,400,000","¥4,800,000"],
+["ハードウェア修理","¥1,800,000","¥0","¥1,800,000"],
+["電力+冷房","¥1,080,000","¥0","¥1,080,000"],
+["VPN装置更新","¥3,000,000","¥0(GSA)","¥3,000,000"],
+["3年合計","¥83,730,000","¥92,400,000","▲¥8,670,000"],
+["+ 4年目PCリプレース","¥45,000,000","¥0","¥45,000,000"],
+["5年合計","¥128,730,000","¥108,000,000","¥20,730,000(16%削減)"]]},
+{type:"list",title:"Win Story — コスト提案で勝った実践パターン",icon:"🏆",items:[
+"Winパターン1(製造業500名): 工場3交代300名にFrontline提案→Enterprise比で年間¥28M削減。「Frontlineのコストメリットだけで競合に勝てた」",
+"Winパターン2(金融業200名): TCO比較で5年間¥40M削減を試算→経営層が「PCリプレース費用がゼロになるのか」と驚いて即決",
+"Winパターン3(IT企業100名): 「まず10名でPoCを1ヶ月無料トライアル」を提案→実際のパフォーマンスに満足→全社展開決定",
+"Lossパターン1(大手メーカー): 月額だけで比較してしまい「高い」と判断された→教訓: 最初の提案からTCO比較を提示すべきだった",
+"Lossパターン2(公共機関): オフライン要件が強く物理PC必須と判断された→教訓: オフライン業務の割合を事前にヒアリングし、W365+物理PC併用を提案すべきだった",
+"提案の鉄則: 「月額だけ見ると高く見えます。でもTCOで比較すると...」と先に月額の懸念を認めてから隠れコストを説明する。お客様の疑問を先取りすることで信頼感が増す"]
 }],
 links:[]},
 
@@ -1443,6 +2138,19 @@ links:[]},
 // Topic 18: 競合比較
 // ═══════════════════════════════════════════════════════
 {id:"comp",title:"競合比較",week:"Week 10",time:"3h",keyMsg:"M365/Intuneとのネイティブ統合がMicrosoft DaaSの最大の武器",content:[
+{type:"list",title:"競合比較の考え方 — 自社の強みを理解する",icon:"📖",items:[
+"競合比較はDaaS提案で避けて通れないテーマです。お客様は必ず「他のDaaSと何が違うの？」と聞いてきます。自社の強みを正確に理解し、競合の弱みではなく自社の強みで勝負することが重要です",
+"Microsoft DaaSの最大の武器は「M365とのネイティブ統合」です。認証(Entra ID)、デバイス管理(Intune)、セキュリティ(Defender)、ネットワーク(GSA)が全て同じMicrosoftプラットフォームで統合管理できます",
+"お客様への説明の仕方: 「御社が既にMicrosoft 365を使っているなら、追加のDaaSライセンスを購入するだけでCloud PCが使えます。認証もデバイス管理も同じ管理画面です。別の製品を使うと、管理画面が増え、ID連携の設定が必要になります」",
+"競合比較の基本姿勢: 競合製品を直接否定するのではなく、「Microsoft DaaSの優位性」を語る。お客様が競合を褒めたら「確かにXは良い製品です。ただ、御社の環境ではMicrosoftの方が効率的です」と対応する",
+"よくある誤解: 「Citrix/VMwareの方が機能が多い」→ AVD+Intune+GSAの組み合わせで大部分の機能はカバーできます。むしろ1つのベンダーで完結する方がライセンスコスト・運用コストが低くなります",
+"提案のタイミング: 競合比較は「お客様から聞かれたら」出す。自分から積極的に出すと、不要な比較検討が始まり、商談が長期化するリスクがある。ただし、競合が既に提案済みの場合は先手を打って比較表を提示する"]},
+{type:"flow",title:"競合との提案バトル — 勝利のフロー",icon:"🏆",steps:[
+{icon:"🔍",label:"競合状況把握",desc:"お客様が検討中の製品を確認",style:"blue"},
+{icon:"📊",label:"差別化ポイント整理",desc:"M365統合・Frontline・運用性",style:""},
+{icon:"📄",label:"比較表提示",desc:"お客様の要件に合わせた比較",style:""},
+{icon:"🎯",label:"PoC提案",desc:"実際に使って比較してもらう",style:""},
+{icon:"✅",label:"受注",desc:"体験+コストで優位性を実証",style:"green"}]},
 {type:"table",title:"競合比較表 — 全方位比較",icon:"⚔️",headers:["比較軸","W365/AVD","Amazon WorkSpaces","Citrix DaaS","VMware Horizon Cloud"],rows:[
 ["基盤","Azure (Microsoft管理)","AWS","任意のクラウド/オンプレ","任意のクラウド/オンプレ"],
 ["M365統合","ネイティブ(最適化済み)","追加設定必要(AD Connector)","追加設定必要","追加設定必要"],
@@ -1480,6 +2188,34 @@ links:[]},
 "「Horizon Cloudの将来に不確実性→Microsoft DaaSは安定的な投資」",
 "「Tanzu Labs→AVD移行の事例が増加中」",
 "注意: VMwareが強い領域=既存vSphere環境、オンプレVDI統合"]}]},
+{type:"table",title:"ライセンスコスト比較 — DaaS製品別の年間費用(100名)",icon:"💰",headers:["コスト項目","W365+M365","AVD+M365","WorkSpaces","Citrix DaaS+Azure"],rows:[
+["DaaSライセンス","¥9,216,000/年","Azure VM費用(変動)","¥7,200,000/年","AVD費用+Citrix ¥5-8M/年"],
+["ID管理","¥0(Entra ID含む)","¥0(Entra ID含む)","AD Connector別途","AD連携設定工数"],
+["MDM","¥0(Intune含む)","¥0(Intune含む)","別途MDM契約¥1M+","別途MDM契約¥1M+"],
+["EDR","¥0(Defender含む)","¥0(Defender含む)","GuardDuty+別途EDR¥1M+","別途EDR¥1M+"],
+["NWセキュリティ","¥0(GSA利用可)","¥0(GSA利用可)","VPC+Security Group","NetScaler別途¥2M+"],
+["管理画面","Intune1画面","Intune+Azure","AWSコンソール","Citrix Cloud+Azure"],
+["概算年額合計","¥9,216,000","¥7-10,000,000","¥9,200,000+","¥14-18,000,000"],
+["運用人件費","低","中-高","中","高"]]},
+{type:"cards",title:"競合バトルカード — 提案前に確認するポイント",icon:"🃏",cards:[
+{title:"vs WorkSpaces バトルカード",color:"",items:[
+"聞くべきこと: 「既存のAWS環境の規模は？」「M365は何を使っている？」",
+"勝てるポイント: M365ネイティブ統合、Intune統合管理、Frontline(1:3)",
+"負けるリスク: 既存AWS環境が大きい、Linux DaaS需要がある",
+"対策: M365統合の運用コスト削減効果を数値で示す",
+"決め技: 「M365+W365+Intuneの統合管理コストvs WorkSpaces+IAM+MDMの分離管理コスト」を比較"]},
+{title:"vs Citrix バトルカード",color:"red",items:[
+"聞くべきこと: 「現在のCitrixライセンス費用は？」「更新時期はいつ？」",
+"勝てるポイント: Citrixライセンス費用の大幅削減、管理画面統合、セキュリティ統合",
+"負けるリスク: 超大規模(10,000+)、高度なセッション管理、レガシーアプリ依存",
+"対策: AVD+Autoscaleで大規模対応、RemoteApp+Private Accessでレガシー対応",
+"決め技: 「年間のCitrixライセンス費用¥5-8M→¥0(AVD標準機能で代替)」"]},
+{title:"vs VMware Horizon バトルカード",color:"yellow",items:[
+"聞くべきこと: 「Broadcom買収後のライセンス変更の影響は？」「vSphere環境は？」",
+"勝てるポイント: Broadcom買収後の不確実性、ライセンスコスト増リスク、将来性",
+"負けるリスク: 既存vSphere環境が大きい、オンプレVDI統合が必須",
+"対策: 段階的なAVD移行計画を提示、オンプレ→クラウドの移行支援",
+"決め技: 「VMwareの将来が不透明な今、Microsoftプラットフォームへの統合が安全な選択」"]}]},
 {type:"list",title:"Win/Loss シナリオ — 実践的な競合対策",icon:"🏆",items:[
 "Winシナリオ1: M365 E3/E5を既に使っている企業 → 追加のDaaSライセンスだけで済む。Citrix/VMwareは別途ライセンス費用が発生",
 "Winシナリオ2: シフトワーカーが多い製造業/流通業 → Frontline(1:3)は唯一無二。競合にはない",
@@ -1490,6 +2226,30 @@ links:[]},
 "Lossリスク2: 10,000名超の超大規模 → Citrixの高度なセッション管理/ロードバランシング。対策: AVD+Autoscaleで対抗",
 "Lossリスク3: レガシーアプリ(古いIE/ActiveX)依存 → Citrixのアプリ仮想化。対策: App-V/RemoteApp/Entra Private Accessで代替提案",
 "重要: 競合を「否定」するのではなく、Microsoft DaaSの「優位性」を強調する。顧客は比較表を求めている"]
+},
+{type:"table",title:"競合が提案済みの場合の切り返し一覧",icon:"💬",headers:["競合の主張","切り返し方法","根拠・補足"],rows:[
+["WorkSpacesの方が安い","月額だけでなくTCOで比較。M365統合でID管理/デバイス管理の追加コスト不要","WorkSpacesではIntune相当のMDMを別途契約する必要がある"],
+["Citrixの方が機能が多い","AVD+Intune+GSAの組み合わせで同等機能を実現。ライセンスコストを比較","Citrixライセンス(¥50K-80K/年/ユーザー)を節約できる"],
+["VMwareの実績が豊富","Broadcom買収後のライセンス変更リスクを指摘。将来の安定性でMicrosoft優位","VMware→Microsoft移行のトレンドを事例付きで説明"],
+["AWSの方がインフラが強い","DaaS提案はインフラの強さではなく管理の統合性が重要。M365利用企業ならMicrosoft一択","既にM365を使っているなら追加のID連携設定が不要"],
+["オンプレVDIの方が安全","クラウドの方がセキュリティ投資が大きい(MS年間¥2兆+)。オンプレは単一障害点リスクあり","Microsoftのデータセンターの物理セキュリティ+冗長性を説明"]
+]},
+{type:"list",title:"提案実践のまとめ — 競合に勝つための5箇条",icon:"🎯",items:[
+"1. 事前準備: お客様のM365ライセンス状況を確認する。E3/E5を使っていれば圧倒的に有利(追加のDaaSライセンスのみで済む)",
+"2. 先手必勝: 競合が提案する前に「DaaS検討の際にはMicrosoft DaaSも比較対象に入れてください」とアンカリングする",
+"3. PoC提案: 「まず10-20名で2週間のトライアルをしませんか？無料でCloud PCを体験できます」と具体的なアクションを提示する",
+"4. Frontlineの一撃: シフトワーカーがいる企業では「1ライセンスで3名使えるFrontline」のインパクトで勝負を決める",
+"5. 統合管理の価値: 「管理画面が1つで済む」ことのIT運用コスト削減効果を金額で示す。年間の運用人件費を試算して比較する",
+"最後に: 競合比較で最も重要なのは「お客様の課題に最も適したソリューションはMicrosoft DaaSです」と自信を持って言えること。そのためにMonth 1-2の基礎知識が不可欠です"]
+},
+{type:"table",title:"業界別・競合出現パターン — 事前予測と対策",icon:"🏢",headers:["業界","よく出る競合","理由","Microsoft DaaSの訴求ポイント"],rows:[
+["製造業","Amazon WorkSpaces","AWS IoTとの親和性","Frontline(1:3)で工場コスト66%削減"],
+["金融業","Citrix DaaS","高いセキュリティ実績","M365ネイティブ統合+データ主権(日本DC)"],
+["小売/流通","VMware Horizon","既存vSphere環境","Broadcom買収後の不確実性+Frontline"],
+["IT/ソフトウェア","Amazon WorkSpaces","AWS開発環境との連携","AVDマルチセッション+GitHub Copilot統合"],
+["公共/自治体","オンプレVDI","セキュリティ規制","ガバメントクラウド対応+日本リージョン"],
+["医療","Citrix DaaS","電子カルテ連携","Entra Private Access+条件付きアクセス"],
+["教育","Google Workspace","Chromebook普及","M365 Education+W365+Intune for Education"]]
 }],
 links:[]}
 
