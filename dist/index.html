@@ -1527,6 +1527,7 @@ const prog=()=>{const a=allT();return Math.round(a.filter(t=>done[t.id]).length/
 
 function renderSB(){
   let h='';
+  h+=`<div class="sb-section"><div class="sb-item ${view==='welcome'?'active':''}" onclick="view='welcome';renderSB();renderMain();upd();window.scrollTo(0,0);"><span class="check">🏠</span>はじめに</div></div>`;
   T.forEach(m=>{
     const td=m.topics.filter(t=>done[t.id]).length;
     h+=`<div class="sb-section"><div class="sb-label" style="color:${m.color}">Month ${m.month}: ${m.title} (${td}/${m.topics.length})</div>`;
