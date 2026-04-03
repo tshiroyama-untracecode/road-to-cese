@@ -3219,17 +3219,17 @@ const prog=()=>{const a=allT();return Math.round(a.filter(t=>done[t.id]).length/
 
 function renderSB(){
   let h='';
-  h+=`<div class="sb-section"><div class="sb-item" ${view==='welcome'?'active':''} onclick="view='welcome';renderSB();renderMain();upd();window.scrollTo(0,0);"><span class="check">🏠</span>はじめに</div></div>`;
+  h+=`<div class="sb-section"><div class="sb-item ${view==='welcome'?'active':''}" onclick="view='welcome';renderSB();renderMain();upd();window.scrollTo(0,0);"><span class="check">🏠</span>はじめに</div></div>`;
   T.forEach(m=>{
     const td=m.topics.filter(t=>done[t.id]).length;
     h+=`<div class="sb-section"><div class="sb-label" style="color:${m.color}">Month ${m.month}: ${m.title} (${td}/${m.topics.length})</div>`;
     m.topics.forEach(t=>{
-      h+=`<div class="sb-item ${view===t.id?'active':''} ${done[t.id]?'done':''} onclick=go('${t.id}')"><span class="check">${done[t.id]?'✅':'○'}</span>${t.title}</div>`;
+      h+=`<div class="sb-item ${view===t.id?'active':''} ${done[t.id]?'done':''}" onclick="go('${t.id}')"><span class="check">${done[t.id]?'✅':'○'}</span>${t.title}</div>`;
     });
     h+='</div>';
   });
   h+=`<div class="sb-section"><div class="sb-label" style="color:#008B8B">ハンズオン Lab</div><div class="sb-item" onclick="window.open('labs/lab1-entra-group.html','_blank')"><span class="check">🧪</span>Lab 1: Entra グループ作成</div><div class="sb-item" onclick="window.open('labs/lab2-conditional-access.html','_blank')"><span class="check">🧪</span>Lab 2: 条件付きアクセス</div><div class="sb-item" onclick="window.open('labs/lab3-intune-compliance.html','_blank')"><span class="check">🧪</span>Lab 3: Intune コンプライアンス</div><div class="sb-item" onclick="window.open('labs/lab4-w365-provisioning.html','_blank')"><span class="check">🧪</span>Lab 4: W365 プロビジョニング</div><div class="sb-item" onclick="window.open('labs/lab5-intune-app-deploy.html','_blank')"><span class="check">🧪</span>Lab 5: Intune アプリ配信</div><div class="sb-item" onclick="window.open('labs/lab6-autopilot.html','_blank')"><span class="check">🧪</span>Lab 6: Autopilot 登録</div><div class="sb-item" onclick="window.open('labs/lab7-defender-baseline.html','_blank')"><span class="check">🧪</span>Lab 7: Defender ベースライン</div><div class="sb-item" onclick="window.open('labs/lab8-sku-mix.html','_blank')"><span class="check">🧪</span>Lab 8: SKUミックス設計</div><div class="sb-item" onclick="window.open('labs/lab9-avd-hostpool.html','_blank')"><span class="check">🧪</span>Lab 9: AVD ホストプール</div><div class="sb-item" onclick="window.open('labs/lab10-global-secure-access.html','_blank')"><span class="check">🧪</span>Lab 10: Global Secure Access</div></div>`;
-  h+=`<div class="sb-section"><div class="sb-label" style="color:#D83B01">卒業テスト</div><div class="sb-item" ${view==='quiz'?'active':''} onclick="goQuiz()">📝 卒業テスト（20問）</div></div>`;
+  h+=`<div class="sb-section"><div class="sb-label" style="color:#D83B01">卒業テスト</div><div class="sb-item ${view==='quiz'?'active':''}" onclick="goQuiz()">📝 卒業テスト（20問）</div></div>`;
   document.getElementById('sidebar').innerHTML=h;
 }
 
@@ -3253,7 +3253,7 @@ function renderMain(){
     h+='</div>';
   }
   const all=allT(),idx=all.findIndex(x=>x.id===t.id);
-  h+=`<div class="complete-bar"><button class="btn" ${done[t.id]?'btn-outline':'btn-green'} onclick="toggle('${t.id}')">${done[t.id]?'✅ 完了済み':'☐ 完了にする'}</button><div style="margin-left:auto;display:flex;gap:8px;">${idx>0?`<button class=btn btn-outline onclick=go('${all[idx-1].id}')>← 前</button>`:''}${idx<all.length-1?`<button class=btn btn-azure onclick=go('${all[idx+1].id}')>次 →</button>`:''}</div></div>`;
+  h+=`<div class="complete-bar"><button class="btn ${done[t.id]?'btn-outline':'btn-green'} onclick="toggle('${t.id}')">${done[t.id]?'✅ 完了済み':'☐ 完了にする'}</button><div style="margin-left:auto;display:flex;gap:8px;">${idx>0?`<button class="btn btn-outline" onclick=""go('${all[idx-1].id}')">← 前</button>`:''}${idx<all.length-1?`<button class="btn btn-azure" onclick=""go('${all[idx+1].id}')">次 →</button>`:''}</div></div>`;
   h+='</div>';
   document.getElementById('main').innerHTML=h;
 }
@@ -3354,7 +3354,7 @@ function renderWelcome(){
 <div class="block">
   <h3><span class="icon">🗺️</span>3ヶ月ロードマップ</h3>
   <div class="month-cards" style=max-width:100%;">
-    ${T.map(m=>{const td=m.topics.filter(t=>done[t.id]).length;const mp=m.topics.length?Math.round(td/m.topics.length*100):0;return `<div class="month-card" onclick=go('${m.topics[0].id}')><div class=mc-num style="color:${m.color}">${m.month}</div><h3>Month ${m.month}: ${m.title}</h3><p>${m.period} — ${td}/${m.topics.length} 完了</p><div class=mc-prog><div class=mc-prog-fill style=width:${mp}%;background:${m.color}></div></div></div>`;}).join('')}
+    ${T.map(m=>{const td=m.topics.filter(t=>done[t.id]).length;const mp=m.topics.length?Math.round(td/m.topics.length*100):0;return `<div class="month-card" onclick="go('${m.topics[0].id}')"><div class="mc-num" style="color:${m.color}">${m.month}</div><h3>Month ${m.month}: ${m.title}</h3><p>${m.period} — ${td}/${m.topics.length} 完了</p><div class="mc-prog"><div class="mc-prog-fill" style="width:${mp}%;background:${m.color}></div></div></div>`;}).join('')}
   </div>
 </div>
 
@@ -3377,7 +3377,7 @@ function renderQuiz(){
   let lc='';
   Q.forEach((q,i)=>{
     if(q.cat!==lc){lc=q.cat;h+=`<div class="section-divider"><h3>${lc==='基礎'?'📘 基礎知識（Q1-7）':lc==='専門'?'📗 専門知識（Q8-14）':'📙 提案シナリオ（Q15-20）'}</h3></div>`;}
-    h+=`<div class="quiz-q" ${q.cat==='提案'?'scenario':''}"><h4>Q${i+1}. ${e(q.q)}</h4><textarea class="quiz-answer" placeholder="回答を入力..."></textarea><button class="hint-btn" onclick="this.nextElementSibling.classList.toggle('active')">💡 ヒント</button><div class="quiz-hint">${e(q.h)}</div></div>`;
+    h+=`<div class="quiz-q ${q.cat==='提案'?'scenario':''}"><h4>Q${i+1}. ${e(q.q)}</h4><textarea class="quiz-answer" placeholder="回答を入力..."></textarea><button class="hint-btn" onclick="this.nextElementSibling.classList.toggle('active')">💡 ヒント</button><div class="quiz-hint">${e(q.h)}</div></div>`;
   });
   h+='</div>';
   document.getElementById('main').innerHTML=h;
