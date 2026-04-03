@@ -3253,7 +3253,7 @@ function renderMain(){
     h+='</div>';
   }
   const all=allT(),idx=all.findIndex(x=>x.id===t.id);
-  h+=`<div class="complete-bar"><button class="btn ${done[t.id]?'btn-outline':'btn-green'} onclick="toggle('${t.id}')">${done[t.id]?'✅ 完了済み':'☐ 完了にする'}</button><div style="margin-left:auto;display:flex;gap:8px;">${idx>0?`<button class="btn btn-outline" onclick=""go('${all[idx-1].id}')">← 前</button>`:''}${idx<all.length-1?`<button class="btn btn-azure" onclick=""go('${all[idx+1].id}')">次 →</button>`:''}</div></div>`;
+  h+=`<div class="complete-bar"><button class="btn ${done[t.id]?'btn-outline':'btn-green'}" onclick="toggle('${t.id}')">${done[t.id]?'✅ 完了済み':'☐ 完了にする'}</button><div style="margin-left:auto;display:flex;gap:8px;">${idx>0?`<button class="btn btn-outline" onclick="go('${all[idx-1].id}')">← 前</button>`:''}${idx<all.length-1?`<button class="btn btn-azure" onclick="go('${all[idx+1].id}')">次 →</button>`:''}</div></div>`;
   h+='</div>';
   document.getElementById('main').innerHTML=h;
 }
