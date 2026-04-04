@@ -3189,26 +3189,71 @@ links:[{title:"MS: 提案プレゼンのベストプラクティス",url:"https:
 ];
 
 const Q=[
-{id:"q1",cat:"基礎",q:"ゼロトラストの基本原則を3つ挙げてください",h:"明示的に検証/最小特権/侵害前提"},
-{id:"q2",cat:"基礎",q:"条件付きアクセスのシグナル・制御を例で説明",h:"シグナル:場所/デバイス→制御:MFA要求/ブロック"},
-{id:"q3",cat:"基礎",q:"Entra参加とハイブリッドの違いは？",h:"Entra参加=クラウドのみ/ハイブリッド=AD+Entra"},
-{id:"q4",cat:"基礎",q:"コンプライアンスポリシーと構成プロファイルの違い",h:"コンプライアンス=準拠判定/構成=設定値配布"},
-{id:"q5",cat:"基礎",q:"PIMはなぜ必要？",h:"常時Admin廃止→JIT昇格+承認制"},
-{id:"q6",cat:"基礎",q:"SASEとは？VPNと何が違う？",h:"NW+セキュリティのクラウド統合。どこからでもゼロトラスト"},
-{id:"q7",cat:"基礎",q:"MAMはどんなシナリオで使う？",h:"BYODでデバイス管理なしにアプリデータだけ保護"},
-{id:"q8",cat:"専門",q:"W365のBusiness/Enterprise/Frontlineの違い",h:"Business=300名/Enterprise=無制限+M365/Frontline=1:3"},
-{id:"q9",cat:"専門",q:"MHNとANCの違いと選択基準",h:"MHN=MS管理(設計不要)/ANC=顧客VNet(オンプレ時)"},
-{id:"q10",cat:"専門",q:"マルチセッションとシングルセッションの違い",h:"マルチ=1VMに複数(コスト◎)/シングル=1VM1人(専用)"},
-{id:"q11",cat:"専門",q:"FSLogixとは？なぜAVDマルチで必要？",h:"プロファイルをVHD外部保存。VM共有時のデータ分離に必要"},
-{id:"q12",cat:"専門",q:"W365とAVDの責任分界の違いを3つ",h:"VM管理/NW設計/FSLogix"},
-{id:"q13",cat:"専門",q:"RIとは？AVDコスト最適化での活用",h:"1年/3年予約で最大60%引。常時稼働VMに適用"},
-{id:"q14",cat:"専門",q:"Frontlineをどんな顧客に提案？",h:"工場3交代制/CC/店舗。1ライセンス3ユーザーで50%削減"},
-{id:"q15",cat:"提案",q:"製造業500名（工場3交代300名+オフィス200名）への提案は？",h:"工場→FL(100ライセンス)、オフィス→Ent(SKUミックス)"},
-{id:"q16",cat:"提案",q:"「W365は高い」と言われたら？",h:"月額ではなくTCO比較。隠れコスト含めると逆転"},
-{id:"q17",cat:"提案",q:"AVD運用が大変という相談には？",h:"一般業務→W365移行で運用75%削減。AVDは専門用途に特化"},
-{id:"q18",cat:"提案",q:"「オフライン不可は困る」と言われたら？",h:"対象業務特定→大半はオンライン。必要な業務は物理PC併用"},
-{id:"q19",cat:"提案",q:"ゼロトラスト実現にW365/AVDをどう位置づけ？",h:"データがクラウドに留まる+CA+Intune+Defenderで多層防御"},
-{id:"q20",cat:"提案",q:"競合WorkSpacesとの差別化3つ",h:"M365統合/Intune統合管理/Frontline(1:3)"}
+// ── 選択式: 基礎知識（10問）──
+{id:"q1",cat:"基礎（選択式）",type:"choice",q:"ゼロトラストの3つの原則に含まれないものはどれか？",
+ choices:["明示的に検証する","社内ネットワークを信頼する","最小特権アクセス","侵害を前提とする"],answer:1,h:"「社内NWを信頼する」は境界型セキュリティの考え方。ゼロトラストでは社内でも信頼しない"},
+{id:"q2",cat:"基礎（選択式）",type:"choice",q:"条件付きアクセスポリシーで、複数のポリシーが該当した場合の動作は？",
+ choices:["最初に一致したポリシーのみ適用","最も緩いポリシーが適用","全ポリシーがANDで結合（最も厳しい制御）","管理者が優先度を指定"],answer:2,h:"複数ポリシーが該当すると全てANDで結合。ブロックポリシーは常に最優先"},
+{id:"q3",cat:"基礎（選択式）",type:"choice",q:"Entra ID P1ライセンスに含まれる機能はどれか？",
+ choices:["ID Protection（リスクベース検知）","PIM（特権ID管理）","条件付きアクセス","アクセスレビュー"],answer:2,h:"P1=条件付きアクセス+動的グループ。ID Protection/PIM/アクセスレビューはP2"},
+{id:"q4",cat:"基礎（選択式）",type:"choice",q:"フィッシング耐性が最も高い認証方法はどれか？",
+ choices:["SMS認証","Microsoft Authenticator（プッシュ通知）","FIDO2セキュリティキー","メール認証コード"],answer:2,h:"FIDO2/Passkey はフィッシング耐性が最高。SMS/メールは最も弱い"},
+{id:"q5",cat:"基礎（選択式）",type:"choice",q:"Intuneのコンプライアンスポリシーの役割は？",
+ choices:["デバイスに設定を配布する","デバイスが準拠しているか判定する","アプリをインストールする","OSを更新する"],answer:1,h:"コンプライアンス=準拠/非準拠の判定。設定配布は構成プロファイル"},
+{id:"q6",cat:"基礎（選択式）",type:"choice",q:"PIM（Privileged Identity Management）の主な目的は？",
+ choices:["パスワードの定期変更","特権ロールの常時保有をゼロにする","デバイスの暗号化","アプリの配信管理"],answer:1,h:"PIM=JIT昇格+承認制+時間制限で常時Adminをゼロに"},
+{id:"q7",cat:"基礎（選択式）",type:"choice",q:"Autopatchの4つの更新リングの配信順序は？",
+ choices:["Broad→Fast→First→Test","Test→First→Fast→Broad","First→Test→Broad→Fast","Test→Broad→First→Fast"],answer:1,h:"Test(即時)→First(1日遅延,1%)→Fast(6日,9%)→Broad(9日,90%)"},
+{id:"q8",cat:"基礎（選択式）",type:"choice",q:"MAA（Multi Admin Approval）で保護できないリソースはどれか？",
+ choices:["デバイスのワイプ","アプリの展開","ユーザーのパスワードリセット","コンプライアンスポリシーの変更"],answer:2,h:"MAAはデバイスアクション/アプリ/ポリシー/RBAC/スクリプトを保護。パスワードリセットは対象外"},
+{id:"q9",cat:"基礎（選択式）",type:"choice",q:"SASEの構成要素に含まれないものは？",
+ choices:["SD-WAN","ZTNA（ゼロトラストネットワークアクセス）","EDR（エンドポイント検知）","SWG（セキュアWebゲートウェイ）"],answer:2,h:"SASE=SD-WAN+SWG+CASB+ZTNA+FWaaS。EDRはエンドポイントセキュリティで別カテゴリ"},
+{id:"q10",cat:"基礎（選択式）",type:"choice",q:"Microsoft Purviewの秘密度ラベルの自動適用に必要なライセンスは？",
+ choices:["M365 E3","M365 E5","M365 Business Basic","M365 F1"],answer:1,h:"手動ラベルはE3、自動ラベル(AI分類)はE5が必要"},
+
+// ── 選択式: 専門知識（10問）──
+{id:"q11",cat:"専門（選択式）",type:"choice",q:"W365 Enterpriseの前提ライセンスとして正しいものは？",
+ choices:["不要（単体購入可）","M365 E3/E5/F3のいずれか","Azure サブスクリプション","Windows Server CAL"],answer:1,h:"Enterprise=M365 E3/E5/F1/F3/Business Premium。Businessは前提不要"},
+{id:"q12",cat:"専門（選択式）",type:"choice",q:"W365 Frontlineで1ライセンスあたり利用できるユーザー数は？",
+ choices:["1名","2名","3名","5名"],answer:2,h:"Frontline=1ライセンスで最大3ユーザー（同時利用は1名のみ）"},
+{id:"q13",cat:"専門（選択式）",type:"choice",q:"W365のMHN（Microsoft Hosted Network）について正しいものは？",
+ choices:["顧客のAzure VNetに接続する","Azureサブスクリプションが必要","Microsoftがネットワークを自動管理する","ハイブリッドEntra参加に対応する"],answer:2,h:"MHN=MS管理VNet、Azure不要、NW設計不要。ハイブリッド参加にはANC必要"},
+{id:"q14",cat:"専門（選択式）",type:"choice",q:"AVDでFSLogixが必要になるのはどのセッション方式の場合か？",
+ choices:["シングルセッションのみ","マルチセッションのみ","RemoteAppのみ","マルチセッションとRemoteApp"],answer:3,h:"マルチセッションではVMが共有→プロファイル外部保存が必要。RemoteAppもマルチベース"},
+{id:"q15",cat:"専門（選択式）",type:"choice",q:"AVDの3年予約インスタンス（RI）の割引率は？",
+ choices:["約20%","約40%","約60%","約80%"],answer:2,h:"1年RI=約40%、3年RI=約60%割引"},
+{id:"q16",cat:"専門（選択式）",type:"choice",q:"W365 Bootの機能として正しいものは？",
+ choices:["Cloud PCのバックアップ","PC起動時に直接Cloud PCに接続","Cloud PCのスペックアップ","Cloud PCのセキュリティスキャン"],answer:1,h:"W365 Boot=PC起動時にローカルOSをスキップしてCloud PCに直接接続"},
+{id:"q17",cat:"専門（選択式）",type:"choice",q:"AVD Autoscaleの「セッション排出」とは何か？",
+ choices:["ユーザーを強制ログオフする","VM停止前に新規セッション割当を停止し既存セッション終了を待つ","セッションデータを削除する","セッション数の上限を設定する"],answer:1,h:"ドレインモード: 新規割当停止→既存セッション終了待ち→安全にVM停止"},
+{id:"q18",cat:"専門（選択式）",type:"choice",q:"W365のCustomer Lockboxの目的は？",
+ choices:["顧客データの暗号化","Microsoftサポートのテナントアクセスに顧客承認を必須化","デバイスの物理ロック","管理者アカウントのロック"],answer:1,h:"Microsoftサポートがデータにアクセスする際、顧客の事前承認を必須化+ログ記録"},
+{id:"q19",cat:"専門（選択式）",type:"choice",q:"W365 Enterprise 4vCPU/16GB/128GBの日本公式月額価格は？",
+ choices:["¥5,247","¥7,683","¥12,368","¥24,737"],answer:2,h:"2c/4GB=¥5,247、2c/8GB=¥7,683、4c/16GB=¥12,368、8c/32GB=¥24,737"},
+{id:"q20",cat:"専門（選択式）",type:"choice",q:"AVDのRDP Shortpathの主な利点は？",
+ choices:["セキュリティの強化","UDP直接接続による低遅延","ストレージコストの削減","ライセンスコストの削減"],answer:1,h:"RDP Shortpath=TCP経由のゲートウェイをバイパスしUDP直接接続→低遅延"},
+
+// ── 記述式: 提案シナリオ（10問）──
+{id:"q21",cat:"提案（記述式）",type:"text",q:"製造業500名（工場3交代300名+オフィス200名）が物理PCリプレースを検討中。W365での提案内容を具体的に述べてください。",
+ h:"工場300名→Frontline(100ライセンス)で50%削減。オフィス200名→Enterprise SKUミックス(一般70% 2c/8GB + パワー30% 4c/16GB)。TCO比較で隠れコスト可視化"},
+{id:"q22",cat:"提案（記述式）",type:"text",q:"お客様から「W365は月額が高い。物理PCの方が安い」と言われました。どう回答しますか？",
+ h:"月額単純比較ではなくTCOで比較。IT人件費/キッティング/ヘルプデスク/セキュリティ/電力の隠れコストを可視化。SKUミックス+Frontlineで最適化"},
+{id:"q23",cat:"提案（記述式）",type:"text",q:"AVD利用中のお客様が「運用が大変で管理者が疲弊している」と相談。どう提案しますか？",
+ h:"一般業務ユーザー→W365に移行で運用工数75%削減。AVDは専門ワークロード(GPU/RemoteApp)に特化。Intune統合で管理コンソール一元化"},
+{id:"q24",cat:"提案（記述式）",type:"text",q:"「オフラインで使えないのは困る」と言われました。対応を説明してください。",
+ h:"対象業務を特定→大半はオンライン前提。どうしても必要な業務はローカルPC併用。W365 Switchでローカル↔Cloud PC切替も可能"},
+{id:"q25",cat:"提案（記述式）",type:"text",q:"「ゼロトラストを実現したい」というお客様に、W365/AVDをどう位置づけて提案しますか？",
+ h:"データがクラウドに留まる=端末紛失リスクゼロ。条件付きアクセス+Intune準拠+Defender+Purviewで多層防御。SASE(GSA)でVPN撤廃"},
+{id:"q26",cat:"提案（記述式）",type:"text",q:"競合がAmazon WorkSpacesを提案しています。W365/AVDの差別化ポイントを3つ以上挙げてください。",
+ h:"M365ネイティブ統合(Teams最適化)/Intune統合管理/Frontline(1:3)/条件付きアクセス連携/Autopatch/W365 Boot・Switch・Link"},
+{id:"q27",cat:"提案（記述式）",type:"text",q:"初回ヒアリングで確認すべき項目を5つ挙げ、なぜそれが重要か説明してください。",
+ h:"現行PC台数(SKU選定)/ユーザー数と働き方(Frontline判断)/セキュリティ(ゼロトラスト提案)/NW構成(MHN vs ANC)/IT管理体制(運用削減の定量化)"},
+{id:"q28",cat:"提案（記述式）",type:"text",q:"PoC（概念実証）を提案する際、評価項目・成功基準・期間をどのように設計しますか？",
+ h:"対象: IT部門10名/期間: 1ヶ月/評価: パフォーマンス(レイテンシ50ms以下)+アプリ互換性+ユーザー満足度(4/5以上)/判定: 致命的問題ゼロ"},
+{id:"q29",cat:"提案（記述式）",type:"text",q:"提案プレゼンの構成を30分で設計してください（各セクションの時間配分と内容）。",
+ h:"課題確認(3分)→解決策提示(10分)→コスト比較TCO(5分)→移行計画3段階(5分)→デモ(5分)→Q&A(5分)。課題起点、数字で語る"},
+{id:"q30",cat:"提案（記述式）",type:"text",q:"M365 E3を利用中のお客様に対して、W365 Enterprise導入に追加で必要なコスト・設定を説明してください。",
+ h:"追加コスト: W365ライセンスのみ(Intune/Entra ID P1はE3に含む)。設定: Entra参加設定+プロビジョニングポリシー+条件付きアクセス。AzureサブスクはMHNなら不要"}
 ];
 
 let done=JSON.parse(localStorage.getItem("tr_done")||"{}");
@@ -3373,14 +3418,57 @@ function renderWelcome(){
 }
 
 function renderQuiz(){
-  let h='<div class="topic-view active"><div class=topic-title>卒業テスト（20問）</div><div class=key-msg>各問1-2文で回答。「ヒント」で参考回答を表示</div>';
+  let h='<div class="topic-view active"><div class="topic-title">卒業テスト（30問）</div><div class="key-msg">選択式20問 + 記述式10問。合格基準: 選択式16/20以上 + 記述式は先輩SEレビュー</div>';
+  h+='<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:16px 0;"><div style="text-align:center;padding:14px;background:var(--azure-light);border-radius:8px;"><div style="font-size:24px;font-weight:700;color:var(--azure);" id="scoreChoice">- / 20</div><div style="font-size:11px;color:var(--fg-sub);">選択式スコア</div></div><div style="text-align:center;padding:14px;background:var(--green-bg);border-radius:8px;"><div style="font-size:24px;font-weight:700;color:var(--green);" id="scoreText">- / 10</div><div style="font-size:11px;color:var(--fg-sub);">記述式（自己採点）</div></div><div style="text-align:center;padding:14px;background:var(--purple-bg);border-radius:8px;"><div style="font-size:24px;font-weight:700;color:var(--fg);" id="scoreTotal">未採点</div><div style="font-size:11px;color:var(--fg-sub);">総合判定</div></div></div>';
+  h+='<div style="margin-bottom:12px;"><button class="btn btn-azure" onclick="gradeQuiz()">採点する</button></div>';
   let lc='';
   Q.forEach((q,i)=>{
-    if(q.cat!==lc){lc=q.cat;h+=`<div class="section-divider"><h3>${lc==='基礎'?'📘 基礎知識（Q1-7）':lc==='専門'?'📗 専門知識（Q8-14）':'📙 提案シナリオ（Q15-20）'}</h3></div>`;}
-    h+=`<div class="quiz-q ${q.cat==='提案'?'scenario':''}"><h4>Q${i+1}. ${e(q.q)}</h4><textarea class="quiz-answer" placeholder="回答を入力..."></textarea><button class="hint-btn" onclick="this.nextElementSibling.classList.toggle('active')">💡 ヒント</button><div class="quiz-hint">${e(q.h)}</div></div>`;
+    if(q.cat!==lc){lc=q.cat;
+      const icon=lc.includes('基礎')?'📘':lc.includes('専門')?'📗':'📙';
+      h+=`<div class="section-divider"><h3>${icon} ${lc}</h3></div>`;
+    }
+    if(q.type==='choice'){
+      h+=`<div class="quiz-q" id="qq${i}"><h4>Q${i+1}. ${e(q.q)}</h4><div style="display:flex;flex-direction:column;gap:6px;margin:8px 0;">`;
+      q.choices.forEach((c,ci)=>{
+        h+=`<label style="display:flex;align-items:center;gap:8px;padding:8px 12px;background:rgba(255,255,255,.03);border:1px solid var(--card-border);border-radius:6px;cursor:pointer;font-size:13px;color:var(--fg-sub);transition:border-color .15s;" onmouseover="this.style.borderColor='var(--azure)'" onmouseout="this.style.borderColor='var(--card-border)'"><input type="radio" name="q${i}" value="${ci}" style="accent-color:var(--azure);"> ${e(c)}</label>`;
+      });
+      h+=`</div><button class="hint-btn" onclick="this.nextElementSibling.classList.toggle('active')">💡 解説を見る</button><div class="quiz-hint">${e(q.h)}</div></div>`;
+    } else {
+      h+=`<div class="quiz-q scenario" id="qq${i}"><h4>Q${i+1}. ${e(q.q)}</h4><textarea class="quiz-answer" placeholder="回答を入力..." style="min-height:80px;"></textarea><button class="hint-btn" onclick="this.nextElementSibling.classList.toggle('active')">💡 模範回答を見る</button><div class="quiz-hint">${e(q.h)}</div></div>`;
+    }
   });
   h+='</div>';
   document.getElementById('main').innerHTML=h;
+}
+function gradeQuiz(){
+  let correct=0,total=0;
+  Q.forEach((q,i)=>{
+    const el=document.getElementById('qq'+i);
+    if(q.type==='choice'){
+      total++;
+      const selected=el.querySelector('input[name="q'+i+'"]:checked');
+      const labels=el.querySelectorAll('label');
+      labels.forEach(l=>{l.style.background='rgba(255,255,255,.03)';l.style.borderColor='var(--card-border)';});
+      // Show correct answer
+      labels[q.answer].style.background='var(--green-bg)';
+      labels[q.answer].style.borderColor='var(--green)';
+      if(selected){
+        const val=parseInt(selected.value);
+        if(val===q.answer){
+          correct++;
+        } else {
+          labels[val].style.background='var(--red-bg)';
+          labels[val].style.borderColor='var(--red)';
+        }
+      }
+    }
+  });
+  document.getElementById('scoreChoice').textContent=correct+' / '+total;
+  const pct=Math.round(correct/total*100);
+  const pass=correct>=16;
+  document.getElementById('scoreTotal').textContent=pass?'合格':'不合格';
+  document.getElementById('scoreTotal').style.color=pass?'var(--green)':'var(--red)';
+  window.scrollTo(0,0);
 }
 
 function go(id){view=id;save();renderSB();renderMain();upd();window.scrollTo(0,0);}
