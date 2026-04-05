@@ -1782,6 +1782,34 @@ links:[{title:"MS Learn: Windows Autopatch",url:"https://learn.microsoft.com/ja-
 "Q: どんなデバイスからアクセスできる？ → A: Windows/Mac/iPad/Android/Chromebook/Linuxから、Webブラウザまたは専用RDクライアント経由でアクセスできます。シンクライアントからもアクセス可能です",
 "Q: Teams会議のパフォーマンスは大丈夫？ → A: W365ではTeams AV Redirect(メディア最適化)により、音声/ビデオはローカルデバイスで処理されます。Cloud PCのCPU負荷を軽減し、快適な会議体験を提供します",
 "Q: 印刷はできる？ → A: ユニバーサルプリントまたはリダイレクトプリンターで対応可能です。ユニバーサルプリント(Enterpriseのみ)ならクラウド経由でプリンターを管理でき、ドライバーのインストールが不要です"]
+},
+{type:"flow",title:"W365 Enterprise 構築の全体フロー",icon:"🔨",steps:[
+{icon:"🔑",label:"Step1: Entra ID",desc:"テナント・グループ準備",style:"blue"},
+{icon:"📱",label:"Step2: Intune",desc:"デバイス登録・ポリシー設定",style:""},
+{icon:"📋",label:"Step3: ポリシー作成",desc:"プロビジョニングポリシー",style:""},
+{icon:"🎫",label:"Step4: ライセンス",desc:"W365ライセンス割当",style:""},
+{icon:"☁️",label:"Step5: 展開",desc:"Cloud PC自動プロビジョニング",style:""},
+{icon:"✅",label:"Step6: 確認",desc:"接続テスト・動作確認",style:"green"}]},
+{type:"table",title:"W365 構築チェックリスト",icon:"✅",headers:["手順","確認項目","設定場所","注意点"],rows:[
+["1. テナント準備","Entra IDテナントにカスタムドメイン追加","Entra管理センター","DNSレコードの登録が必要"],
+["2. グループ作成","W365対象ユーザーのセキュリティグループ作成","Entra管理センター→グループ","動的グループも検討"],
+["3. Intune設定","デバイス登録制限・コンプライアンスポリシー作成","Intune管理センター","W365はIntune自動登録"],
+["4. 条件付きアクセス","MFA必須ポリシー・レガシー認証ブロック","Entra→条件付きアクセス","レポートモードで先にテスト"],
+["5. NW選択","MHN(推奨)またはANC設定","Intune→テナント管理","オンプレ接続不要ならMHN一択"],
+["6. ANC設定(任意)","VNet/サブネット準備・ANC作成・ヘルスチェック","Intune→テナント管理→ANC","ヘルスチェック成功まで待つ"],
+["7. イメージ選択","ギャラリーイメージまたはカスタムイメージ","Intune→デバイス→W365","カスタムイメージは最大20個"],
+["8. プロビジョニングポリシー","ポリシー名・参加タイプ・NW・イメージ指定","Intune→デバイス→W365→ポリシー","グループ割当で自動展開開始"],
+["9. ライセンス割当","対象ユーザーにW365ライセンス付与","M365管理センター","割当後30分~1時間で展開完了"],
+["10. 接続テスト","Web/Windows App/W365 Bootで接続確認","windows365.microsoft.com","RDP Shortpath(UDP)の確認も"]]},
+{type:"list",title:"構築時によくあるトラブルと対処法",icon:"🔧",items:[
+"プロビジョニング失敗(ライセンス不足): M365管理センターでライセンス割当状況を確認。Entra IDグループのメンバーシップも確認",
+"プロビジョニング失敗(ANCエラー): ANCヘルスチェックを確認。VNet/サブネットのIPアドレス枯渇、DNS設定、Entra Connect同期状態を確認",
+"接続できない(403エラー): 条件付きアクセスポリシーの除外設定を確認。レポートモードで影響範囲をチェック",
+"接続が遅い: RDP Shortpath(UDP)が有効か確認。ユーザーの回線帯域テスト。東日本リージョンが選択されているか確認",
+"Teamsの音声/映像が悪い: Teams AV Redirect(メディア最適化)が有効か確認。帯域3Mbps以上必要",
+"印刷できない: ユニバーサル印刷またはプリンターリダイレクトの設定確認。RDPプロパティでリダイレクト許可",
+"カスタムイメージでプロビジョニング失敗: Sysprepが正常完了しているか確認。イメージサイズが512GB以下か確認",
+"ユーザーがCloud PCを見つけられない: windows365.microsoft.comにアクセスさせる。ライセンス割当からプロビジョニング完了まで最大1時間待つ"]
 }],
 links:[{title:"MS Learn: W365概要",url:"https://learn.microsoft.com/ja-jp/windows-365/enterprise/"}]},
 
@@ -2135,6 +2163,41 @@ links:[{title:"W365全SKU価格",url:"https://www.microsoft.com/ja-jp/windows-36
 "Q: 既存のCitrix/VMware環境からAVDに移行できるか → A: 可能です。アプリの互換性確認→パイロット→段階的移行のアプローチを推奨します。Citrixライセンスの年額(¥50K-80K/ユーザー)をAVDのAzure費用に充当できます",
 "Q: GPU処理(CAD/3D)はAVDで可能か → A: NVシリーズ(NVIDIA GPU搭載)のVMを使用すれば可能です。ただしGPU VMは高額なのでAutoscaleで稼働時間を最小化する設計が重要です",
 "提案のポイント: AVDの見積もりは「Azure VM費用+ストレージ+運用人件費」の3要素で構成されます。特に運用人件費を忘れると「安い」と見積もってしまい、後から問題になります"]
+},
+{type:"flow",title:"AVD 構築の全体フロー",icon:"🔨",steps:[
+{icon:"☁️",label:"Step1: Azure準備",desc:"サブスク・リソースグループ",style:"blue"},
+{icon:"🌐",label:"Step2: VNet作成",desc:"サブネット・NSG設計",style:""},
+{icon:"🏊",label:"Step3: ホストプール",desc:"プール作成・設定",style:""},
+{icon:"🖥️",label:"Step4: セッションホスト",desc:"VM展開・ドメイン参加",style:""},
+{icon:"📁",label:"Step5: FSLogix",desc:"プロファイルストレージ",style:""},
+{icon:"👥",label:"Step6: ユーザー割当",desc:"アプリグループ・テスト",style:"green"}]},
+{type:"table",title:"AVD 構築チェックリスト",icon:"✅",headers:["手順","確認項目","設定場所(Azure Portal)","注意点"],rows:[
+["1. リソースグループ","リソースグループ作成(東日本)","Azure Portal→リソースグループ","命名規則を事前に決める"],
+["2. VNet作成","VNet+サブネット作成(最低/24)","Azure Portal→仮想ネットワーク","IPレンジは将来拡張を考慮"],
+["3. NSG設定","必要な通信ルール設定","Azure Portal→NSG","AVD必須ポート: 443(HTTPS)"],
+["4. ホストプール","プール/個人を選択・負荷分散設定","Azure Portal→AVD→ホストプール","マルチ=プール(幅優先推奨)"],
+["5. セッションホスト","VMサイズ・台数・イメージ選択","ホストプール→セッションホスト","D4s_v5でマルチ4セッション推奨"],
+["6. ドメイン参加","Entra参加またはハイブリッド","VM展開時に選択","Entra参加推奨(新規環境)"],
+["7. FSLogix","Azure Files作成・権限設定・レジストリ","ストレージアカウント+VM内","マルチセッションでは必須"],
+["8. ワークスペース","ワークスペース作成","Azure Portal→AVD","1テナント1ワークスペース推奨"],
+["9. アプリグループ","デスクトップ/RemoteAppグループ作成","ホストプール→アプリグループ","ユーザーグループを割当"],
+["10. Autoscale","スケーリングプラン作成","Azure Portal→AVD→スケーリング","業務時間帯に合わせて設定"],
+["11. 接続テスト","Windows App/Webで接続確認","client.wvd.microsoft.com","RDP Shortpath有効化確認"],
+["12. 監視設定","Azure Monitor+Log Analytics構成","Azure Portal→Monitor","診断設定を有効化"]]},
+{type:"list",title:"AVD構築時によくあるトラブルと対処法",icon:"🔧",items:[
+"セッションホストのドメイン参加失敗: DNS設定を確認(VNetのDNSがADを参照しているか)。Entra参加の場合はIntune登録設定を確認",
+"FSLogixプロファイルがマウントされない: Azure Filesの共有権限(Storage File Data SMB Share Contributor)を確認。ファイアウォールでSMB(445)が許可されているか",
+"Autoscaleが動かない: スケーリングプランのタイムゾーンが正しいか確認。マネージドIDにDesktop Virtualization Power On Off Contributorロールが付与されているか",
+"接続時にセッションホストが見つからない: ホストプールのドレインモードが無効か確認。セッションホストの状態が「Available」か確認",
+"マルチセッションでパフォーマンスが悪い: 1VMあたりのセッション数上限を確認(D4s_v5で4セッション推奨)。CPU/メモリ使用率をAzure Monitorで確認",
+"RemoteAppが表示されない: アプリグループの公開アプリ一覧を確認。ユーザーがアプリグループに割り当てられているか確認",
+"接続が頻繁に切れる: ネットワーク帯域を確認(最低1.5Mbps/ユーザー)。RDP Shortpath(UDP)を有効化。Keep-alive設定を確認",
+"イメージ更新後にプロファイルが壊れる: FSLogixのバージョン互換性を確認。OSメジャーバージョンが変わる場合はプロファイルリセットが必要な場合あり"]
+},
+{type:"cards",title:"VMサイズ選定ガイド — セッション数の目安",icon:"📊",cards:[
+{title:"D2s_v5 (2vCPU/8GB)",color:"",items:["軽量業務: Web/メール/簡単なOffice","マルチセッション: 2-3ユーザー/VM","シングルセッション: タスクワーカー","月額目安: 約¥3,800/VM(1年RI)"]},
+{title:"D4s_v5 (4vCPU/16GB)",color:"green",items:["標準業務: Office+Teams+業務アプリ","マルチセッション: 4-6ユーザー/VM(推奨)","シングルセッション: 一般ユーザー","月額目安: 約¥7,500/VM(1年RI)"]},
+{title:"D8s_v5 (8vCPU/32GB)",color:"purple",items:["パワーユーザー: 開発/データ分析","マルチセッション: 6-8ユーザー/VM","シングルセッション: 開発者/CAD","月額目安: 約¥15,000/VM(1年RI)"]}]
 }],
 links:[{title:"MS Learn: AVD概要",url:"https://learn.microsoft.com/ja-jp/azure/virtual-desktop/"}]},
 
@@ -2211,6 +2274,22 @@ links:[{title:"MS Learn: AVD概要",url:"https://learn.microsoft.com/ja-jp/azure
 "Q: W365にFSLogixは必要ないのか → A: 不要です。W365は1ユーザー=1 Cloud PCの専用VM構成なので、プロファイルはVM内に直接保存されます。これがW365の大きなメリットの一つです",
 "Q: FSLogixの運用が大変だと聞いた → A: 確かにストレージの監視・VHDの肥大化対策・トラブル対応など、継続的な運用が必要です。この運用負荷を避けたい場合はW365を推奨します",
 "提案での活用: AVDとW365の比較時に「FSLogixの運用コスト」を可視化するとW365の優位性が明確になります。年間¥60-120万の運用コスト削減は経営層にも響くポイントです"]
+},
+{type:"flow",title:"FSLogix 構築フロー",icon:"🔨",steps:[
+{icon:"📁",label:"Step1: Azure Files",desc:"ストレージアカウント作成",style:"blue"},
+{icon:"🔑",label:"Step2: 権限設定",desc:"RBAC+NTFS権限",style:""},
+{icon:"💿",label:"Step3: FSLogix",desc:"セッションホストにインストール",style:""},
+{icon:"⚙️",label:"Step4: レジストリ",desc:"プロファイル設定",style:""},
+{icon:"✅",label:"Step5: テスト",desc:"プロファイル作成確認",style:"green"}]},
+{type:"table",title:"FSLogix 主要レジストリ設定",icon:"⚙️",headers:["レジストリキー","値","説明"],rows:[
+["Enabled","1","FSLogixプロファイルコンテナを有効化"],
+["VHDLocations","\\\\storageaccount.file.core.windows.net\\share","プロファイル保存先のUNCパス"],
+["DeleteLocalProfileWhenVHDShouldApply","1","ローカルプロファイルがある場合削除してFSLogixを優先"],
+["SizeInMBs","30000","VHDの最大サイズ(30GB推奨)"],
+["VolumeType","VHDX","VHD形式(VHDXが推奨・動的拡張)"],
+["FlipFlopProfileDirectoryName","1","フォルダ名をユーザー名優先に(検索しやすい)"],
+["PreventLoginWithFailure","0","FSLogixマウント失敗時もログイン許可(0=許可推奨)"],
+["PreventLoginWithTempProfile","1","一時プロファイルでのログインを禁止"]]
 }],
 links:[{title:"MS Learn: FSLogixとは",url:"https://learn.microsoft.com/ja-jp/fslogix/overview-what-is-fslogix"}]},
 
@@ -2656,7 +2735,92 @@ links:[{title:"Azure料金計算ツール",url:"https://azure.microsoft.com/ja-j
 "コスト試算の例: 「500台のPCリプレース(1台15万円=7,500万円)をW365 Link(1台5万円=2,500万円)に置き換えるだけで5,000万円の削減。さらに管理コスト削減(Intune統合)を含めると更にメリットが拡大します」",
 "競合差別化: 「AWS WorkSpacesやCitrix DaaSには、W365 Boot/Switch/Linkに相当する機能がありません。物理端末とCloud PCの境界をなくすシームレスな体験はMicrosoft独自の強みです」と明確に差別化できます"]
 }],
-links:[{title:"MS Learn: W365 Boot",url:"https://learn.microsoft.com/ja-jp/windows-365/enterprise/windows-365-boot-overview"},{title:"MS Learn: W365 Link",url:"https://learn.microsoft.com/ja-jp/windows-365/link/overview"}]}
+links:[{title:"MS Learn: W365 Boot",url:"https://learn.microsoft.com/ja-jp/windows-365/enterprise/windows-365-boot-overview"},{title:"MS Learn: W365 Link",url:"https://learn.microsoft.com/ja-jp/windows-365/link/overview"}]},
+
+
+
+// ═══════════════════════════════════════════════════════
+// Topic: W365 運用・トラブルシューティング
+// ═══════════════════════════════════════════════════════
+{id:"w3ops",title:"W365 運用・トラブルシューティング",week:"Week 8",time:"3h",keyMsg:"構築後の運用が本番 — Cloud PCの監視・再プロビジョニング・SKU変更・トラブル対応",content:[
+{type:"list",title:"W365 日常運用タスク",icon:"📋",items:[
+"Cloud PC状態監視: Intune管理センター→デバイス→Windows 365→Cloud PC一覧で状態確認(プロビジョニング済み/失敗/保留中)",
+"パフォーマンスレポート: Intune→レポート→Cloud PC概要で接続品質・遅延・エラー率を確認",
+"ライセンス管理: M365管理センターでW365ライセンスの割当/回収。退職者のライセンスは7日後にCloud PC自動削除",
+"SKUアップグレード/ダウングレード: Intune→Cloud PC→対象デバイス→リサイズ。アップグレードは即日、ダウングレードは再プロビジョニング",
+"再プロビジョニング: プロファイル破損・パフォーマンス問題時にCloud PCを初期状態に再構築。ユーザーデータはOneDrive KFMで保護",
+"カスタムイメージ更新: 新しいイメージを作成→プロビジョニングポリシーを更新→新規Cloud PCに自動適用(既存は再プロビジョニング時に更新)"]},
+{type:"flow",title:"トラブルシューティングフロー",icon:"🔍",steps:[
+{icon:"📞",label:"報告受付",desc:"ユーザーから連絡",style:"red"},
+{icon:"🔍",label:"症状確認",desc:"接続/速度/アプリ",style:""},
+{icon:"📊",label:"Intune確認",desc:"Cloud PC状態チェック",style:""},
+{icon:"🌐",label:"NW確認",desc:"帯域/レイテンシ",style:""},
+{icon:"🔄",label:"再起動",desc:"Cloud PC再起動",style:""},
+{icon:"✅",label:"解決/エスカ",desc:"解決 or MS サポート",style:"green"}]},
+{type:"table",title:"よくあるトラブルと対処法",icon:"🔧",headers:["症状","原因","対処法","確認場所"],rows:[
+["接続できない","条件付きアクセスブロック","CAポリシーのレポートモード確認","Entra→サインインログ"],
+["接続できない","ライセンス未割当","ライセンス割当状態確認","M365管理センター"],
+["動作が遅い","SKUスペック不足","SKUアップグレード(リサイズ)","Intune→Cloud PC"],
+["動作が遅い","NW帯域不足","RDP Shortpath有効化・帯域テスト","ネットワークテストツール"],
+["Teamsが重い","AV Redirect無効","Teams最適化設定確認","レジストリ設定"],
+["印刷できない","リダイレクト未設定","RDPプロパティで印刷リダイレクト許可","Intune構成プロファイル"],
+["アプリが動かない","互換性問題","App Assure(Microsoft無料支援)に問合せ","aka.ms/appassure"],
+["ログインループ","プロファイル破損","再プロビジョニング実行","Intune→Cloud PC→再プロビジョニング"],
+["ディスク容量不足","SKUストレージ不足","SKU変更 or OneDrive活用","Intune→Cloud PC"],
+["突然切断される","ネットワーク不安定","有線LAN推奨・RDP Shortpath確認","接続品質レポート"]]},
+{type:"cards",title:"SKU変更の手順と注意点",icon:"📦",cards:[
+{title:"アップグレード",color:"green",items:["Intune→Cloud PC→対象→リサイズ","即日反映(再起動のみ)","ユーザーデータは保持される","例: 2c/8GB → 4c/16GB"]},
+{title:"ダウングレード",color:"yellow",items:["Intune→Cloud PC→対象→リサイズ","再プロビジョニングが必要","事前にOneDrive KFMでバックアップ","例: 4c/16GB → 2c/8GB"]},
+{title:"Frontline ←→ Enterprise",color:"purple",items:["ライセンス変更が必要","旧Cloud PCは削除→新規作成","移行計画を事前に策定","同時利用制限の変化に注意"]}]},
+{type:"table",title:"監視すべきメトリクスと閾値",icon:"📊",headers:["メトリクス","正常値","警告値","確認方法"],rows:[
+["RDP遅延(RTT)","50ms以下","100ms以上","Intune接続品質レポート"],
+["接続エラー率","1%以下","5%以上","Intune Cloud PC概要"],
+["CPU使用率","50%以下","80%以上","Cloud PC内タスクマネージャー"],
+["メモリ使用率","60%以下","85%以上","Cloud PC内タスクマネージャー"],
+["ディスク使用率","70%以下","90%以上","Cloud PC内エクスプローラー"]]}
+],links:[{title:"MS Learn: W365 トラブルシューティング",url:"https://learn.microsoft.com/ja-jp/windows-365/enterprise/troubleshoot-overview"}]},
+
+// ═══════════════════════════════════════════════════════
+// Topic: AVD 運用・トラブルシューティング
+// ═══════════════════════════════════════════════════════
+{id:"avdops",title:"AVD 運用・トラブルシューティング",week:"Week 8",time:"3h",keyMsg:"AVDの運用はW365より複雑 — セッションホスト管理・イメージ更新・Autoscale監視が日常業務",content:[
+{type:"list",title:"AVD 日常運用タスク",icon:"📋",items:[
+"セッションホスト状態監視: Azure Portal→AVD→ホストプール→セッションホスト一覧で状態確認(Available/Unavailable/NeedsAssistance)",
+"FSLogixプロファイル容量監視: Azure Files/NetApp Filesの使用量を定期確認。1ユーザー20-30GB目安。肥大化防止のルール策定",
+"ゴールドイメージ更新: 月次でOS更新+アプリ更新→Sysprep→イメージキャプチャ→新セッションホスト展開→旧VM削除",
+"Autoscale動作確認: スケーリングプランのログを確認。想定通りにVM起動/停止されているか。コストへの影響を確認",
+"コスト監視: Azure Cost Management→W365/AVDリソースグループのコスト推移を日次確認。予算アラートの設定",
+"セキュリティ更新: Defender for Endpointのアラート確認。セキュリティベースラインの適用状態チェック"]},
+{type:"flow",title:"ゴールドイメージ更新フロー",icon:"🔄",steps:[
+{icon:"🖥️",label:"Step1: テストVM",desc:"既存イメージからVM作成",style:"blue"},
+{icon:"📦",label:"Step2: 更新適用",desc:"OS/アプリ/パッチ更新",style:""},
+{icon:"🧹",label:"Step3: Sysprep",desc:"一般化処理",style:""},
+{icon:"📸",label:"Step4: キャプチャ",desc:"Compute Gallery登録",style:""},
+{icon:"🖥️",label:"Step5: 新VM展開",desc:"新イメージでSH作成",style:""},
+{icon:"🗑️",label:"Step6: 旧VM削除",desc:"ドレイン→削除",style:"green"}]},
+{type:"table",title:"よくあるトラブルと対処法",icon:"🔧",headers:["症状","原因","対処法"],rows:[
+["セッションホストがUnavailable","VM停止/クラッシュ","Azure PortalでVM再起動。復旧しなければ新VM展開"],
+["ドメイン参加失敗","DNS設定誤り","VNetのDNSがAD DCを参照しているか確認"],
+["FSLogixマウント失敗","権限不足/パス誤り","Azure Filesの共有権限(RBAC+NTFS)を再確認"],
+["Autoscaleが動かない","ロール未付与","マネージドIDにPower On Off Contributorロールを付与"],
+["セッション切断が頻発","NW不安定/帯域不足","RDP Shortpath有効化+帯域確認。Keep-alive間隔調整"],
+["プロファイル肥大化","一時ファイル蓄積","FSLogix除外リスト設定(Outlook OST/Teams cache等)"],
+["Sysprepが失敗","Windows Store アプリ残存","Sysprep前にプロビジョニングパッケージを削除"],
+["VM起動が遅い","Managed Diskの性能不足","Premium SSD(E15以上)を使用。Standard SSDは遅い"],
+["ユーザーが接続先VMを選べない","負荷分散の問題","幅優先(Breadth-first)に変更。深さ優先は偏りやすい"],
+["コストが想定より高い","Autoscale未設定/RI未適用","スケーリングプラン+1年RI適用で50-60%削減可能"]]},
+{type:"cards",title:"ドレインモードの活用シナリオ",icon:"🔄",cards:[
+{title:"メンテナンス時",color:"",items:["対象VMをドレインモードに設定","新規セッション割当を停止","既存ユーザーの作業完了を待つ","完了後にWindows Update等を実行"]},
+{title:"イメージ更新時",color:"yellow",items:["旧VMを順次ドレインモードに","新イメージのVMを先に追加","ユーザーが新VMに自然移行","全ユーザー移行後に旧VM削除"]},
+{title:"障害対応時",color:"red",items:["問題VMを即座にドレインモードに","ユーザーを他VMに誘導","問題VMの調査・修復","修復後にドレインモード解除"]}]},
+{type:"table",title:"Azure Monitor 監視設定ガイド",icon:"📊",headers:["メトリクス","正常値","警告閾値","アラート設定"],rows:[
+["同時セッション数","上限の70%以下","上限の90%以上","メール+Teams通知"],
+["CPU使用率(VM)","50%以下","80%以上(5分平均)","VM追加のトリガー"],
+["メモリ使用率(VM)","60%以下","85%以上","SKUアップサイズ検討"],
+["ディスクIOPS","制限の50%以下","制限の80%以上","Premium SSDへ変更"],
+["FSLogixマウント時間","5秒以下","15秒以上","ストレージ性能確認"],
+["接続エラー率","1%以下","5%以上","NW/DNS設定確認"]]}
+],links:[{title:"MS Learn: AVD監視",url:"https://learn.microsoft.com/ja-jp/azure/virtual-desktop/monitor-azure-virtual-desktop"}]}
 
 ]},
 
