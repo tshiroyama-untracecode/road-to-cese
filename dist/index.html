@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Cloud Endpoint SE への道</title>
+<title>Windows 365/AVD入門</title>
 <style>
 /* === Theme: Dark (default) === */
 :root, [data-theme="dark"] {
@@ -190,7 +190,7 @@ body{font-family:"Segoe UI","Meiryo UI",system-ui,sans-serif;background:var(--bg
   <div class="header-inner">
     <div class="logo" onclick="view='welcome';renderSB();renderMain();upd();window.scrollTo(0,0);" style="cursor:pointer;">
       <div class="logo-grid"><span></span><span></span><span></span><span></span></div>
-      <h1>Cloud Endpoint SE への道</h1>
+      <h1>Windows 365/AVD入門</h1>
     </div>
     <div class="theme-switcher">
       <div class="theme-btn dark-btn" title="Dark" onclick="setTheme('dark')"></div>
@@ -3313,8 +3313,8 @@ function renderWelcome(){
   const p=prog(),all=allT(),d=all.filter(t=>done[t.id]).length;
   document.getElementById('main').innerHTML=`
 <div class="hero">
-  <h2>Cloud Endpoint SE への道</h2>
-  <p>Windows 365 / AVD の初回提案ができるソリューションエンジニアへ — 3ヶ月の育成プログラム</p>
+  <h2>Windows 365/AVD入門</h2>
+  <p>Windows 365 / AVD を自分の手で構築・提案できるエンジニアへ — 3ヶ月の育成プログラム</p>
   <div class="hero-stat">${d} / ${all.length}</div>
   <div class="hero-stat-label">トピック完了 (${p}%)</div>
 </div>
@@ -3323,13 +3323,16 @@ function renderWelcome(){
 <div class="block" style="border-left:3px solid var(--azure);">
   <h3><span class="icon">🎯</span>本ラーニングパスの目的</h3>
   <p style="font-size:14px;color:var(--fg-sub);margin-bottom:12px;">
-    Windows 365 および Azure Virtual Desktop（AVD）を中心としたクラウドエンドポイントソリューションを、
-    お客様に対して<b style="color:var(--fg);">自信を持って初回提案</b>できるSE（ソリューションエンジニア）を育成します。
+    Windows 365 および Azure Virtual Desktop（AVD）を<b style="color:var(--fg);">自分の手で構築・展開</b>できるエンジニアを育成します。
+    構築スキルを軸に、提案・設計・運用までカバーする実践的なプログラムです。
   </p>
   <p style="font-size:13px;color:var(--fg-sub);">
-    DaaS/VDI の提案には、製品知識だけでなく、セキュリティ（ゼロトラスト）、ID管理（Entra ID）、
-    デバイス管理（Intune）、ネットワーク（SASE）など幅広い周辺知識が必要です。
-    本プログラムでは、これらの知識を<b style="color:var(--fg);">体系的に・段階的に</b>習得します。
+    W365/AVD の構築には、Entra ID（ID管理）、Intune（デバイス管理）、ネットワーク設計、セキュリティ（ゼロトラスト/SASE）
+    など幅広い周辺知識が必要です。本プログラムでは、これらを<b style="color:var(--fg);">体系的に・ハンズオン中心で</b>習得します。
+  </p>
+  <p style="font-size:13px;color:var(--fg-sub);margin-top:8px;">
+    社内エンジニアだけでなく、<b style="color:var(--fg);">パートナー企業のエンジニア</b>も受講可能です。
+    Microsoft のクラウドエンドポイント案件を一緒に推進できるスキルセットを身につけましょう。
   </p>
 </div>
 
@@ -3337,12 +3340,13 @@ function renderWelcome(){
 <div class="block" style="border-left:3px solid var(--green);">
   <h3><span class="icon">🏆</span>3ヶ月後のゴール</h3>
   <ul>
-    <li>W365 と AVD の違い、それぞれの強み・弱みを<b>自分の言葉で</b>お客様に説明できる</li>
-    <li>お客様の環境をヒアリングし、W365 / AVD / 物理PC の<b>最適な組み合わせを提案</b>できる</li>
-    <li>TCO 比較・SKU ミックス・Frontline 活用などの<b>コスト提案</b>ができる</li>
-    <li>ゼロトラスト・SASE・Entra ID・Intune 等の関連ワードを理解し、<b>お客様との会話で使える</b></li>
-    <li>競合（Amazon WorkSpaces / Citrix DaaS）との<b>差別化ポイント</b>を説明できる</li>
-    <li>卒業テスト（30問）に合格し、先輩SE同行で<b>実際の顧客提案に参加</b>できる</li>
+    <li style="border-left-color:var(--azure);"><b>【最重要】W365 の構築ができる</b> — Entra ID設定 → Intune構成 → プロビジョニングポリシー → Cloud PC展開を一人で実行</li>
+    <li style="border-left-color:var(--azure);"><b>【最重要】AVD の構築ができる</b> — VNet設計 → ホストプール作成 → セッションホスト展開 → FSLogix構成を一人で実行</li>
+    <li>W365 と AVD の違い、使い分けを<b>お客様に説明</b>でき、要件に応じた<b>構成設計</b>ができる</li>
+    <li>Entra ID / 条件付きアクセス / Intune / Defender の<b>設定・構成</b>ができる</li>
+    <li>TCO 比較・SKU ミックス・Frontline 活用などの<b>コスト最適化設計</b>ができる</li>
+    <li>ゼロトラスト・SASE の考え方を理解し、<b>セキュリティ設計</b>に反映できる</li>
+    <li>卒業テスト（30問）+ <b>ハンズオン Lab 10本</b>を完了し、実案件に参加できる</li>
   </ul>
 </div>
 
@@ -3351,10 +3355,11 @@ function renderWelcome(){
   <div class="block" style="border-left:3px solid var(--purple);">
     <h3><span class="icon">👤</span>対象者</h3>
     <ul>
-      <li>新入社員（IT基礎知識あり）</li>
-      <li>中途入社（他分野からの転職）</li>
-      <li>W365/AVD 未経験のSE・営業</li>
-      <li>提案スキルを体系的に学び直したい方</li>
+      <li>W365/AVD の構築スキルを身につけたいエンジニア</li>
+      <li>パートナー企業のSE・構築担当者</li>
+      <li>新入社員・中途入社（IT基礎知識あり）</li>
+      <li>DaaS/VDI 案件に参画する予定の方</li>
+      <li>提案から構築まで一気通貫で対応したい方</li>
     </ul>
   </div>
   <div class="block" style="border-left:3px solid var(--yellow);">
