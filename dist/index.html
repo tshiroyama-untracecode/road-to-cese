@@ -3344,7 +3344,7 @@ links:[{title:"MS Learn: W365 展開ガイド",url:"https://learn.microsoft.com/
 "1人で抱え込まない: 先輩SE、プリセールス、パートナーと連携して提案の質を上げる"]},
 {type:"cards",title:"ロールプレイの進め方",icon:"🎭",cards:[
 {title:"準備（30分）",color:"",items:["顧客シナリオを設定（業種/規模/課題）","顧客ペルソナを作成（IT部長/経営企画）","想定質問を5つ準備","提案スライドを用意"]},
-{title:"実施（45分）",color:"yellow",items:["30分プレゼン（新人が提案者）","先輩SEが顧客役でツッコミ","録画して後で振り返り","5分で即時フィードバック"]},
+{title:"実施（45分）",color:"yellow",items:["30分プレゼン（新人が提案者）","レビュアーが顧客役でツッコミ","録画して後で振り返り","5分で即時フィードバック"]},
 {title:"振り返り（15分）",color:"green",items:["良かった点を3つ","改善点を3つ","次回までの宿題を明確に","録画を見返して自己分析"]}]}
 ],
 links:[{title:"MS: 提案プレゼンのベストプラクティス",url:"https://learn.microsoft.com/ja-jp/training/"}]}
@@ -3521,7 +3521,7 @@ function renderWelcome(){
     <ul>
       <li>W365/AVD の構築スキルを身につけたいエンジニア</li>
       <li>パートナー企業のSE・構築担当者</li>
-      <li>新入社員・中途入社（IT基礎知識あり）</li>
+      <li>新任エンジニア（IT基礎知識あり）</li>
       <li>DaaS/VDI 案件に参画する予定の方</li>
       <li>提案から構築まで一気通貫で対応したい方</li>
     </ul>
@@ -3578,11 +3578,17 @@ function renderWelcome(){
   <ul>
     <li>基礎知識（Q1-7）: 7問中 <b>5問以上</b>正答</li>
     <li>専門知識（Q8-14）: 7問中 <b>5問以上</b>正答</li>
-    <li>提案シナリオ（Q15-20）: 先輩SEレビューで<b>「顧客に出せるレベル」</b>の評価</li>
-    <li style="border-left-color:var(--green);">合格後 → 先輩SE同行で<b>実際の顧客提案に参加</b>（OJT フェーズ）</li>
+    <li>提案シナリオ（Q15-20）: レビュアーの評価で<b>「顧客に出せるレベル」</b>の評価</li>
+    <li style="border-left-color:var(--green);">合格後 → メンターと共に<b>実案件に参加</b>（実践フェーズ）</li>
     <li style="border-left-color:var(--yellow);">不合格 → 該当セクションを1週間復習し再テスト</li>
   </ul>
 </div>
+
+<!-- 価格に関する注意 -->
+<div style="margin-top:14px;padding:10px 14px;background:rgba(255,185,0,.08);border:1px solid rgba(255,185,0,.2);border-radius:8px;font-size:11px;color:var(--fg-muted);line-height:1.5;">
+  ※ 本コンテンツに記載の価格は 2026年3月時点の参考価格（税抜）です。最新の価格は <a href="https://www.microsoft.com/ja-jp/windows-365/enterprise/all-pricing" style="color:var(--azure);">Microsoft 公式サイト</a> をご確認ください。記載内容は予告なく変更される場合があります。
+</div>
+
 `;
 }
 
@@ -3684,5 +3690,10 @@ initTheme();
 restoreView();
 renderSB();renderMain();upd();
 </script>
+<div style="text-align:center;padding:20px;font-size:10px;color:var(--fg-muted);border-top:1px solid var(--card-border);margin-top:20px;">
+  本コンテンツは学習目的で作成されたものであり、Microsoft の公式トレーニングではありません。<br>
+  記載の製品名・サービス名は各社の商標または登録商標です。価格・機能は変更される場合があります。<br>
+  最新の情報は <a href="https://learn.microsoft.com/" style="color:var(--azure);">Microsoft Learn</a> をご参照ください。
+</div>
 </body>
 </html>
