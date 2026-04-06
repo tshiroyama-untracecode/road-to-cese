@@ -203,7 +203,15 @@ body{font-family:"Segoe UI","Meiryo UI",system-ui,sans-serif;background:var(--bg
       <span class="save-indicator" id="saveInd">✓ 保存済み</span>
     </div>
   </div>
+  <!-- Access Counter Bar -->
+  <div style="display:flex;justify-content:center;gap:24px;padding:4px 24px;background:rgba(0,0,0,.15);font-size:10px;color:var(--fg-muted);">
+    <span>👁 今週: <b id="weeklyCount" style="color:var(--fg-sub);">-</b></span>
+    <span>📊 累計: <b id="totalCount" style="color:var(--fg-sub);">-</b></span>
+  </div>
 </header>
+
+<!-- GoatCounter script - replace YOUR_CODE with your GoatCounter site code -->
+<script data-goatcounter="https://road-to-cese.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
 
 <div class="layout">
   <aside class="sidebar" id="sidebar"></aside>
@@ -3689,6 +3697,24 @@ function restoreView(){
 initTheme();
 restoreView();
 renderSB();renderMain();upd();
+
+// GoatCounter API - fetch access counts
+(function(){
+  const GC_SITE = 'road-to-cese';
+  const GC_API = `https://${GC_SITE}.goatcounter.com/counter/`;
+  // Fetch total page views
+  fetch(`${GC_API}%2F.json`)
+    .then(r=>r.json())
+    .then(d=>{
+      if(d.count) document.getElementById('totalCount').textContent=Number(d.count).toLocaleString();
+    }).catch(()=>{});
+  // Fetch weekly (use count_unique for 7 days)
+  fetch(`${GC_API}%2F.json?period=week`)
+    .then(r=>r.json())
+    .then(d=>{
+      if(d.count) document.getElementById('weeklyCount').textContent=Number(d.count).toLocaleString();
+    }).catch(()=>{});
+})();
 </script>
 <div style="text-align:center;padding:20px;font-size:10px;color:var(--fg-muted);border-top:1px solid var(--card-border);margin-top:20px;">
   本コンテンツは学習目的で作成されたものであり、Microsoft の公式トレーニングではありません。<br>
