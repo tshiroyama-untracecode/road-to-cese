@@ -438,7 +438,7 @@ links:[{title:"MS Learn: ゼロトラストとは",url:"https://learn.microsoft.
 "Q: オンプレADは廃止できる？ → A: 完全クラウド移行なら可能。ただしオンプレアプリがKerberos/NTLM依存の場合はADが必要。段階的な移行を推奨",
 "Q: ゲストユーザーのセキュリティは？ → A: 条件付きアクセスでゲスト専用ポリシー作成可能。MFA強制+アクセスレビューで定期的に棚卸し",
 "Q: マルチテナント構成は？ → A: グループ企業で複数テナントの場合、Entra ID B2Bコラボレーションまたはクロステナント同期で連携",
-"Q: Entra ID Connectの同期はリアルタイム？ → A: デフォルト30分間隔。パスワード変更はパスワードハッシュ同期なら約2分で反映",
+"Q: Entra Connectの同期はリアルタイム？ → A: デフォルト30分間隔。パスワード変更はパスワードハッシュ同期なら約2分で反映",
 "Q: ライセンスはどう割り当てる？ → A: グループベースのライセンス割当を推奨。動的グループ+ライセンスグループで自動化",
 "提案のコツ: 「Entra IDはMicrosoft製品の全てのセキュリティの起点」と説明すると、投資の重要性が伝わる",
 "提案のコツ: P1→P2へのアップグレードは「ID Protectionによるリスク自動検知」が最大の訴求ポイント"]
@@ -1217,7 +1217,7 @@ links:[{title:"MS Learn: Defender for Endpoint",url:"https://learn.microsoft.com
 {type:"table",title:"主要ライセンス比較表",icon:"📋",headers:["ライセンス","月額(税抜)","Entra ID","Intune","Defender","W365対応","AVD対応","推奨シナリオ"],rows:[
 ["M365 E3","¥4,500/user","P1(含む)","○(含む)","P1(基本)","Enterprise対応","接続権あり","中〜大企業の標準。W365/AVD提案の基盤"],
 ["M365 E5","¥7,130/user","P2(含む)","○(含む)","P2(フル)","Enterprise対応","接続権あり","セキュリティ重視企業。PIM/ID Protection込み"],
-["M365 F1","¥300/user","P1(含む)","○(含む)","×","Frontline対応","接続権あり","現場ワーカー(共有デバイス/キオスク用途)"],
+["M365 F1","¥300/user","P1(含む)","○(含む)","×","Frontline対応","×","現場ワーカー(共有デバイス/キオスク用途)"],
 ["M365 F3","¥1,000/user","P1(含む)","○(含む)","P1(基本)","FL/Ent対応","接続権あり","現場+オフィスワーカーのハイブリッド"],
 ["M365 Business Premium","¥2,750/user","P1(含む)","○(含む)","Business版","Enterprise対応","接続権なし","中小企業(300名以下)のベストバランス"],
 ["M365 Business Basic","¥750/user","Free","×","×","Business版のみ","×","Webアプリのみの小規模企業"],
@@ -1235,7 +1235,7 @@ links:[{title:"MS Learn: Defender for Endpoint",url:"https://learn.microsoft.com
 {title:"Firstline(F系) — F1/F3",color:"green",items:[
 "対象: 現場ワーカー(店舗スタッフ、工場作業員、医療従事者、ドライバー等)",
 "特徴: デスクトップアプリなし(Web/モバイル版のみ)。共有デバイスでの利用を想定",
-"F1はメールボックスなし(2GBのExchange Kiosk)、F3は2GBメールボックスあり",
+"F1はメールボックスなし(Exchange未含)、F3はExchange Online Kiosk(2GBメールボックス)あり",
 "W365 Frontline対応: Cloud PCを3ユーザーで1台共有(コスト1/3)。シフトワーカーに最適",
 "Intune/Entra ID P1が含まれるため、デバイス管理とゼロトラストの基盤は整っている",
 "提案のコツ: 「現場ワーカーにもW365 Frontlineで安全なPC環境を低コストで提供」"]},
@@ -1373,7 +1373,7 @@ links:[{title:"MS Learn: M365ライセンス",url:"https://learn.microsoft.com/j
 "Stryker事案では、攻撃者がGlobal Admin権限を「正当に」保有していた。PIMがあれば昇格自体を防止できた可能性が高い",
 "PIMのカバー範囲: Entra IDのロール(Global Admin/Intune Admin等)およびAzureリソースのロール"]},
 {title:"MAA — 昇格後に何ができるかを制御",color:"green",items:[
-"MAA(Multiple Admin Approval)は「管理操作の実行」を制御する仕組み。昇格後でも危険な操作には承認が必要",
+"MAA(Multi Admin Approval)は「管理操作の実行」を制御する仕組み。昇格後でも危険な操作には承認が必要",
 "例: Intune Adminに昇格した後でも、デバイスワイプの実行には別の管理者の承認が必要",
 "PIM + MAAの組み合わせ: 「昇格するにも承認が必要」+「昇格後の操作にも承認が必要」= 二重の構造的防御",
 "Stryker事案への対策: 仮にGlobal Admin権限を得ても、MAAがあれば8万台のワイプ操作に承認が必要→単独犯行は不可能",
@@ -1489,7 +1489,7 @@ links:[{title:"MS Learn: Purview情報保護",url:"https://learn.microsoft.com/j
 // ═══════════════════════════════════════════════════════
 {id:"maa",title:"Intune MAA & RBAC",week:"Week 4",time:"3h",keyMsg:"最小特権 + 複数承認 — 管理者の操作を構造的に制御し、Stryker事案を防ぐ",content:[
 {type:"list",title:"なぜMAA/RBACが重要か — 最小特権の原則",icon:"📖",items:[
-"Stryker事案(2026年3月)の教訓は明確です。単独の管理者が全社規模の破壊的操作を実行できる環境は、構造的に危険です。MAA(Multiple Admin Approval)とRBAC(Role-Based Access Control)は、この構造的リスクを解消する仕組みです",
+"Stryker事案(2026年3月)の教訓は明確です。単独の管理者が全社規模の破壊的操作を実行できる環境は、構造的に危険です。MAA(Multi Admin Approval)とRBAC(Role-Based Access Control)は、この構造的リスクを解消する仕組みです",
 "最小特権の原則(Principle of Least Privilege)とは: ユーザーや管理者に対して、業務遂行に必要な最小限の権限のみを付与する考え方です。「必要以上の権限は、リスクでしかない」が基本思想です",
 "RBAC(ロールベースアクセス制御)は「誰にどの範囲の権限を与えるか」を定義する仕組みです。IntuneのRBACでは、ヘルプデスク・アプリ管理者・デバイス管理者等のロールを分離し、各管理者の操作範囲を限定します",
 "MAA(複数管理者承認)は「危険な操作に対して複数人の承認を必要とする」仕組みです。1人の管理者だけでは破壊的な操作(デバイスワイプ等)を実行できないようにします",
@@ -1563,7 +1563,7 @@ links:[{title:"MS Learn: Purview情報保護",url:"https://learn.microsoft.com/j
 "Stryker事案の引用: 「2026年3月の事案では、1人の管理者が8万台のPCを初期化しました。MAAが導入されていれば、ワイプ操作に別の管理者の承認が必要になるため、単独犯行は構造的に不可能でした」",
 "金融機関の例え: 「銀行では1億円の送金に2人の承認が必要です。御社の全PCを管理するIntune操作も、同等の慎重さが必要ではないでしょうか。MAAは管理操作のダブルチェック機能です」",
 "抵抗への対応: 「毎回承認が必要で面倒」→「MAAの対象はワイプ等の破壊的操作のみです。日常的なデバイス確認や情報閲覧にはMAAは適用されません。影響を受けるのは稀な操作だけです」",
-"コストの説明: 「MAAはIntune Plan 2(追加¥4/user/月)で利用可能です。月額¥4で全社のデバイスを構造的に保護できます。Stryker事案の被害額(推定数億ドル)を考えれば、最も費用対効果の高いセキュリティ投資です」",
+"コストの説明: 「MAAはIntune Plan 2(追加約¥600/user/月)で利用可能です。月額約¥600で全社のデバイスを構造的に保護できます。Stryker事案の被害額(推定数億ドル)を考えれば、最も費用対効果の高いセキュリティ投資です」",
 "PIMとの組み合わせ: 「PIMで誰が管理者になれるかを制御し、MAAで管理者が何をできるかを制御。この二重防御で、管理者の暴走・アカウント乗っ取りの両方に対応できます」",
 "段階的導入: 「まずデバイスワイプ操作だけMAAを有効にしましょう。1ヶ月運用して問題がなければ、アプリ展開やポリシー変更にも拡大できます。小さく始めて確実に効果を確認するアプローチです」",
 "セールストーク: 「MAA/RBACは管理者を信頼しないのではなく、信頼に依存しない仕組みを作るということです。個人の善意に頼るセキュリティから、構造的に安全なセキュリティへ転換しましょう」"]}
@@ -1654,7 +1654,7 @@ links:[{title:"MS Learn: Intune MAA",url:"https://learn.microsoft.com/ja-jp/mem/
 "工数削減トーク: 「100台規模で月20-40時間のパッチ管理工数が、W365+Autopatchで2-4時間に削減できます。年間で200-400時間の削減。その時間をDX推進やセキュリティ強化に使えます」",
 "セキュリティトーク: 「パッチ未適用の端末は攻撃者にとって開いたドアです。Autopatchならパッチリリースから9日以内に全社配信が完了します。従来の2-4週間と比べて、脆弱性の露出期間を大幅に短縮できます」",
 "障害対応トーク: 「パッチ後の障害が心配ですか？Autopatchは4段階のリングで段階的に配信し、各段階でヘルスシグナルを自動監視します。問題が検知された場合は自動的に配信を停止します。さらにW365ならポイントリストアで数分で復旧可能です」",
-"Windows 11移行トーク: 「Windows 10のサポート終了(2025年10月)に向けて、OS移行の計画はお済みですか？W365ならプロビジョニングポリシーの変更だけでWindows 11に切り替え可能です。物理PCの入れ替え不要です」",
+"Windows 11移行トーク: 「Windows 10のサポートは2025年10月に終了しました。まだ移行がお済みでない端末はありませんか？W365ならプロビジョニングポリシーの変更だけでWindows 11に切り替え可能です。物理PCの入れ替え不要です」",
 "経営層向け: 「IT部門をパッチ管理の作業から解放し、本来注力すべきDX推進やビジネス支援に時間を使えるようにしましょう。W365+Autopatchは、IT部門の攻めのIT投資を可能にします」",
 "総合提案: 「W365 + Autopatch + Defender + Intune。この4つの組み合わせで、エンドポイント管理の工数を劇的に削減しながら、セキュリティレベルを向上させることが可能です」",
 "ROI計算: 「パッチ管理の工数削減(年間200時間×人件費¥5,000=¥100万)+セキュリティインシデントのリスク低減(期待被害額の削減)。W365の追加ライセンスコストと比較して、投資回収期間を算出しましょう」"]}
@@ -1677,7 +1677,7 @@ links:[{title:"MS Learn: Windows Autopatch",url:"https://learn.microsoft.com/ja-
 "最大の特徴は「SaaS」であること: 従来のVDI(Citrix/VMware/AVD)はインフラの管理が必要でしたが、W365はMicrosoftがインフラ(サーバー/ネットワーク/ストレージ)を全て管理します。お客様はユーザーにライセンスを割り当てるだけです",
 "お客様への説明の仕方: 「W365はクラウド上にある自分専用のWindowsパソコンです。M365のライセンスを持っている方なら、追加のW365ライセンスを割り当てるだけで数分でPCが使えるようになります。サーバーの構築も、ネットワークの設計も不要です」",
 "物理PCとの違い: 物理PCはハードウェアが手元にありますが、W365のCloud PCはMicrosoftのデータセンターで稼働しています。ユーザーのデバイス(PC/タブレット/スマホ)には画面だけが転送されるため、データがデバイスに残りません",
-"なぜ今W365なのか: Windows 10のサポート終了(2025年10月)を機にPCリプレースが発生します。物理PCを買い替える代わりにW365に移行すれば、ハードウェア管理から解放されます。このタイミングが最大の提案チャンスです",
+"なぜ今W365なのか: Windows 10のサポートは2025年10月に終了しました。未移行PCのリプレース需要が高まっています。物理PCを買い替える代わりにW365に移行すれば、ハードウェア管理から解放されます。このタイミングが最大の提案チャンスです",
 "日本リージョン: Cloud PCは東日本リージョンまたは西日本リージョンに配置されます。国内に配置されるためレイテンシが低く(10-30ms)、データ主権(Data Residency)の要件も満たせます"]},
 {type:"diagram",title:"W365の責任分界 — SaaSモデル",icon:"🏛️",pillars:[
 {label:"ハードウェア",color:"#0078D4",desc:"MS管理"},
@@ -1769,7 +1769,7 @@ links:[{title:"MS Learn: Windows Autopatch",url:"https://learn.microsoft.com/ja-
 "最低帯域: 1.5 Mbps(一般業務)。推奨: 5 Mbps以上(Web会議/動画含む)",
 "遅延: 推奨100ms以下。日本リージョンなら国内からは10-30ms程度",
 "プロトコル: TCP 443(HTTPS)でほぼ全て通信→FW許可が容易",
-"RDP Shortpath: UDP 3390(デフォルト)で低遅延通信。ブロックされている場合はTCPにフォールバック",
+"RDP Shortpath: STUN/TURNサーバー経由のUDP接続（STUNポート3478）で低遅延通信。UDP不可時はTCPにフォールバック",
 "必須FQDN: *.wvd.microsoft.com, *.prod.warm.ingest.monitor.core.windows.net等(MS Learnで公開)",
 "プロキシ: Cloud PCからのインターネットアクセスにプロキシを設定する場合はPACファイルまたはWPAD推奨",
 "Split Tunnel: VPN経由の場合はCloud PC通信をSplit Tunnelしてパフォーマンス確保",
@@ -1777,7 +1777,7 @@ links:[{title:"MS Learn: Windows Autopatch",url:"https://learn.microsoft.com/ja-
 },
 {type:"list",title:"お客様からよくある質問と回答",icon:"💬",items:[
 "Q: Cloud PCのデータはどこに保存される？ → A: Microsoftのデータセンター(日本リージョン選択可)に保存されます。データ主権(Data Residency)の要件を満たし、日本国内にデータが留まります",
-"Q: ネットワーク障害時にCloud PCは使えない？ → A: インターネット接続が必要ですが、W365 Offlineモード(プレビュー)が今後提供されます。また、99.9%のSLAが保証されており、物理PCの故障率(年3-5%)よりも高い可用性です",
+"Q: ネットワーク障害時にCloud PCは使えない？ → A: インターネット接続が必要ですが、W365 Offlineモード(プレビュー)の提供が開始されています。また、99.9%のSLAが保証されており、物理PCの故障率(年3-5%)よりも高い可用性です",
 "Q: Cloud PCのバックアップはどうなる？ → A: OneDrive Known Folder Move(KFM)でデスクトップ/ドキュメント/ピクチャが自動的にクラウドにバックアップされます。Cloud PCを再プロビジョニングしてもデータは維持されます",
 "Q: どんなデバイスからアクセスできる？ → A: Windows/Mac/iPad/Android/Chromebook/Linuxから、Webブラウザまたは専用RDクライアント経由でアクセスできます。シンクライアントからもアクセス可能です",
 "Q: Teams会議のパフォーマンスは大丈夫？ → A: W365ではTeams AV Redirect(メディア最適化)により、音声/ビデオはローカルデバイスで処理されます。Cloud PCのCPU負荷を軽減し、快適な会議体験を提供します",
@@ -1822,7 +1822,7 @@ links:[{title:"MS Learn: W365概要",url:"https://learn.microsoft.com/ja-jp/wind
 "最も多い間違い: お客様が「全員Enterprise」で見積もる→コストが高く見える→「W365は高い」と判断してしまう。実際にはSKUミックス+Frontline活用で30-50%削減可能です",
 "お客様への説明の仕方: 「W365には3つのプランがあります。Businessは中小企業向けのシンプルプラン、Enterpriseは大企業向けのフル機能プラン、そしてFrontlineは交代制で働く方向けの1ライセンスを3名で共有できるお得なプランです」",
 "Frontlineが「最強の武器」である理由: 工場3交代制(8時間×3シフト)なら1ライセンスで3名がカバーできるため、実質的にEnterpriseの1/3のコストになります。これは競合(WorkSpaces/Citrix)にはないW365独自の機能です",
-"よくある誤解: 「FrontlineはEnterpriseより機能が劣る」→ 基本的にFrontlineとEnterpriseの機能は同じです。違いはセッション時間制限(8時間)と同時利用者数(1名)のみです",
+"よくある誤解: 「FrontlineはEnterpriseより機能が劣る」→ 基本機能はほぼ同じです。主な違いは同時利用制限（1ライセンスで同時1セッション）とリサイズ未サポートです",
 "提案のコツ: 最初に「お客様の中に、シフト制で働いている部門はありますか？」と聞く。工場・コールセンター・店舗・受付など、Frontline対象者がいればコスト提案のインパクトが劇的に変わります"]},
 {type:"flow",title:"エディション選定の判断フロー",icon:"🔄",steps:[
 {icon:"👥",label:"社員数確認",desc:"300名以下→Business検討",style:"blue"},
@@ -1842,7 +1842,7 @@ links:[{title:"MS Learn: W365概要",url:"https://learn.microsoft.com/ja-jp/wind
 "最もシンプルだが機能制限あり"]},
 {title:"Enterprise ★主力",color:"purple",items:[
 "対象: ユーザー数無制限(大企業向け)",
-"前提: M365 E3/E5 or F1/F3 + Entra ID P1 + Intune",
+"前提: Windows E3 + Intune + Entra ID P1（M365 E3/E5/F3/Business Premiumに含む）",
 "MHN/ANC両対応",
 "カスタムイメージ対応(業務アプリ事前インストール)",
 "セキュリティベースライン対応",
@@ -1851,17 +1851,17 @@ links:[{title:"MS Learn: W365概要",url:"https://learn.microsoft.com/ja-jp/wind
 "GPUサポート(GPU対応SKU)",
 "エンタープライズグレードのSLA"]},
 {title:"Frontline ★最強の武器",color:"green",items:[
-"1ライセンスで最大3ユーザーに割り当て可能",
-"同時利用は1名のみ(シフト制前提)",
+"dedicated mode: 1ライセンスで最大3台のCloud PCをプロビジョニング（各ユーザー専用）",
+"同時利用は1セッション/ライセンスのみ（シフト制前提）",
 "実質的なコスト: Enterprise価格の約1/3",
-"前提: M365 F3/E3/E5",
+"前提: Windows E3 + Intune + Entra ID P1（M365 E3/E5/F3/A3/A5/Business Premiumに含む。F1は対象外）",
 "対象: 工場3交代/店舗/コールセンター/受付",
 "MHN/ANC両対応",
 "カスタムイメージ対応",
-"8時間のセッション制限(自動ログオフ)",
-"グレースピリオド: 切替時に最大2時間の猶予"]}]},
+"同時利用は1セッションのみ（サインオフ後に自動電源オフ）",
+"電源オフ猶予: サインオフ後2時間はCloud PCが起動状態を維持"]}]},
 {type:"table",title:"ライセンス前提条件の詳細",icon:"📋",headers:["要素","Business","Enterprise","Frontline"],rows:[
-["M365/O365ライセンス","不要","E3/E5/F1/F3いずれか","F3/E3/E5いずれか"],
+["M365/O365ライセンス","不要","E3/E5/F3/Business Premiumいずれか","E3/E5/F3/Business Premiumいずれか（F1は対象外）"],
 ["Entra ID P1","不要","必須(E3に含む)","必須(E3に含む)"],
 ["Intune","不要(推奨)","必須(E3に含む)","必須(E3に含む)"],
 ["Azureサブスク","不要","ANC時のみ必要","ANC時のみ必要"],
@@ -1869,7 +1869,7 @@ links:[{title:"MS Learn: W365概要",url:"https://learn.microsoft.com/ja-jp/wind
 ["カスタムイメージ","×","○","○"],
 ["ANC","×","○","○"],
 ["GPU SKU","×","○","×"],
-["リサイズ","○","○","○"],
+["リサイズ","○","○","×（未サポート）"],
 ["セキュリティベースライン","×","○","○"]]},
 {type:"cards",title:"ユースケースシナリオ — エディション選択ガイド",icon:"🎯",cards:[
 {title:"シナリオ1: IT企業50名",color:"",items:[
@@ -1896,8 +1896,8 @@ links:[{title:"MS Learn: W365概要",url:"https://learn.microsoft.com/ja-jp/wind
 "コンプライアンス: 金融庁ガイドライン対応(データ所在地=日本)"]}]},
 {type:"table",title:"前提ライセンス要件の詳細 — エディション別",icon:"🔑",headers:["エディション","前提ライセンス","追加で必要なもの","含まれる機能"],rows:[
 ["Business","不要（単体購入可）","なし","基本管理のみ"],
-["Enterprise","M365 E3/E5/F1/F3/Business Premium のいずれか","Intune (E3等に含む) + Entra ID P1 (E3等に含む)","カスタムイメージ・セキュリティベースライン・条件付きアクセス"],
-["Frontline","M365 F1/F3/E3/E5 のいずれか","Intune + Entra ID P1","Enterprise と同等（共有モード）"]]},
+["Enterprise","M365 E3/E5/F3/Business Premium のいずれか（F1は対象外）","Intune (E3等に含む) + Entra ID P1 (E3等に含む)","カスタムイメージ・セキュリティベースライン・条件付きアクセス"],
+["Frontline","M365 E3/E5/F3/A3/A5/Business Premium のいずれか（F1は対象外）","Intune + Entra ID P1","Enterprise と同等（dedicated/shared mode）"]]},
 {type:"list",title:"エディション間の移行",icon:"🔄",items:[
 "Business→Enterprise: テナント内で移行可能。ただしM365 E3/E5ライセンスの追加購入が前提",
 "Enterprise→Frontline: ライセンス変更+プロビジョニングポリシーの更新で切替。既存Cloud PCは再プロビジョニング",
@@ -1909,8 +1909,8 @@ links:[{title:"MS Learn: W365概要",url:"https://learn.microsoft.com/ja-jp/wind
 },
 {type:"list",title:"お客様からよくある質問と回答",icon:"💬",items:[
 "Q: BusinessとEnterpriseのどちらを選ぶべき？ → A: M365 E3/E5を既にお持ちなら、追加のW365 Enterpriseライセンスだけで済むためEnterprise推奨。M365未導入で300名以下ならBusinessが最もシンプルです",
-"Q: Frontlineは全社員に使える？ → A: 8時間のセッション制限があるため、フルタイム(8時間超)の社員にはEnterprise推奨。シフト制/パートタイム/時短勤務の方にはFrontlineが最適です",
-"Q: Frontlineの8時間制限は延長できる？ → A: 延長はできません。8時間経過すると自動的にセッションが切断されます。残業が頻繁に発生する部門にはEnterprise推奨です",
+"Q: Frontlineは全社員に使える？ → A: 同時利用数がライセンス数に制限されるため、全員が同時に使う場合はEnterprise推奨。シフト制/パートタイム/時短勤務で非同時利用ならFrontlineが最適です",
+"Q: Frontlineの同時利用制限は緩和できる？ → A: 1ライセンスあたり同時1セッションの制限は変更できません。ただしconcurrency buffer（一時的な超過許容）が自動適用されます",
 "Q: Business→Enterpriseの移行は簡単か → A: テナント内で移行可能です。ただしM365 E3/E5の追加購入が前提となります。Cloud PCのデータはOneDrive KFM経由で維持できます",
 "Q: Frontlineで3人以上のシフトを組める？ → A: 1ライセンスで最大3ユーザーです。4交代制の場合は、Enterprise+Frontlineの併用またはライセンスの追加が必要です"]
 }],
@@ -1955,7 +1955,7 @@ links:[{title:"W365日本公式価格",url:"https://www.microsoft.com/ja-jp/wind
 {title:"Enterprise が適するケース",color:"purple",items:[
 "1日8時間以上の継続利用が必要なフルタイムワーカー",
 "常時Cloud PCにアクセスする必要がある開発者・設計者",
-"残業が頻繁に発生する部門(8時間セッション制限に抵触)",
+"常時アクセスが必要で同時利用制限が許容できない部門",
 "同時間帯に全員が利用する部門(共有不可)",
 "個人専用のカスタマイズ環境が必要なユーザー"]},
 {title:"Frontline が適するケース",color:"green",items:[
@@ -2013,20 +2013,20 @@ links:[{title:"W365日本公式価格",url:"https://www.microsoft.com/ja-jp/wind
 ["店舗(シフト)","POS・在庫管理・メール","2","4GB","64GB","FL ¥1,749(実質)"]]},
 {type:"cards",title:"Frontline 深堀り — 最大の武器を使いこなす",icon:"⭐",cards:[
 {title:"Frontlineの仕組み",color:"green",items:[
-"1ライセンス=1 Cloud PC=最大3ユーザーが共有",
-"同時利用は1名のみ(排他制御)",
-"セッション制限: 連続8時間で自動ログオフ(延長不可)",
-"グレースピリオド: ユーザー切替時に最大2時間の猶予",
-"Cloud PCは常時起動(切替が高速=約30秒)",
+"dedicated mode: 1ライセンスで最大3台のCloud PCをプロビジョニング（各ユーザー専用）",
+"同時利用は1セッションのみ（ライセンス数=最大同時セッション数）",
+"セッション制限: サインオフ後にCloud PCが自動電源オフ（同時セッション数=ライセンス数）",
+"電源オフ猶予: サインオフ後2時間はCloud PCが起動状態を維持（再接続が高速）",
+"Intelligent Prestart: 毎日の接続パターンを学習し接続30分前に自動起動",
 "ユーザープロファイル: FSLogixではなくOneDrive KFMで管理",
 "各ユーザーの環境は独立(プロファイル分離)"]},
 {title:"Frontline適用の判断基準",color:"",items:[
-"24時間のうち8時間以内の利用→Frontline候補",
-"2交代制(日勤/夜勤)→1ライセンスで2名、残り1名枠は予備",
-"3交代制(8h×3)→1ライセンスで3名がピッタリ",
-"パート/アルバイト→1日4-6時間勤務ならFrontline最適",
-"注意: 残業で8時間超える場合はEnterprise推奨",
-"注意: 全員が同時間帯に集中する場合はEnterprise必須",
+"シフト制で同時利用しない環境→Frontline候補",
+"2交代制(日勤/夜勤)→1ライセンスで2名+1名枠は予備",
+"3交代制→1ライセンスで3名がピッタリ（同時利用は1名）",
+"パート/アルバイト→非同時利用ならFrontline最適",
+"注意: 全員が同時間帯に利用する場合はEnterprise必須",
+"注意: リサイズ（SKU変更）はFrontlineでは未サポート",
 "コスト計算: Enterprise¥7,683 vs Frontline実質¥2,561(66%削減)"]}]},
 {type:"list",title:"TCO比較の方法論",icon:"📈",items:[
 "TCO(Total Cost of Ownership)= 初期費用 + 運用費 + 隠れコストの総計",
@@ -2040,7 +2040,7 @@ links:[{title:"W365日本公式価格",url:"https://www.microsoft.com/ja-jp/wind
 },
 {type:"list",title:"お客様からよくある価格に関する質問",icon:"💬",items:[
 "Q: 月額¥7,683は高くないか？ → A: 物理PCの月額換算(購入費¥150,000÷48ヶ月=¥3,125)+隠れコスト(¥2,000-3,000/月)=実質¥5,000-6,000/月。差額は¥1,500-2,500程度で、セキュリティ+運用効率化の価値を含めると十分な投資対効果です",
-"Q: M365 E3のライセンスも必要なのか？ → A: Enterprise/FrontlineにはM365 E3(またはE5/F1/F3)が前提です。ただし多くのお客様は既にM365を使っているため、追加はW365ライセンスのみです。M365未導入ならBusinessエディション(M365不要)を検討します",
+"Q: M365 E3のライセンスも必要なのか？ → A: Enterprise/FrontlineにはWindows E3+Intune+Entra P1が前提です（M365 E3/E5/F3/Business Premiumに含む。F1は対象外）。多くのお客様は既にM365を使っているため追加はW365ライセンスのみです。M365未導入ならBusinessエディション(M365不要)を検討します",
 "Q: 年間契約でディスカウントはある？ → A: EA(Enterprise Agreement)やCSP(Cloud Solution Provider)の契約形態により、ボリュームディスカウントが適用される場合があります。パートナー(販売代理店)経由で見積もりを依頼すると最適な価格が出ます",
 "Q: PoC(トライアル)は無料？ → A: W365の無料トライアル(最大1ヶ月)が利用可能です。まず10-20名で試してからSKUを確定するアプローチを推奨します",
 "Q: SKUは後から変更(リサイズ)できる？ → A: 可能です。Intune管理センターから数クリックで変更でき、ダウンタイムは約15分です。まずは低いSKUで始めて、足りなければアップグレードする方法がリスクゼロです"]
@@ -2129,7 +2129,7 @@ links:[{title:"W365全SKU価格",url:"https://www.microsoft.com/ja-jp/windows-36
 {icon:"🏢",label:"オンプレ (任意)",desc:"ExpressRoute/VPN",style:""}]},
 {type:"table",title:"AVD 導入の前提要件まとめ",icon:"📋",headers:["要件","詳細","備考"],rows:[
 ["Azure サブスクリプション","必須（セッションホストVM を配置）","従量課金"],
-["M365 ライセンス","E3/E5/F1/F3/Business Premium 等","マルチセッション利用権を含む"],
+["M365 ライセンス","E3/E5/F3/Business Premium 等（F1は対象外）","マルチセッション利用権を含む"],
 ["Entra ID P1","条件付きアクセスに必要","M365 E3 以上に含む"],
 ["Intune","デバイス管理に推奨（必須ではない）","M365 E3 以上に含む"],
 ["FSLogix ライセンス","M365 E3/E5/F1/F3 に含む","マルチセッション時に必要"],
@@ -2747,7 +2747,7 @@ links:[{title:"MS Learn: W365 Boot",url:"https://learn.microsoft.com/ja-jp/windo
 "Cloud PC状態監視: Intune管理センター→デバイス→Windows 365→Cloud PC一覧で状態確認(プロビジョニング済み/失敗/保留中)",
 "パフォーマンスレポート: Intune→レポート→Cloud PC概要で接続品質・遅延・エラー率を確認",
 "ライセンス管理: M365管理センターでW365ライセンスの割当/回収。退職者のライセンスは7日後にCloud PC自動削除",
-"SKUアップグレード/ダウングレード: Intune→Cloud PC→対象デバイス→リサイズ。アップグレードは即日、ダウングレードは再プロビジョニング",
+"SKUアップグレード/ダウングレード: Intune→Cloud PC→対象デバイス→リサイズ。CPU/RAMの変更は再プロビジョニング不要（15-20分で完了）。ディスク縮小は不可",
 "再プロビジョニング: プロファイル破損・パフォーマンス問題時にCloud PCを初期状態に再構築。ユーザーデータはOneDrive KFMで保護",
 "カスタムイメージ更新: 新しいイメージを作成→プロビジョニングポリシーを更新→新規Cloud PCに自動適用(既存は再プロビジョニング時に更新)"]},
 {type:"flow",title:"トラブルシューティングフロー",icon:"🔍",steps:[
@@ -2770,7 +2770,7 @@ links:[{title:"MS Learn: W365 Boot",url:"https://learn.microsoft.com/ja-jp/windo
 ["突然切断される","ネットワーク不安定","有線LAN推奨・RDP Shortpath確認","接続品質レポート"]]},
 {type:"cards",title:"SKU変更の手順と注意点",icon:"📦",cards:[
 {title:"アップグレード",color:"green",items:["Intune→Cloud PC→対象→リサイズ","即日反映(再起動のみ)","ユーザーデータは保持される","例: 2c/8GB → 4c/16GB"]},
-{title:"ダウングレード",color:"yellow",items:["Intune→Cloud PC→対象→リサイズ","再プロビジョニングが必要","事前にOneDrive KFMでバックアップ","例: 4c/16GB → 2c/8GB"]},
+{title:"ダウングレード",color:"yellow",items:["Intune→Cloud PC→対象→リサイズ","再プロビジョニング不要（CPU/RAMのダウングレード可。ディスク縮小は不可）","ユーザーデータは保持される","例: 4c/16GB → 2c/8GB"]},
 {title:"Frontline ←→ Enterprise",color:"purple",items:["ライセンス変更が必要","旧Cloud PCは削除→新規作成","移行計画を事前に策定","同時利用制限の変化に注意"]}]},
 {type:"table",title:"監視すべきメトリクスと閾値",icon:"📊",headers:["メトリクス","正常値","警告値","確認方法"],rows:[
 ["RDP遅延(RTT)","50ms以下","100ms以上","Intune接続品質レポート"],
@@ -3029,7 +3029,7 @@ links:[{title:"MS: SASEとは",url:"https://www.microsoft.com/ja-jp/security/bus
 "8. 次のステップ: PoC提案/見積もり依頼"]},
 {title:"効果的な提案のコツ",color:"green",items:[
 "「なぜDaaSか」ではなく「なぜ今DaaSか」を語る",
-"Windows 10 EOS(2025年10月)→PCリプレースのタイミングがチャンス",
+"Windows 10 EOSは2025年10月に終了済→未移行企業へのPCリプレース提案がチャンス",
 "セキュリティインシデントの事例を添える(同業他社の被害事例)",
 "Frontlineの1:3を計算して見せる(インパクト大)",
 "PoCの提案: 10-20名規模の無料トライアルを提示",
@@ -3056,7 +3056,7 @@ links:[{title:"MS: SASEとは",url:"https://www.microsoft.com/ja-jp/security/bus
 "合計: 年間約¥3,120,000の人件費削減(100台規模)"]}]},
 {type:"list",title:"顧客の反論に対する切り返し",icon:"💬",items:[
 "「月額が高い」→ 回答: 月額だけではなくTCOで比較。隠れコスト(人件費/修理/電力)を含めると逆転。さらにFrontline適用で大幅削減",
-"「オフラインで使えない」→ 回答: 業務の90%以上はオンラインで完結。残り10%は物理PC併用で対応。W365 Offlineモードも将来対応予定",
+"「オフラインで使えない」→ 回答: 業務の90%以上はオンラインで完結。残り10%は物理PC併用で対応。W365 Offlineモード(プレビュー)も提供開始",
 "「パフォーマンスが心配」→ 回答: SKUで柔軟にスペック変更可能。PoCで実際のパフォーマンスを体験してもらう。Teams会議もRDP最適化で快適",
 "「セキュリティは大丈夫？」→ 回答: むしろ向上。データがクラウドに残る/端末紛失時もデータ漏洩なし/ゼロトラスト対応",
 "「移行が大変そう」→ 回答: 段階的に移行可能。まず1部署でPoCし、問題なければ全社展開。Autopilot/Intune活用でIT負荷最小",
@@ -3108,14 +3108,14 @@ links:[]},
 ["基盤","Azure (Microsoft管理)","AWS","任意のクラウド/オンプレ","任意のクラウド/オンプレ"],
 ["M365統合","ネイティブ(最適化済み)","追加設定必要(AD Connector)","追加設定必要","追加設定必要"],
 ["管理ツール","Intune(統一)","AWSコンソール(別管理)","Citrix Cloud(別管理)","Horizon Console(別管理)"],
-["マルチセッション","AVD対応(Windows Multi-session)","非対応","対応(別ライセンス)","対応(別ライセンス)"],
-["固定月額","W365対応","Core/Standard","なし(従量のみ)","なし(従量のみ)"],
+["マルチセッション","AVD対応(Windows Multi-session)","Pools(プール型)で対応","対応(別ライセンス)","対応(別ライセンス)"],
+["固定月額","W365対応(コンピュート込み)","月額/時間単価選択","ライセンス定額+基盤従量","ライセンス定額+基盤従量"],
 ["Frontline(1:3)","対応","なし","なし","なし"],
 ["認証統合","Entra ID + CA直結","AD Connector経由","SAML/AD連携","SAML/AD連携"],
 ["デバイス管理","Intune一元管理","別途MDM必要","別途MDM必要","別途MDM必要"],
 ["セキュリティ","Defender/CA/ID Protection統合","GuardDuty(別)","NetScaler(別ライセンス)","Carbon Black(別)"],
 ["日本リージョン","東日本/西日本","東京/大阪","顧客選択","顧客選択"],
-["SLA","99.9%(W365)","99.9%","SLAなし(サービスレベル目標)","SLAなし"],
+["SLA","99.9%(W365)","99.9%","99.5%(Control Plane)","基盤依存(Azure SLA等)"],
 ["ライセンス複雑さ","シンプル(M365に統合)","シンプル","複雑(コンポーネント別)","複雑(Horizon/VMC/SDDC別)"],
 ["GPU","W365 GPU SKU/AVD NVシリーズ","NICE DCV対応","対応","対応"],
 ["初期費用","なし(月額のみ)","なし","なし(ただしライセンス)","なし(ただしライセンス)"]]},
@@ -3139,7 +3139,7 @@ links:[]},
 "「VMware依存からの脱却=Microsoft DaaSへの移行がトレンド」",
 "「AVD/W365なら追加のハイパーバイザーライセンス不要」",
 "「Horizon Cloudの将来に不確実性→Microsoft DaaSは安定的な投資」",
-"「Tanzu Labs→AVD移行の事例が増加中」",
+"「Horizon Cloud→AVD移行の事例が増加中」",
 "注意: VMwareが強い領域=既存vSphere環境、オンプレVDI統合"]}]},
 {type:"table",title:"ライセンスコスト比較 — DaaS製品別の年間費用(100名)",icon:"💰",headers:["コスト項目","W365+M365","AVD+M365","WorkSpaces","Citrix DaaS+Azure"],rows:[
 ["DaaSライセンス","¥9,216,000/年","Azure VM費用(変動)","¥7,200,000/年","AVD費用+Citrix ¥5-8M/年"],
@@ -3377,7 +3377,7 @@ const Q=[
 
 // ── 選択式: 専門知識（10問）──
 {id:"q11",cat:"専門（選択式）",type:"choice",q:"W365 Enterpriseの前提ライセンスとして正しいものは？",
- choices:["不要（単体購入可）","M365 E3/E5/F3のいずれか","Azure サブスクリプション","Windows Server CAL"],answer:1,h:"Enterprise=M365 E3/E5/F1/F3/Business Premium。Businessは前提不要"},
+ choices:["不要（単体購入可）","M365 E3/E5/F3のいずれか","Azure サブスクリプション","Windows Server CAL"],answer:1,h:"Enterprise=M365 E3/E5/F3/A3/A5/Business Premium。Businessは前提不要"},
 {id:"q12",cat:"専門（選択式）",type:"choice",q:"W365 Frontlineで1ライセンスあたり利用できるユーザー数は？",
  choices:["1名","2名","3名","5名"],answer:2,h:"Frontline=1ライセンスで最大3ユーザー（同時利用は1名のみ）"},
 {id:"q13",cat:"専門（選択式）",type:"choice",q:"W365のMHN（Microsoft Hosted Network）について正しいものは？",
