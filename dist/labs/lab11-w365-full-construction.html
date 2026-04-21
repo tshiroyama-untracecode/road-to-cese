@@ -1,0 +1,1167 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lab 11: Windows 365 構築完全ガイド（M365 → Entra ID → Intune）</title>
+<style>
+:root{--bg:#1e1e1e;--panel:#252526;--sidebar-bg:#333333;--border:#3e3e3e;--fg:#cccccc;--fg-bright:#ffffff;--fg-muted:#858585;--blue:#0078D4;--blue-hover:#1a8ad4;--blue-bg:rgba(0,120,212,.12);--green:#107C10;--green-bg:rgba(16,124,16,.15);--yellow:#FFB900;--yellow-bg:rgba(255,185,0,.12);--red:#D13438;--purple:#742774;--purple-bg:rgba(116,39,116,.15);--input-bg:#3c3c3c;--input-border:#555;--breadcrumb:#858585;--selected-bg:rgba(0,120,212,.15);}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:"Segoe UI","Meiryo UI",system-ui,sans-serif;background:#09090b;color:#a1a1a1;line-height:1.5;}
+
+.lab-layout{display:flex;height:100vh;}
+
+/* Left: Instructions */
+.instructions{width:420px;background:#18181b;border-right:1px solid #27272a;display:flex;flex-direction:column;flex-shrink:0;}
+.inst-header{padding:16px 20px;border-bottom:1px solid #27272a;background:#09090b;}
+.inst-header h1{font-size:15px;color:#fff;font-weight:600;}
+.inst-header .lab-badge{display:inline-block;background:var(--blue-bg);color:var(--blue);font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;margin-left:8px;}
+.inst-body{flex:1;overflow-y:auto;padding:20px;}
+.inst-body h2{font-size:18px;color:#fff;margin-bottom:6px;}
+.inst-body .subtitle{font-size:13px;color:#858585;margin-bottom:16px;}
+
+/* Phase sections */
+.phase-section{margin:16px 0 8px;padding:8px 12px;border-radius:6px;font-size:11px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;}
+.phase-1{background:rgba(0,120,212,.12);color:var(--blue);}
+.phase-2{background:rgba(116,39,116,.15);color:#b27fb2;}
+.phase-3{background:rgba(16,124,16,.15);color:#4caf50;}
+.phase-4{background:rgba(255,185,0,.12);color:var(--yellow);}
+
+/* Steps */
+.step{padding:14px 16px;margin-bottom:8px;border-radius:8px;border:1px solid #27272a;cursor:pointer;transition:all .15s;position:relative;}
+.step:hover{border-color:#3f3f46;}
+.step.active{border-color:var(--blue);background:var(--blue-bg);}
+.step.completed{border-color:rgba(16,124,16,.5);background:var(--green-bg);}
+.step-num{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;font-size:11px;font-weight:700;margin-right:8px;flex-shrink:0;}
+.step:not(.completed) .step-num{background:#27272a;color:#a1a1a1;}
+.step.completed .step-num{background:var(--green);color:#fff;}
+.step-title{font-size:13px;font-weight:600;color:#e4e4e7;}
+.step-portal{display:inline-block;font-size:9px;padding:1px 6px;border-radius:8px;margin-left:4px;font-weight:700;}
+.portal-m365{background:rgba(213,68,104,.2);color:#ff6b9f;}
+.portal-entra{background:rgba(0,120,212,.2);color:#4fc3ff;}
+.portal-intune{background:rgba(116,39,116,.2);color:#b27fb2;}
+.portal-azure{background:rgba(0,139,139,.2);color:#4fd4d4;}
+.step-desc{font-size:12px;color:#858585;margin-top:4px;margin-left:30px;}
+.step-hint{display:none;margin-top:8px;margin-left:30px;padding:8px 12px;background:rgba(255,185,0,.08);border:1px solid rgba(255,185,0,.2);border-radius:6px;font-size:11px;color:var(--yellow);line-height:1.6;}
+.step.active .step-hint{display:block;}
+
+.progress-bar{margin:16px 0;height:4px;background:#27272a;border-radius:2px;overflow:hidden;}
+.progress-fill{height:100%;background:var(--green);transition:width .3s;border-radius:2px;}
+
+.completion{display:none;text-align:center;padding:24px;background:var(--green-bg);border:1px solid rgba(16,124,16,.3);border-radius:12px;margin-top:16px;}
+.completion.show{display:block;}
+.completion h3{color:var(--green);font-size:16px;margin-bottom:4px;}
+.completion p{font-size:12px;color:#a1a1a1;}
+
+/* Right: Simulator */
+.simulator{flex:1;display:flex;flex-direction:column;background:var(--bg);}
+
+/* Portal switcher tabs */
+.portal-tabs{display:flex;background:#0d0d10;border-bottom:1px solid var(--border);padding:0;flex-shrink:0;}
+.portal-tab{padding:10px 18px;font-size:12px;font-weight:600;color:var(--fg-muted);cursor:pointer;border-right:1px solid var(--border);transition:all .15s;background:transparent;border-top:none;border-bottom:2px solid transparent;border-left:none;font-family:inherit;}
+.portal-tab:hover{background:rgba(255,255,255,.03);color:var(--fg);}
+.portal-tab.active{background:var(--bg);color:var(--fg-bright);border-bottom-color:var(--blue);}
+.portal-tab .dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;}
+.portal-tab .dot.m365{background:#d54468;}
+.portal-tab .dot.entra{background:var(--blue);}
+.portal-tab .dot.intune{background:var(--purple);}
+
+/* Azure-like top bar */
+.azure-bar{display:flex;align-items:center;padding:8px 16px;background:#1b1b1f;border-bottom:1px solid var(--border);gap:12px;}
+.azure-bar .az-logo{font-size:14px;font-weight:700;color:var(--blue);}
+.azure-bar.m365-bar .az-logo{color:#d54468;}
+.azure-bar.intune-bar .az-logo{color:var(--purple);}
+.azure-bar .az-search{flex:1;max-width:400px;padding:6px 12px;background:var(--input-bg);border:1px solid var(--input-border);border-radius:4px;color:var(--fg);font-size:12px;font-family:inherit;}
+.azure-bar .az-icons{margin-left:auto;display:flex;gap:12px;font-size:14px;color:var(--fg-muted);}
+.azure-bar .az-user{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--fg);}
+.azure-bar .az-avatar{width:24px;height:24px;border-radius:50%;background:var(--blue);color:#fff;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;}
+
+.azure-content{flex:1;display:flex;overflow:hidden;}
+
+.az-sidebar{width:240px;background:var(--sidebar-bg);border-right:1px solid var(--border);overflow-y:auto;padding:8px 0;}
+.az-nav-item{padding:8px 16px;font-size:12px;color:var(--fg);cursor:pointer;display:flex;align-items:center;gap:8px;transition:background .1s;}
+.az-nav-item:hover{background:rgba(255,255,255,.05);}
+.az-nav-item.active{background:var(--selected-bg);color:var(--blue);font-weight:600;border-left:2px solid var(--blue);}
+.az-nav-item .nav-icon{font-size:14px;width:20px;text-align:center;}
+.az-nav-sub{padding:6px 16px 6px 40px;font-size:11px;color:var(--fg-muted);cursor:pointer;}
+.az-nav-sub:hover{background:rgba(255,255,255,.05);color:var(--fg);}
+.az-nav-sub.active{color:var(--blue);font-weight:600;}
+.az-nav-section{padding:8px 16px 4px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--fg-muted);}
+
+.az-main{flex:1;overflow-y:auto;background:var(--bg);}
+.az-breadcrumb{padding:12px 24px;font-size:12px;color:var(--breadcrumb);}
+.az-breadcrumb a{color:var(--blue);text-decoration:none;}
+.az-page-header{padding:0 24px 16px;border-bottom:1px solid var(--border);}
+.az-page-header h2{font-size:20px;color:var(--fg-bright);font-weight:600;}
+.az-page-header .desc{font-size:13px;color:var(--fg-muted);margin-top:2px;}
+.az-toolbar{padding:10px 24px;display:flex;gap:8px;border-bottom:1px solid var(--border);flex-wrap:wrap;}
+.az-btn{padding:6px 14px;border-radius:4px;font-size:12px;font-family:inherit;cursor:pointer;border:1px solid var(--border);background:transparent;color:var(--fg);display:inline-flex;align-items:center;gap:6px;transition:all .12s;}
+.az-btn:hover{background:rgba(255,255,255,.05);}
+.az-btn.primary{background:var(--blue);color:#fff;border-color:var(--blue);}
+.az-btn.primary:hover{background:var(--blue-hover);}
+.az-btn.highlight{animation:pulse 1.5s infinite;}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(0,120,212,.4);}50%{box-shadow:0 0 0 6px rgba(0,120,212,0);}}
+
+.az-table{width:100%;border-collapse:collapse;font-size:12px;}
+.az-table th{text-align:left;padding:10px 24px;color:var(--fg-muted);font-weight:600;border-bottom:1px solid var(--border);background:rgba(255,255,255,.02);}
+.az-table td{padding:10px 24px;border-bottom:1px solid var(--border);color:var(--fg);}
+.az-table tr:hover{background:rgba(255,255,255,.03);}
+.az-table .link{color:var(--blue);cursor:pointer;}
+.az-table .status-ok{color:var(--green);font-weight:600;}
+.az-table .status-new{color:var(--yellow);font-weight:600;}
+
+/* Form panel */
+.form-panel{position:absolute;top:0;right:0;width:500px;height:100%;background:var(--panel);border-left:1px solid var(--border);z-index:10;display:none;flex-direction:column;box-shadow:-4px 0 16px rgba(0,0,0,.3);}
+.form-panel.open{display:flex;}
+.form-header{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.form-header h3{font-size:16px;color:var(--fg-bright);}
+.form-close{background:none;border:none;color:var(--fg-muted);font-size:18px;cursor:pointer;}
+.form-tabs{display:flex;border-bottom:1px solid var(--border);padding:0 20px;overflow-x:auto;}
+.form-tab{padding:10px 16px;font-size:12px;color:var(--fg-muted);cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;transition:all .12s;}
+.form-tab.active{color:var(--fg-bright);border-bottom-color:var(--blue);}
+.form-tab.completed{color:var(--green);}
+.form-tab.completed::before{content:"✓ ";}
+.form-body{flex:1;overflow-y:auto;padding:20px;}
+.form-tab-content{display:none;}
+.form-tab-content.active{display:block;}
+.form-group{margin-bottom:16px;}
+.form-group label{display:block;font-size:12px;font-weight:600;color:var(--fg);margin-bottom:4px;}
+.form-group label .required{color:var(--red);}
+.form-input{width:100%;padding:8px 12px;background:var(--input-bg);border:1px solid var(--input-border);border-radius:4px;color:var(--fg-bright);font-size:13px;font-family:inherit;}
+.form-input:focus{outline:none;border-color:var(--blue);}
+.form-select{width:100%;padding:8px 12px;background:var(--input-bg);border:1px solid var(--input-border);border-radius:4px;color:var(--fg-bright);font-size:13px;font-family:inherit;}
+.form-hint{font-size:11px;color:var(--fg-muted);margin-top:4px;line-height:1.5;}
+.form-radio-group{display:flex;flex-direction:column;gap:8px;margin-top:6px;}
+.form-radio{display:flex;align-items:flex-start;gap:8px;padding:10px 12px;background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:6px;cursor:pointer;}
+.form-radio:hover{background:rgba(255,255,255,.05);}
+.form-radio input{margin-top:2px;accent-color:var(--blue);}
+.form-radio .radio-label{font-size:13px;color:var(--fg-bright);font-weight:600;}
+.form-radio .radio-desc{font-size:11px;color:var(--fg-muted);margin-top:2px;}
+.form-footer{padding:12px 20px;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:space-between;}
+
+/* License page (M365 admin) */
+.lic-card{background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:8px;padding:16px;margin-bottom:12px;}
+.lic-card .lic-name{font-size:14px;font-weight:600;color:var(--fg-bright);margin-bottom:4px;}
+.lic-card .lic-desc{font-size:11px;color:var(--fg-muted);margin-bottom:8px;}
+.lic-card .lic-progress{height:6px;background:#27272a;border-radius:3px;overflow:hidden;margin-bottom:6px;}
+.lic-card .lic-progress-fill{height:100%;background:var(--blue);}
+.lic-card .lic-count{font-size:11px;color:var(--fg-muted);display:flex;justify-content:space-between;}
+
+/* Info boxes */
+.info-box{padding:10px 14px;background:rgba(0,120,212,.08);border:1px solid rgba(0,120,212,.2);border-radius:6px;margin:12px 24px;font-size:12px;color:var(--fg);line-height:1.6;}
+.info-box.warn{background:rgba(255,185,0,.08);border-color:rgba(255,185,0,.2);color:var(--yellow);}
+.info-box.success{background:rgba(16,124,16,.1);border-color:rgba(16,124,16,.3);color:var(--green);}
+
+/* Member picker */
+.member-section{margin-top:12px;padding:12px;background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:6px;max-height:220px;overflow-y:auto;}
+.member-item{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:4px;font-size:12px;color:var(--fg);}
+.member-item:hover{background:rgba(255,255,255,.05);}
+.member-item .m-avatar{width:24px;height:24px;border-radius:50%;background:var(--blue);color:#fff;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;}
+.member-item .m-check{margin-left:auto;}
+input[type=checkbox]{accent-color:var(--blue);}
+
+/* Toast */
+.toast{position:fixed;bottom:20px;right:20px;padding:12px 20px;background:var(--green);color:#fff;border-radius:8px;font-size:13px;font-weight:600;z-index:100;display:none;animation:slideUp .3s;max-width:400px;}
+.toast.show{display:block;}
+@keyframes slideUp{from{transform:translateY(20px);opacity:0;}to{transform:translateY(0);opacity:1;}}
+
+/* Provisioning animation */
+.prov-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(9,9,11,.92);z-index:200;display:none;align-items:center;justify-content:center;backdrop-filter:blur(4px);}
+.prov-overlay.show{display:flex;}
+.prov-card{width:520px;padding:32px;background:var(--panel);border:1px solid var(--border);border-radius:16px;text-align:center;}
+.prov-card h3{font-size:18px;color:var(--fg-bright);margin-bottom:8px;}
+.prov-spinner{width:48px;height:48px;margin:20px auto;border:4px solid #27272a;border-top-color:var(--blue);border-radius:50%;animation:spin 1s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.prov-status{font-size:13px;color:var(--fg-muted);margin-top:12px;text-align:left;}
+.prov-status div{padding:4px 0;}
+.prov-status .done{color:var(--green);}
+.prov-status .current{color:var(--blue);font-weight:600;}
+
+@media(max-width:1000px){.instructions{width:100%;position:fixed;bottom:0;height:42vh;z-index:20;border-top:1px solid #27272a;border-right:none;}.simulator{height:58vh;}.form-panel{width:100%;}}
+</style>
+</head>
+<body>
+
+<div class="lab-layout">
+  <!-- Instructions Panel -->
+  <div class="instructions">
+    <div class="inst-header">
+      <h1>Lab 11 <span class="lab-badge">完全ガイド</span></h1>
+    </div>
+    <div class="inst-body">
+      <a href="../index.html" style="display:inline-flex;align-items:center;gap:6px;padding:8px 16px;background:#0078D4;color:white;border-radius:6px;font-size:13px;font-weight:600;text-decoration:none;margin-bottom:12px;">← トレーニングに戻る</a>
+      <h2>Windows 365 構築完全ガイド</h2>
+      <p class="subtitle">M365 管理センター → Entra ID → Intune の全工程を体験。所要時間: 約30分</p>
+
+      <div style="margin:12px 0;padding:10px 14px;background:rgba(255,185,0,.1);border:1px solid rgba(255,185,0,.25);border-radius:8px;font-size:11px;color:#FFB900;line-height:1.5;">
+        ⚠️ これはシミュレーター（イメージラボ）です。実際の操作は <b>Microsoft 365 管理センター（admin.microsoft.com）</b>・<b>Entra ID 管理センター（entra.microsoft.com）</b>・<b>Intune 管理センター（intune.microsoft.com）</b> で試してみてください。
+      </div>
+
+      <div class="progress-bar"><div class="progress-fill" id="labProgress" style="width:0%"></div></div>
+
+      <!-- Phase 1: M365 Admin Center -->
+      <div class="phase-section phase-1">Phase 1: M365 管理センター（ライセンス）</div>
+
+      <div class="step active" id="step1" onclick="goStep(1)">
+        <span class="step-num">1</span>
+        <span class="step-title">ライセンス購入状況を確認</span>
+        <span class="step-portal portal-m365">M365 Admin</span>
+        <div class="step-desc">M365管理センターで W365 Enterprise ライセンスの在庫を確認</div>
+        <div class="step-hint">💡 左メニュー「課金情報」→「ライセンス」をクリックして、Windows 365 Enterprise ライセンスが何個購入されているか確認します。実環境では未購入の場合はここで購入します。</div>
+      </div>
+
+      <div class="step" id="step2" onclick="goStep(2)">
+        <span class="step-num">2</span>
+        <span class="step-title">ユーザーにライセンスを割り当て</span>
+        <span class="step-portal portal-m365">M365 Admin</span>
+        <div class="step-desc">対象ユーザーに M365 E3 + W365 Enterprise ライセンスを付与</div>
+        <div class="step-hint">💡 「ユーザー」→「アクティブなユーザー」→対象ユーザー選択→「ライセンスとアプリ」タブ→M365 E3（前提）と Windows 365 Enterprise にチェック→「変更の保存」。W365 Enterprise には M365 E3/E5/F3/A3/A5/Business Premium のいずれかが必要です。</div>
+      </div>
+
+      <!-- Phase 2: Entra ID -->
+      <div class="phase-section phase-2">Phase 2: Entra ID（グループ作成）</div>
+
+      <div class="step" id="step3" onclick="goStep(3)">
+        <span class="step-num">3</span>
+        <span class="step-title">Entra 管理センターに移動</span>
+        <span class="step-portal portal-entra">Entra</span>
+        <div class="step-desc">上部のポータルタブで「Entra 管理センター」に切替</div>
+        <div class="step-hint">💡 実環境では entra.microsoft.com を新しいタブで開きます。このシミュレーターでは上部のタブで切替できます。</div>
+      </div>
+
+      <div class="step" id="step4" onclick="goStep(4)">
+        <span class="step-num">4</span>
+        <span class="step-title">W365 対象ユーザーのグループを作成</span>
+        <span class="step-portal portal-entra">Entra</span>
+        <div class="step-desc">セキュリティグループ「SG-W365-Users」を作成</div>
+        <div class="step-hint">💡 「グループ」→「新しいグループ」→グループの種類「セキュリティ」→名前「SG-W365-Users」→説明「Windows 365 利用者」→対象ユーザーをメンバーに追加→作成。このグループをプロビジョニングポリシーの対象に指定します。</div>
+      </div>
+
+      <!-- Phase 3: Intune -->
+      <div class="phase-section phase-3">Phase 3: Intune（プロビジョニング設定）</div>
+
+      <div class="step" id="step5" onclick="goStep(5)">
+        <span class="step-num">5</span>
+        <span class="step-title">Intune 管理センターに移動</span>
+        <span class="step-portal portal-intune">Intune</span>
+        <div class="step-desc">上部のポータルタブで「Intune 管理センター」に切替</div>
+        <div class="step-hint">💡 実環境では intune.microsoft.com を開きます。W365 設定は Intune 管理センター内にあります。</div>
+      </div>
+
+      <div class="step" id="step6" onclick="goStep(6)">
+        <span class="step-num">6</span>
+        <span class="step-title">デバイス → Windows 365 に移動</span>
+        <span class="step-portal portal-intune">Intune</span>
+        <div class="step-desc">左メニュー「デバイス」→「Windows 365」をクリック</div>
+        <div class="step-hint">💡 Windows 365 の管理画面が開きます。概要・Cloud PC 一覧・プロビジョニングポリシー・ユーザー設定・カスタムイメージ・Azure ネットワーク接続などのタブがあります。</div>
+      </div>
+
+      <div class="step" id="step7" onclick="goStep(7)">
+        <span class="step-num">7</span>
+        <span class="step-title">ネットワーク方式を確認（MHN or ANC）</span>
+        <span class="step-portal portal-intune">Intune</span>
+        <div class="step-desc">オンプレ接続不要なら MHN（Microsoft ホステッドネットワーク）推奨</div>
+        <div class="step-hint">💡 今回は MHN（Microsoft 管理の VNet）を選択します。オンプレ AD 連携や社内リソースアクセスが必要な場合のみ ANC（Azure Network Connection）を作成します。MHN なら Azure サブスクリプション不要です。</div>
+      </div>
+
+      <div class="step" id="step8" onclick="goStep(8)">
+        <span class="step-num">8</span>
+        <span class="step-title">プロビジョニングポリシー作成開始</span>
+        <span class="step-portal portal-intune">Intune</span>
+        <div class="step-desc">「プロビジョニングポリシー」タブ→「ポリシーの作成」</div>
+        <div class="step-hint">💡 Cloud PC を自動展開するためのポリシーです。参加タイプ・ネットワーク・イメージ・対象グループを設定します。</div>
+      </div>
+
+      <div class="step" id="step9" onclick="goStep(9)">
+        <span class="step-num">9</span>
+        <span class="step-title">基本設定: ポリシー名と参加タイプ</span>
+        <span class="step-portal portal-intune">Intune</span>
+        <div class="step-desc">名前「PP-Standard-4vCPU」、参加タイプ「Microsoft Entra 参加」</div>
+        <div class="step-hint">💡 名前は用途がわかる命名規則を推奨。参加タイプは通常「Microsoft Entra 参加」（クラウドオンリー）を選択。オンプレ AD 必須の場合は「ハイブリッド Microsoft Entra 参加」。</div>
+      </div>
+
+      <div class="step" id="step10" onclick="goStep(10)">
+        <span class="step-num">10</span>
+        <span class="step-title">ネットワーク「MHN」を選択</span>
+        <span class="step-portal portal-intune">Intune</span>
+        <div class="step-desc">地域「Japan East」、Microsoft ホステッドネットワークを選択</div>
+        <div class="step-hint">💡 地域は「Japan East（東日本）」を選択すると低遅延。MHN を選ぶと VNet 設計不要で、NSG/Firewall も全て Microsoft 管理になります。</div>
+      </div>
+
+      <div class="step" id="step11" onclick="goStep(11)">
+        <span class="step-num">11</span>
+        <span class="step-title">イメージを選択</span>
+        <span class="step-portal portal-intune">Intune</span>
+        <div class="step-desc">ギャラリーイメージ「Windows 11 Enterprise + Microsoft 365 Apps」を選択</div>
+        <div class="step-hint">💡 標準構成ならギャラリーイメージで十分です。社内アプリ込みのカスタムイメージを使う場合は事前に Azure Compute Gallery に登録が必要（Enterprise のみ対応、最大 20 個）。</div>
+      </div>
+
+      <div class="step" id="step12" onclick="goStep(12)">
+        <span class="step-num">12</span>
+        <span class="step-title">構成スクリプト・言語設定（任意）</span>
+        <span class="step-portal portal-intune">Intune</span>
+        <div class="step-desc">言語「日本語」、タイムゾーン「東京」を設定</div>
+        <div class="step-hint">💡 初期構成スクリプトの適用、言語パック、タイムゾーンを事前指定できます。後から Intune のポリシーで変更も可能です。</div>
+      </div>
+
+      <div class="step" id="step13" onclick="goStep(13)">
+        <span class="step-num">13</span>
+        <span class="step-title">対象グループを割り当て</span>
+        <span class="step-portal portal-intune">Intune</span>
+        <div class="step-desc">Phase 2 で作成した「SG-W365-Users」を選択</div>
+        <div class="step-hint">💡 このグループのメンバーに対して、W365 Enterprise ライセンスが割り当てられている場合に Cloud PC が自動プロビジョニングされます。</div>
+      </div>
+
+      <div class="step" id="step14" onclick="goStep(14)">
+        <span class="step-num">14</span>
+        <span class="step-title">確認画面で設定を確認 → 作成</span>
+        <span class="step-portal portal-intune">Intune</span>
+        <div class="step-desc">全設定を確認し「作成」ボタンをクリック</div>
+        <div class="step-hint">💡 ライセンス割当済みのユーザーに対して、ポリシー作成後 30 分〜1 時間で Cloud PC が自動プロビジョニングされます。</div>
+      </div>
+
+      <!-- Phase 4: Verification -->
+      <div class="phase-section phase-4">Phase 4: 展開確認</div>
+
+      <div class="step" id="step15" onclick="goStep(15)">
+        <span class="step-num">15</span>
+        <span class="step-title">Cloud PC 一覧で展開状況を確認</span>
+        <span class="step-portal portal-intune">Intune</span>
+        <div class="step-desc">「すべての Cloud PC」タブで「プロビジョニング済み」を確認</div>
+        <div class="step-hint">💡 プロビジョニング中→プロビジョニング済みに変わります。ユーザーは windows365.microsoft.com からアクセス可能になります。</div>
+      </div>
+
+      <div class="step" id="step16" onclick="goStep(16)">
+        <span class="step-num">16</span>
+        <span class="step-title">ユーザーに接続方法を案内</span>
+        <span class="step-portal portal-intune">Intune</span>
+        <div class="step-desc">Web版・Windows App・W365 Boot の3方式を説明</div>
+        <div class="step-hint">💡 <b>Web版:</b> windows365.microsoft.com（ブラウザ完結、最も簡単）<br><b>Windows App:</b> Microsoft Store から入手（最高品質、推奨）<br><b>W365 Boot:</b> Windows 11 でログイン直後から Cloud PC（最新機能）</div>
+      </div>
+
+      <div class="completion" id="completion">
+        <h3>🎉 Lab 11 完了！</h3>
+        <p>M365 管理センター → Entra → Intune の全工程で Windows 365 を構築しました。<br>これで顧客への構築支援ができます！</p>
+        <p style="margin-top:12px;"><a href="../index.html" style="display:inline-flex;align-items:center;gap:6px;padding:10px 20px;background:#0078D4;color:white;border-radius:8px;font-size:14px;font-weight:600;text-decoration:none;margin-top:8px;">← トレーニングに戻る</a></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Simulator -->
+  <div class="simulator" style="position:relative;">
+    <!-- Portal Switcher Tabs -->
+    <div class="portal-tabs">
+      <button class="portal-tab active" id="tab-m365" onclick="switchPortal('m365')"><span class="dot m365"></span>Microsoft 365 管理センター</button>
+      <button class="portal-tab" id="tab-entra" onclick="switchPortal('entra')"><span class="dot entra"></span>Entra 管理センター</button>
+      <button class="portal-tab" id="tab-intune" onclick="switchPortal('intune')"><span class="dot intune"></span>Intune 管理センター</button>
+    </div>
+
+    <!-- ===== M365 Admin Center ===== -->
+    <div id="portal-m365" style="flex:1;display:flex;flex-direction:column;overflow:hidden;">
+      <div class="azure-bar m365-bar">
+        <span class="az-logo">Microsoft 365 管理センター</span>
+        <input class="az-search" type="text" placeholder="🔍 検索" readonly>
+        <div class="az-icons">⚙️ 🔔 ❓</div>
+        <div class="az-user"><div class="az-avatar">A</div>admin@contoso.com</div>
+      </div>
+      <div class="azure-content">
+        <div class="az-sidebar">
+          <div class="az-nav-section">ホーム</div>
+          <div class="az-nav-item"><span class="nav-icon">🏠</span>ダッシュボード</div>
+          <div class="az-nav-section">ユーザー</div>
+          <div class="az-nav-item" id="navM365Users" onclick="clickM365Nav('users')"><span class="nav-icon">👤</span>アクティブなユーザー</div>
+          <div class="az-nav-item"><span class="nav-icon">👥</span>ゲストユーザー</div>
+          <div class="az-nav-section">課金情報</div>
+          <div class="az-nav-item" id="navM365Licenses" onclick="clickM365Nav('licenses')"><span class="nav-icon">🎫</span>ライセンス</div>
+          <div class="az-nav-item"><span class="nav-icon">💳</span>サブスクリプション</div>
+          <div class="az-nav-section">管理センター</div>
+          <div class="az-nav-item"><span class="nav-icon">☁️</span>Azure Active Directory</div>
+          <div class="az-nav-item"><span class="nav-icon">📱</span>Endpoint Manager</div>
+        </div>
+        <div class="az-main" id="m365Main">
+          <!-- Default: Dashboard -->
+          <div id="m365-dashboard">
+            <div class="az-breadcrumb">ホーム</div>
+            <div class="az-page-header">
+              <h2>Microsoft 365 管理センター</h2>
+              <div class="desc">contoso.onmicrosoft.com</div>
+            </div>
+            <div style="padding:24px;">
+              <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;">
+                <div style="padding:20px;background:var(--panel);border:1px solid var(--border);border-radius:8px;">
+                  <div style="font-size:24px;font-weight:700;color:var(--fg-bright);">285</div>
+                  <div style="font-size:12px;color:var(--fg-muted);">ユーザー</div>
+                </div>
+                <div style="padding:20px;background:var(--panel);border:1px solid var(--border);border-radius:8px;">
+                  <div style="font-size:24px;font-weight:700;color:var(--fg-bright);">12</div>
+                  <div style="font-size:12px;color:var(--fg-muted);">サブスクリプション</div>
+                </div>
+                <div style="padding:20px;background:var(--panel);border:1px solid var(--border);border-radius:8px;">
+                  <div style="font-size:24px;font-weight:700;color:var(--fg-bright);">98%</div>
+                  <div style="font-size:12px;color:var(--fg-muted);">サービス正常性</div>
+                </div>
+              </div>
+              <p style="margin-top:24px;font-size:13px;color:var(--fg-muted);">← 左メニューの<b style="color:var(--fg);">「ライセンス」</b>をクリックしてください</p>
+            </div>
+          </div>
+
+          <!-- Licenses page -->
+          <div id="m365-licenses" style="display:none;">
+            <div class="az-breadcrumb"><a href="#">ホーム</a> &gt; 課金情報 &gt; ライセンス</div>
+            <div class="az-page-header">
+              <h2>ライセンス</h2>
+              <div class="desc">組織で購入済みのライセンスを表示します</div>
+            </div>
+            <div style="padding:24px;">
+              <div class="lic-card">
+                <div class="lic-name">Microsoft 365 E3</div>
+                <div class="lic-desc">Office アプリ + Entra ID P1 + Intune + Defender P1（W365 前提ライセンス）</div>
+                <div class="lic-progress"><div class="lic-progress-fill" style="width:73%;"></div></div>
+                <div class="lic-count"><span>割当済み: 220</span><span>総数: 300</span></div>
+              </div>
+              <div class="lic-card" style="border-color:rgba(0,120,212,.4);">
+                <div class="lic-name">Windows 365 Enterprise 4vCPU/16GB/128GB</div>
+                <div class="lic-desc">Cloud PC (4 vCPU, 16 GB RAM, 128 GB ストレージ)</div>
+                <div class="lic-progress"><div class="lic-progress-fill" style="width:0%;" id="w365LicProgress"></div></div>
+                <div class="lic-count"><span>割当済み: <b id="w365LicAssigned">0</b></span><span>総数: 50</span></div>
+              </div>
+              <div class="lic-card">
+                <div class="lic-name">Microsoft 365 E5</div>
+                <div class="lic-desc">E3 + Defender P2 + Entra ID P2 + Purview 高度</div>
+                <div class="lic-progress"><div class="lic-progress-fill" style="width:40%;"></div></div>
+                <div class="lic-count"><span>割当済み: 20</span><span>総数: 50</span></div>
+              </div>
+              <p style="margin-top:20px;font-size:13px;color:var(--fg-muted);">Windows 365 Enterprise ライセンスが 50 個購入されています。<br>← 左メニュー<b style="color:var(--fg);">「アクティブなユーザー」</b>に移動してライセンスを割り当てます。</p>
+            </div>
+          </div>
+
+          <!-- Users page -->
+          <div id="m365-users" style="display:none;">
+            <div class="az-breadcrumb"><a href="#">ホーム</a> &gt; ユーザー &gt; アクティブなユーザー</div>
+            <div class="az-page-header">
+              <h2>アクティブなユーザー</h2>
+            </div>
+            <div class="az-toolbar">
+              <button class="az-btn primary" id="btnAssignLic" onclick="openLicenseDialog()">✎ ライセンスの管理</button>
+              <button class="az-btn">+ ユーザーの追加</button>
+              <button class="az-btn">🔄 更新</button>
+            </div>
+            <table class="az-table">
+              <thead><tr><th>☐</th><th>表示名</th><th>ユーザー名</th><th>ライセンス</th><th>最終サインイン</th></tr></thead>
+              <tbody id="m365UsersTable">
+                <tr><td>☑</td><td class="link">田中 太郎</td><td>tanaka@contoso.com</td><td>M365 E3</td><td>2 時間前</td></tr>
+                <tr><td>☑</td><td class="link">佐藤 花子</td><td>sato@contoso.com</td><td>M365 E3</td><td>昨日</td></tr>
+                <tr><td>☑</td><td class="link">鈴木 一郎</td><td>suzuki@contoso.com</td><td>M365 E3</td><td>今日</td></tr>
+                <tr><td>☐</td><td class="link">高橋 美咲</td><td>takahashi@contoso.com</td><td>M365 E3</td><td>今日</td></tr>
+                <tr><td>☐</td><td class="link">渡辺 健太</td><td>watanabe@contoso.com</td><td>M365 F3</td><td>30 分前</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- License Dialog -->
+        <div class="form-panel" id="licensePanel">
+          <div class="form-header">
+            <h3>ライセンスの管理 (3名選択中)</h3>
+            <button class="form-close" onclick="document.getElementById('licensePanel').classList.remove('open');">×</button>
+          </div>
+          <div class="form-body">
+            <p style="font-size:12px;color:var(--fg-muted);margin-bottom:16px;">選択したユーザーに付与または削除するライセンスを選んでください。</p>
+            <div class="form-group">
+              <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+                <input type="checkbox" checked disabled>
+                <span>Microsoft 365 E3（前提ライセンス・付与済み）</span>
+              </label>
+              <div class="form-hint">W365 Enterprise には M365 E3/E5/F3 等のいずれかが必要です。</div>
+            </div>
+            <div class="form-group">
+              <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-weight:700;">
+                <input type="checkbox" id="chkW365Lic" onchange="checkStep2()">
+                <span style="color:var(--blue);">Windows 365 Enterprise 4vCPU/16GB/128GB</span>
+              </label>
+              <div class="form-hint">このチェックで W365 ライセンスを付与します。ポリシー作成後に Cloud PC が自動展開されます。</div>
+            </div>
+            <div class="form-group">
+              <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+                <input type="checkbox">
+                <span>Microsoft Defender for Endpoint Plan 2</span>
+              </label>
+            </div>
+            <div class="info-box">
+              💡 <b>ヒント:</b> W365 Enterprise ライセンスにチェックを入れて「変更の保存」をクリックします。
+            </div>
+          </div>
+          <div class="form-footer">
+            <button class="az-btn primary" onclick="saveLicense()">変更の保存</button>
+            <button class="az-btn" onclick="document.getElementById('licensePanel').classList.remove('open');">キャンセル</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== Entra Admin Center ===== -->
+    <div id="portal-entra" style="flex:1;display:none;flex-direction:column;overflow:hidden;">
+      <div class="azure-bar">
+        <span class="az-logo">Microsoft Entra 管理センター</span>
+        <input class="az-search" type="text" placeholder="🔍 検索" readonly>
+        <div class="az-icons">⚙️ 🔔 ❓</div>
+        <div class="az-user"><div class="az-avatar">A</div>admin@contoso.com</div>
+      </div>
+      <div class="azure-content">
+        <div class="az-sidebar">
+          <div class="az-nav-section">ID</div>
+          <div class="az-nav-item"><span class="nav-icon">🏠</span>概要</div>
+          <div class="az-nav-item"><span class="nav-icon">👤</span>ユーザー</div>
+          <div class="az-nav-item active" id="navEntraGroups" onclick="clickEntraNav('groups')"><span class="nav-icon">👥</span>グループ</div>
+          <div class="az-nav-item"><span class="nav-icon">📱</span>デバイス</div>
+          <div class="az-nav-section">保護</div>
+          <div class="az-nav-item"><span class="nav-icon">🛡️</span>条件付きアクセス</div>
+          <div class="az-nav-item"><span class="nav-icon">🔐</span>認証方法</div>
+        </div>
+        <div class="az-main">
+          <div id="entra-groups">
+            <div class="az-breadcrumb"><a href="#">ホーム</a> &gt; グループ &gt; すべてのグループ</div>
+            <div class="az-page-header"><h2>すべてのグループ</h2></div>
+            <div class="az-toolbar">
+              <button class="az-btn primary" id="btnNewGroup" onclick="openGroupDialog()">+ 新しいグループ</button>
+              <button class="az-btn">🔄 更新</button>
+            </div>
+            <table class="az-table" id="entraGroupTable">
+              <thead><tr><th>表示名</th><th>種類</th><th>メンバーシップ</th><th>メンバー数</th></tr></thead>
+              <tbody>
+                <tr><td class="link">All Company</td><td>Microsoft 365</td><td>動的</td><td>285</td></tr>
+                <tr><td class="link">IT-Admins</td><td>セキュリティ</td><td>割当済み</td><td>3</td></tr>
+                <tr><td class="link">営業部</td><td>セキュリティ</td><td>動的</td><td>47</td></tr>
+                <tr><td class="link">工場スタッフ</td><td>セキュリティ</td><td>割当済み</td><td>200</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Group Dialog -->
+        <div class="form-panel" id="groupPanel">
+          <div class="form-header">
+            <h3>新しいグループ</h3>
+            <button class="form-close" onclick="document.getElementById('groupPanel').classList.remove('open');">×</button>
+          </div>
+          <div class="form-body">
+            <div class="form-group">
+              <label>グループの種類 <span class="required">*</span></label>
+              <select class="form-select" id="groupType">
+                <option value="">選択してください</option>
+                <option value="security" selected>セキュリティ</option>
+                <option value="m365">Microsoft 365</option>
+              </select>
+              <div class="form-hint">W365 プロビジョニングポリシーの対象にはセキュリティグループを使用します。</div>
+            </div>
+            <div class="form-group">
+              <label>グループ名 <span class="required">*</span></label>
+              <input class="form-input" id="groupName" type="text" placeholder="SG-W365-Users" oninput="checkStep4()">
+              <div class="form-hint">推奨命名規則: SG-[用途]-[対象]。例: SG-W365-Users</div>
+            </div>
+            <div class="form-group">
+              <label>グループの説明</label>
+              <input class="form-input" id="groupDesc" type="text" placeholder="Windows 365 利用者グループ">
+            </div>
+            <div class="form-group">
+              <label>メンバーシップの種類</label>
+              <select class="form-select">
+                <option>割り当て済み（手動管理）</option>
+                <option>動的ユーザー（ルールベース）</option>
+              </select>
+              <div class="form-hint">割当済み: 手動でメンバー追加。動的: 部門等のルールで自動追加。</div>
+            </div>
+            <div class="form-group">
+              <label>メンバー</label>
+              <div class="member-section">
+                <div class="member-item"><div class="m-avatar">田</div>田中 太郎<span class="m-check"><input type="checkbox" checked></span></div>
+                <div class="member-item"><div class="m-avatar">佐</div>佐藤 花子<span class="m-check"><input type="checkbox" checked></span></div>
+                <div class="member-item"><div class="m-avatar">鈴</div>鈴木 一郎<span class="m-check"><input type="checkbox" checked></span></div>
+                <div class="member-item"><div class="m-avatar">高</div>高橋 美咲<span class="m-check"></span></div>
+                <div class="member-item"><div class="m-avatar">渡</div>渡辺 健太<span class="m-check"></span></div>
+              </div>
+            </div>
+          </div>
+          <div class="form-footer">
+            <button class="az-btn primary" onclick="createGroup()">作成</button>
+            <button class="az-btn" onclick="document.getElementById('groupPanel').classList.remove('open');">キャンセル</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== Intune Admin Center ===== -->
+    <div id="portal-intune" style="flex:1;display:none;flex-direction:column;overflow:hidden;">
+      <div class="azure-bar intune-bar">
+        <span class="az-logo">Microsoft Intune 管理センター</span>
+        <input class="az-search" type="text" placeholder="🔍 検索" readonly>
+        <div class="az-icons">⚙️ 🔔 ❓</div>
+        <div class="az-user"><div class="az-avatar">A</div>admin@contoso.com</div>
+      </div>
+      <div class="azure-content">
+        <div class="az-sidebar">
+          <div class="az-nav-item"><span class="nav-icon">🏠</span>ホーム</div>
+          <div class="az-nav-item" id="navIntuneDevices" onclick="clickIntuneNav('devices')"><span class="nav-icon">💻</span>デバイス</div>
+          <div class="az-nav-sub" id="navIntuneW365" onclick="clickIntuneNav('w365')" style="display:none;">Windows 365</div>
+          <div class="az-nav-sub" style="display:none;" id="navSubCompliance">コンプライアンス</div>
+          <div class="az-nav-item"><span class="nav-icon">📦</span>アプリ</div>
+          <div class="az-nav-item"><span class="nav-icon">🛡️</span>エンドポイント セキュリティ</div>
+          <div class="az-nav-item"><span class="nav-icon">📊</span>レポート</div>
+          <div class="az-nav-item"><span class="nav-icon">⚙️</span>テナント管理</div>
+        </div>
+        <div class="az-main" id="intuneMain">
+          <!-- Default: Devices overview -->
+          <div id="intune-home">
+            <div class="az-breadcrumb">ホーム</div>
+            <div class="az-page-header"><h2>Microsoft Intune 管理センター</h2></div>
+            <div class="info-box" style="margin:24px;">
+              ← 左メニュー<b>「デバイス」</b>をクリック → <b>「Windows 365」</b>に進んでください
+            </div>
+          </div>
+
+          <!-- W365 main page -->
+          <div id="intune-w365" style="display:none;">
+            <div class="az-breadcrumb"><a href="#">ホーム</a> &gt; デバイス &gt; Windows 365</div>
+            <div class="az-page-header"><h2>Windows 365</h2><div class="desc">Cloud PC のプロビジョニングと管理</div></div>
+            <div style="padding:0 24px;border-bottom:1px solid var(--border);">
+              <div style="display:flex;gap:0;">
+                <button onclick="clickW365Tab('overview')" class="w365-tab active" style="padding:10px 16px;border:none;background:transparent;color:var(--fg-bright);font-size:13px;font-family:inherit;cursor:pointer;border-bottom:2px solid var(--blue);">概要</button>
+                <button onclick="clickW365Tab('cloudpcs')" class="w365-tab" style="padding:10px 16px;border:none;background:transparent;color:var(--fg-muted);font-size:13px;font-family:inherit;cursor:pointer;border-bottom:2px solid transparent;">すべての Cloud PC</button>
+                <button onclick="clickW365Tab('provpolicy')" class="w365-tab" style="padding:10px 16px;border:none;background:transparent;color:var(--fg-muted);font-size:13px;font-family:inherit;cursor:pointer;border-bottom:2px solid transparent;">プロビジョニングポリシー</button>
+                <button onclick="clickW365Tab('network')" class="w365-tab" style="padding:10px 16px;border:none;background:transparent;color:var(--fg-muted);font-size:13px;font-family:inherit;cursor:pointer;border-bottom:2px solid transparent;">Azure ネットワーク接続</button>
+                <button onclick="clickW365Tab('images')" class="w365-tab" style="padding:10px 16px;border:none;background:transparent;color:var(--fg-muted);font-size:13px;font-family:inherit;cursor:pointer;border-bottom:2px solid transparent;">カスタムイメージ</button>
+              </div>
+            </div>
+
+            <!-- Overview tab -->
+            <div id="w365-overview-tab" style="padding:24px;">
+              <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px;">
+                <div style="padding:16px;background:var(--panel);border:1px solid var(--border);border-radius:8px;"><div style="font-size:24px;font-weight:700;color:var(--fg-bright);" id="statProvisioned">45</div><div style="font-size:11px;color:var(--fg-muted);">プロビジョニング済み</div></div>
+                <div style="padding:16px;background:var(--panel);border:1px solid var(--border);border-radius:8px;"><div style="font-size:24px;font-weight:700;color:var(--yellow);" id="statInProgress">0</div><div style="font-size:11px;color:var(--fg-muted);">プロビジョニング中</div></div>
+                <div style="padding:16px;background:var(--panel);border:1px solid var(--border);border-radius:8px;"><div style="font-size:24px;font-weight:700;color:var(--red);">0</div><div style="font-size:11px;color:var(--fg-muted);">失敗</div></div>
+                <div style="padding:16px;background:var(--panel);border:1px solid var(--border);border-radius:8px;"><div style="font-size:24px;font-weight:700;color:var(--fg-bright);" id="statPolicy">2</div><div style="font-size:11px;color:var(--fg-muted);">プロビジョニングポリシー</div></div>
+              </div>
+              <div class="info-box">
+                💡 <b>次のステップ:</b> 「Azure ネットワーク接続」タブでネットワーク方式を確認 → 「プロビジョニングポリシー」で新しいポリシーを作成
+              </div>
+            </div>
+
+            <!-- Network tab -->
+            <div id="w365-network-tab" style="padding:24px;display:none;">
+              <h3 style="font-size:16px;color:var(--fg-bright);margin-bottom:12px;">ネットワーク接続オプション</h3>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+                <div style="padding:20px;background:rgba(0,120,212,.08);border:2px solid var(--blue);border-radius:8px;">
+                  <div style="font-size:15px;font-weight:700;color:var(--fg-bright);margin-bottom:4px;">🌐 Microsoft ホステッドネットワーク (MHN)</div>
+                  <div style="font-size:12px;color:var(--green);font-weight:700;margin-bottom:8px;">✓ 推奨 (本ラボで使用)</div>
+                  <ul style="font-size:12px;color:var(--fg-muted);padding-left:20px;line-height:1.8;">
+                    <li>Microsoft 管理の VNet</li>
+                    <li>Azure サブスクリプション不要</li>
+                    <li>NW 設計・NSG 不要</li>
+                    <li>セットアップ即時</li>
+                  </ul>
+                </div>
+                <div style="padding:20px;background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:8px;">
+                  <div style="font-size:15px;font-weight:700;color:var(--fg-bright);margin-bottom:4px;">🔗 Azure ネットワーク接続 (ANC)</div>
+                  <div style="font-size:12px;color:var(--fg-muted);margin-bottom:8px;">オンプレ AD 連携が必要な場合</div>
+                  <ul style="font-size:12px;color:var(--fg-muted);padding-left:20px;line-height:1.8;">
+                    <li>顧客の Azure VNet に接続</li>
+                    <li>オンプレリソースアクセス可</li>
+                    <li>Azure サブスク必要</li>
+                    <li>ヘルスチェック必要</li>
+                  </ul>
+                </div>
+              </div>
+              <div class="info-box success" style="margin:20px 0 0;">
+                ✓ 本ラボでは MHN を使用します。ステップ 8 に進んで「プロビジョニングポリシー」タブをクリックしてください。
+              </div>
+            </div>
+
+            <!-- Provisioning Policy tab -->
+            <div id="w365-provpolicy-tab" style="padding:0;display:none;">
+              <div class="az-toolbar">
+                <button class="az-btn primary" id="btnNewPolicy" onclick="openPolicyDialog()">+ ポリシーの作成</button>
+                <button class="az-btn">🔄 更新</button>
+              </div>
+              <table class="az-table" id="policyTable">
+                <thead><tr><th>名前</th><th>参加タイプ</th><th>ネットワーク</th><th>イメージ</th><th>対象グループ数</th><th>ステータス</th></tr></thead>
+                <tbody>
+                  <tr><td class="link">PP-Legacy-2vCPU</td><td>Microsoft Entra 参加</td><td>MHN</td><td>Win 11 Enterprise</td><td>1</td><td class="status-ok">●正常</td></tr>
+                  <tr><td class="link">PP-PowerUser-8vCPU</td><td>Microsoft Entra 参加</td><td>MHN</td><td>Win 11 + M365 Apps</td><td>1</td><td class="status-ok">●正常</td></tr>
+                </tbody>
+              </table>
+            </div>
+
+            <!-- All Cloud PCs tab -->
+            <div id="w365-cloudpcs-tab" style="padding:0;display:none;">
+              <div class="az-toolbar">
+                <button class="az-btn">🔄 更新</button>
+                <button class="az-btn">⬇️ エクスポート</button>
+              </div>
+              <table class="az-table" id="cloudPcTable">
+                <thead><tr><th>デバイス名</th><th>ユーザー</th><th>SKU</th><th>ステータス</th><th>プロビジョニング日</th></tr></thead>
+                <tbody id="cloudPcTbody">
+                  <tr><td class="link">CPC-tanaka-ABC1</td><td>tanaka@contoso.com</td><td>4c/16GB/128GB</td><td class="status-ok">●プロビジョニング済み</td><td>2026-03-15</td></tr>
+                  <tr><td class="link">CPC-sato-XYZ9</td><td>sato@contoso.com</td><td>4c/16GB/128GB</td><td class="status-ok">●プロビジョニング済み</td><td>2026-03-16</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Provisioning Policy Creation Dialog -->
+        <div class="form-panel" id="policyPanel" style="width:560px;">
+          <div class="form-header">
+            <h3>プロビジョニングポリシーの作成</h3>
+            <button class="form-close" onclick="document.getElementById('policyPanel').classList.remove('open');">×</button>
+          </div>
+          <div class="form-tabs">
+            <div class="form-tab active" id="formTab1" onclick="switchFormTab(1)">1. 基本</div>
+            <div class="form-tab" id="formTab2" onclick="switchFormTab(2)">2. イメージ</div>
+            <div class="form-tab" id="formTab3" onclick="switchFormTab(3)">3. 構成</div>
+            <div class="form-tab" id="formTab4" onclick="switchFormTab(4)">4. 割り当て</div>
+            <div class="form-tab" id="formTab5" onclick="switchFormTab(5)">5. 確認</div>
+          </div>
+          <div class="form-body">
+            <!-- Tab 1: Basic -->
+            <div class="form-tab-content active" id="formContent1">
+              <div class="form-group">
+                <label>ポリシー名 <span class="required">*</span></label>
+                <input class="form-input" id="policyName" type="text" placeholder="PP-Standard-4vCPU" oninput="checkStep9()">
+              </div>
+              <div class="form-group">
+                <label>説明</label>
+                <input class="form-input" id="policyDesc" type="text" placeholder="標準構成 4vCPU/16GB">
+              </div>
+              <div class="form-group">
+                <label>参加タイプ <span class="required">*</span></label>
+                <div class="form-radio-group">
+                  <label class="form-radio">
+                    <input type="radio" name="joinType" value="entra" onchange="checkStep9()">
+                    <div><div class="radio-label">Microsoft Entra 参加</div><div class="radio-desc">クラウドのみ。オンプレ AD 不要。推奨。</div></div>
+                  </label>
+                  <label class="form-radio">
+                    <input type="radio" name="joinType" value="hybrid">
+                    <div><div class="radio-label">ハイブリッド Microsoft Entra 参加</div><div class="radio-desc">オンプレ AD DC への接続が必要。ANC も必須。</div></div>
+                  </label>
+                </div>
+              </div>
+              <div class="form-group">
+                <label>ネットワーク <span class="required">*</span></label>
+                <select class="form-select" id="policyNetwork" onchange="checkStep10()">
+                  <option value="">選択してください</option>
+                  <option value="mhn-japaneast">Microsoft ホステッドネットワーク - Japan East</option>
+                  <option value="mhn-west">Microsoft ホステッドネットワーク - Japan West</option>
+                  <option value="anc">既存の Azure ネットワーク接続を使用</option>
+                </select>
+                <div class="form-hint">MHN を選択すると VNet 設計不要。Japan East が低遅延で推奨。</div>
+              </div>
+            </div>
+
+            <!-- Tab 2: Image -->
+            <div class="form-tab-content" id="formContent2">
+              <div class="form-group">
+                <label>イメージタイプ <span class="required">*</span></label>
+                <div class="form-radio-group">
+                  <label class="form-radio">
+                    <input type="radio" name="imageType" value="gallery" checked onchange="checkStep11()">
+                    <div><div class="radio-label">ギャラリーイメージ</div><div class="radio-desc">Microsoft 提供の標準イメージ（推奨）</div></div>
+                  </label>
+                  <label class="form-radio">
+                    <input type="radio" name="imageType" value="custom">
+                    <div><div class="radio-label">カスタムイメージ</div><div class="radio-desc">Azure Compute Gallery のカスタムイメージ（事前登録必要）</div></div>
+                  </label>
+                </div>
+              </div>
+              <div class="form-group">
+                <label>ギャラリーイメージ <span class="required">*</span></label>
+                <select class="form-select" id="galleryImage" onchange="checkStep11()">
+                  <option value="">選択してください</option>
+                  <option value="win11-enterprise">Windows 11 Enterprise 24H2</option>
+                  <option value="win11-m365" selected>Windows 11 Enterprise + Microsoft 365 Apps 24H2 (推奨)</option>
+                  <option value="win11-m365-optimized">Windows 11 Enterprise + Microsoft 365 Apps 24H2 (最適化版)</option>
+                  <option value="win11-lang-ja">Windows 11 Enterprise (日本語) 24H2</option>
+                </select>
+                <div class="form-hint">推奨: Microsoft 365 Apps 込みのイメージを使うと展開後すぐに Office が利用可能。</div>
+              </div>
+            </div>
+
+            <!-- Tab 3: Configuration -->
+            <div class="form-tab-content" id="formContent3">
+              <div class="form-group">
+                <label>言語とリージョン設定</label>
+                <select class="form-select" id="policyLang" onchange="checkStep12()">
+                  <option value="">選択してください</option>
+                  <option value="ja-JP">日本語 (日本)</option>
+                  <option value="en-US">English (United States)</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>タイムゾーン</label>
+                <select class="form-select">
+                  <option>(UTC+09:00) 大阪、札幌、東京</option>
+                  <option>(UTC) 協定世界時</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>初期構成スクリプト</label>
+                <input class="form-input" type="text" placeholder="任意 - 初回ログイン時に実行されるスクリプト URL">
+                <div class="form-hint">Intune で後から構成プロファイルを配信することも可能です。</div>
+              </div>
+              <div class="form-group">
+                <label>単一サインオン</label>
+                <label style="display:flex;align-items:center;gap:8px;margin-top:8px;">
+                  <input type="checkbox" checked>
+                  <span style="font-size:13px;color:var(--fg);">SSO を有効化（推奨）</span>
+                </label>
+                <div class="form-hint">有効化すると Cloud PC 接続時に追加のサインイン不要。</div>
+              </div>
+            </div>
+
+            <!-- Tab 4: Assignment -->
+            <div class="form-tab-content" id="formContent4">
+              <div class="form-group">
+                <label>対象グループ <span class="required">*</span></label>
+                <div class="form-hint" style="margin-bottom:8px;">このグループのメンバーかつ W365 ライセンス割当済みのユーザーに Cloud PC が自動展開されます。</div>
+                <div class="member-section" style="max-height:260px;">
+                  <div class="member-item"><div class="m-avatar" style="background:var(--green);">G</div>All Company (285)<span class="m-check"><input type="checkbox"></span></div>
+                  <div class="member-item"><div class="m-avatar" style="background:var(--green);">G</div>IT-Admins (3)<span class="m-check"><input type="checkbox"></span></div>
+                  <div class="member-item" style="background:rgba(0,120,212,.08);"><div class="m-avatar" style="background:var(--blue);">G</div><b style="color:var(--blue);">SG-W365-Users (3) ★今回作成</b><span class="m-check"><input type="checkbox" id="chkTargetGroup" onchange="checkStep13()"></span></div>
+                  <div class="member-item"><div class="m-avatar" style="background:var(--green);">G</div>営業部 (47)<span class="m-check"><input type="checkbox"></span></div>
+                  <div class="member-item"><div class="m-avatar" style="background:var(--green);">G</div>工場スタッフ (200)<span class="m-check"><input type="checkbox"></span></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Tab 5: Review -->
+            <div class="form-tab-content" id="formContent5">
+              <h4 style="font-size:14px;color:var(--fg-bright);margin-bottom:12px;">設定内容の確認</h4>
+              <table style="width:100%;font-size:12px;">
+                <tr><td style="padding:6px 0;color:var(--fg-muted);">ポリシー名</td><td id="revName" style="color:var(--fg-bright);font-weight:600;">-</td></tr>
+                <tr><td style="padding:6px 0;color:var(--fg-muted);">参加タイプ</td><td id="revJoin" style="color:var(--fg-bright);">-</td></tr>
+                <tr><td style="padding:6px 0;color:var(--fg-muted);">ネットワーク</td><td id="revNetwork" style="color:var(--fg-bright);">-</td></tr>
+                <tr><td style="padding:6px 0;color:var(--fg-muted);">イメージ</td><td id="revImage" style="color:var(--fg-bright);">-</td></tr>
+                <tr><td style="padding:6px 0;color:var(--fg-muted);">言語</td><td id="revLang" style="color:var(--fg-bright);">-</td></tr>
+                <tr><td style="padding:6px 0;color:var(--fg-muted);">対象グループ</td><td id="revGroup" style="color:var(--fg-bright);">-</td></tr>
+              </table>
+              <div class="info-box" style="margin:20px 0 0;">
+                💡 「作成」をクリックすると、対象グループのユーザーに対して Cloud PC が自動プロビジョニングされます（30 分〜1 時間）。
+              </div>
+            </div>
+          </div>
+          <div class="form-footer">
+            <button class="az-btn" id="btnPrev" onclick="switchFormTab(currentFormTab - 1)">← 前へ</button>
+            <div style="display:flex;gap:8px;">
+              <button class="az-btn" onclick="document.getElementById('policyPanel').classList.remove('open');">キャンセル</button>
+              <button class="az-btn primary" id="btnNext" onclick="nextFormTab()">次へ →</button>
+              <button class="az-btn primary" id="btnCreate" style="display:none;" onclick="createPolicy()">作成</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="toast" id="toast">✅ 完了しました</div>
+
+    <!-- Provisioning animation -->
+    <div class="prov-overlay" id="provOverlay">
+      <div class="prov-card">
+        <h3>Cloud PC をプロビジョニング中...</h3>
+        <div class="prov-spinner"></div>
+        <div class="prov-status" id="provStatus">
+          <div class="current" id="prov1">⏳ プロビジョニングポリシーを適用中...</div>
+          <div id="prov2" style="color:#555;">⏳ Cloud PC VM を作成中...</div>
+          <div id="prov3" style="color:#555;">⏳ Entra ID 参加処理中...</div>
+          <div id="prov4" style="color:#555;">⏳ Intune 登録中...</div>
+          <div id="prov5" style="color:#555;">⏳ イメージとアプリを適用中...</div>
+          <div id="prov6" style="color:#555;">⏳ 完了確認中...</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+let currentStep = 1;
+const totalSteps = 16;
+let currentFormTab = 1;
+
+// ── Step control ──
+function goStep(n) { if (n > currentStep) return; updateStepUI(n); }
+function updateStepUI(n) {
+  document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+  document.getElementById(`step${n}`).classList.add('active');
+}
+function completeStep(n) {
+  const el = document.getElementById(`step${n}`);
+  el.classList.remove('active');
+  el.classList.add('completed');
+  if (n < totalSteps) {
+    currentStep = n + 1;
+    document.getElementById(`step${currentStep}`).classList.add('active');
+    document.getElementById(`step${currentStep}`).scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+  const pct = Math.round(n / totalSteps * 100);
+  document.getElementById('labProgress').style.width = pct + '%';
+  if (n === totalSteps) document.getElementById('completion').classList.add('show');
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+// ── Portal switching ──
+function switchPortal(portal) {
+  ['m365','entra','intune'].forEach(p => {
+    document.getElementById('tab-'+p).classList.toggle('active', p === portal);
+    document.getElementById('portal-'+p).style.display = (p === portal) ? 'flex' : 'none';
+  });
+  if (portal === 'entra' && currentStep === 3) completeStep(3);
+  if (portal === 'intune' && currentStep === 5) completeStep(5);
+}
+
+// ── M365 Navigation ──
+function clickM365Nav(target) {
+  document.querySelectorAll('#portal-m365 .az-nav-item').forEach(i => i.classList.remove('active'));
+  ['dashboard','licenses','users'].forEach(p => {
+    const el = document.getElementById('m365-'+p);
+    if (el) el.style.display = (p === target) ? 'block' : 'none';
+  });
+  if (target === 'licenses') {
+    document.getElementById('navM365Licenses').classList.add('active');
+    if (currentStep === 1) completeStep(1);
+  } else if (target === 'users') {
+    document.getElementById('navM365Users').classList.add('active');
+    if (currentStep === 2) {
+      setTimeout(() => document.getElementById('btnAssignLic').classList.add('highlight'), 500);
+    }
+  }
+}
+
+// ── License Dialog ──
+function openLicenseDialog() {
+  document.getElementById('licensePanel').classList.add('open');
+  document.getElementById('btnAssignLic').classList.remove('highlight');
+}
+function checkStep2() {/* enabled by checkbox */}
+function saveLicense() {
+  if (!document.getElementById('chkW365Lic').checked) {
+    alert('Windows 365 Enterprise ライセンスにチェックを入れてください');
+    return;
+  }
+  document.getElementById('licensePanel').classList.remove('open');
+  document.getElementById('w365LicAssigned').textContent = '3';
+  document.getElementById('w365LicProgress').style.width = '6%';
+  // Update user table
+  const tbody = document.getElementById('m365UsersTable');
+  tbody.querySelectorAll('tr').forEach((row, i) => {
+    if (i < 3) {
+      row.querySelector('td:nth-child(4)').innerHTML = 'M365 E3, <b style="color:#4fc3ff;">W365 Ent</b>';
+    }
+  });
+  showToast('✅ 3 名のユーザーに Windows 365 Enterprise ライセンスを割り当てました');
+  if (currentStep === 2) completeStep(2);
+}
+
+// ── Entra Navigation ──
+function clickEntraNav(target) {
+  if (target === 'groups') {
+    document.getElementById('btnNewGroup').classList.add('highlight');
+  }
+}
+function openGroupDialog() {
+  document.getElementById('groupPanel').classList.add('open');
+  document.getElementById('btnNewGroup').classList.remove('highlight');
+}
+function checkStep4() {
+  const name = document.getElementById('groupName').value.trim();
+  if (name.length > 0 && currentStep === 4) {/* just validates */}
+}
+function createGroup() {
+  const name = document.getElementById('groupName').value.trim() || 'SG-W365-Users';
+  document.getElementById('groupPanel').classList.remove('open');
+  const tbody = document.querySelector('#entraGroupTable tbody');
+  const newRow = document.createElement('tr');
+  newRow.innerHTML = `<td class="link" style="color:var(--green);font-weight:600;">${name}</td><td>セキュリティ</td><td>割当済み</td><td>3</td>`;
+  newRow.style.background = 'rgba(16,124,16,.08)';
+  tbody.insertBefore(newRow, tbody.firstChild);
+  showToast(`✅ グループ「${name}」を作成しました`);
+  if (currentStep === 4) completeStep(4);
+}
+
+// ── Intune Navigation ──
+function clickIntuneNav(target) {
+  if (target === 'devices') {
+    document.getElementById('navSubCompliance').style.display = 'block';
+    document.getElementById('navIntuneW365').style.display = 'block';
+    document.querySelectorAll('#portal-intune .az-nav-item').forEach(i => i.classList.remove('active'));
+    document.getElementById('navIntuneDevices').classList.add('active');
+  } else if (target === 'w365') {
+    document.getElementById('intune-home').style.display = 'none';
+    document.getElementById('intune-w365').style.display = 'block';
+    document.querySelectorAll('#portal-intune .az-nav-sub').forEach(i => i.classList.remove('active'));
+    document.getElementById('navIntuneW365').classList.add('active');
+    if (currentStep === 6) completeStep(6);
+  }
+}
+
+function clickW365Tab(tab) {
+  ['overview','cloudpcs','provpolicy','network','images'].forEach(t => {
+    const el = document.getElementById('w365-'+t+'-tab');
+    if (el) el.style.display = (t === tab) ? 'block' : 'none';
+  });
+  document.querySelectorAll('.w365-tab').forEach(t => {
+    t.style.borderBottom = '2px solid transparent';
+    t.style.color = 'var(--fg-muted)';
+  });
+  event.target.style.borderBottom = '2px solid var(--blue)';
+  event.target.style.color = 'var(--fg-bright)';
+  if (tab === 'network' && currentStep === 7) completeStep(7);
+  if (tab === 'provpolicy' && currentStep === 8) {
+    setTimeout(() => document.getElementById('btnNewPolicy').classList.add('highlight'), 400);
+  }
+}
+
+// ── Policy Dialog ──
+function openPolicyDialog() {
+  document.getElementById('policyPanel').classList.add('open');
+  document.getElementById('btnNewPolicy').classList.remove('highlight');
+  currentFormTab = 1;
+  switchFormTab(1);
+}
+
+function switchFormTab(n) {
+  if (n < 1 || n > 5) return;
+  currentFormTab = n;
+  document.querySelectorAll('.form-tab').forEach((t, i) => {
+    t.classList.toggle('active', i === n - 1);
+  });
+  document.querySelectorAll('.form-tab-content').forEach((c, i) => {
+    c.classList.toggle('active', i === n - 1);
+  });
+  document.getElementById('btnPrev').style.visibility = n === 1 ? 'hidden' : 'visible';
+  document.getElementById('btnNext').style.display = n === 5 ? 'none' : 'inline-flex';
+  document.getElementById('btnCreate').style.display = n === 5 ? 'inline-flex' : 'none';
+  if (n === 5) updateReview();
+}
+
+function nextFormTab() {
+  // Validate current tab and complete step
+  if (currentFormTab === 1) {
+    const name = document.getElementById('policyName').value.trim();
+    const join = document.querySelector('input[name="joinType"]:checked');
+    const net = document.getElementById('policyNetwork').value;
+    if (!name || !join || !net) { alert('すべての必須項目を入力してください'); return; }
+    document.getElementById('formTab1').classList.add('completed');
+    if (currentStep === 9) completeStep(9);
+    if (currentStep === 10) completeStep(10);
+  } else if (currentFormTab === 2) {
+    document.getElementById('formTab2').classList.add('completed');
+    if (currentStep === 11) completeStep(11);
+  } else if (currentFormTab === 3) {
+    document.getElementById('formTab3').classList.add('completed');
+    if (currentStep === 12) completeStep(12);
+  } else if (currentFormTab === 4) {
+    if (!document.getElementById('chkTargetGroup').checked) { alert('SG-W365-Users にチェックを入れてください'); return; }
+    document.getElementById('formTab4').classList.add('completed');
+    if (currentStep === 13) completeStep(13);
+  }
+  switchFormTab(currentFormTab + 1);
+}
+
+function checkStep9() {/* validated in nextFormTab */}
+function checkStep10() {/* validated in nextFormTab */}
+function checkStep11() {/* validated in nextFormTab */}
+function checkStep12() {/* validated in nextFormTab */}
+function checkStep13() {/* validated in nextFormTab */}
+
+function updateReview() {
+  document.getElementById('revName').textContent = document.getElementById('policyName').value || 'PP-Standard-4vCPU';
+  const join = document.querySelector('input[name="joinType"]:checked');
+  document.getElementById('revJoin').textContent = join ? (join.value === 'entra' ? 'Microsoft Entra 参加' : 'ハイブリッド Entra 参加') : '-';
+  const netSel = document.getElementById('policyNetwork');
+  document.getElementById('revNetwork').textContent = netSel.options[netSel.selectedIndex]?.text || '-';
+  const imgSel = document.getElementById('galleryImage');
+  document.getElementById('revImage').textContent = imgSel.options[imgSel.selectedIndex]?.text || '-';
+  const langSel = document.getElementById('policyLang');
+  document.getElementById('revLang').textContent = langSel.options[langSel.selectedIndex]?.text || '-';
+  document.getElementById('revGroup').textContent = 'SG-W365-Users (3 名)';
+}
+
+function createPolicy() {
+  document.getElementById('policyPanel').classList.remove('open');
+  document.getElementById('formTab5').classList.add('completed');
+  if (currentStep === 14) completeStep(14);
+
+  // Add new policy to table
+  const name = document.getElementById('policyName').value || 'PP-Standard-4vCPU';
+  const tbody = document.querySelector('#policyTable tbody');
+  const newRow = document.createElement('tr');
+  newRow.innerHTML = `<td class="link" style="color:var(--green);font-weight:600;">${name}</td><td>Microsoft Entra 参加</td><td>MHN Japan East</td><td>Win 11 + M365 Apps</td><td>1</td><td class="status-new">●新規</td>`;
+  newRow.style.background = 'rgba(16,124,16,.08)';
+  tbody.insertBefore(newRow, tbody.firstChild);
+  document.getElementById('statPolicy').textContent = '3';
+  document.getElementById('statInProgress').textContent = '3';
+
+  // Show provisioning animation
+  document.getElementById('provOverlay').classList.add('show');
+  const steps = ['prov1','prov2','prov3','prov4','prov5','prov6'];
+  const msgs = [
+    '✓ プロビジョニングポリシーを適用中...',
+    '✓ Cloud PC VM を作成中...',
+    '✓ Entra ID 参加処理中...',
+    '✓ Intune 登録中...',
+    '✓ イメージとアプリを適用中...',
+    '✓ 完了確認中...'
+  ];
+  let idx = 0;
+  const timer = setInterval(() => {
+    if (idx > 0) {
+      document.getElementById(steps[idx-1]).className = 'done';
+      document.getElementById(steps[idx-1]).textContent = msgs[idx-1];
+    }
+    if (idx < steps.length) {
+      document.getElementById(steps[idx]).className = 'current';
+    } else {
+      clearInterval(timer);
+      setTimeout(() => {
+        document.getElementById('provOverlay').classList.remove('show');
+        document.getElementById('statProvisioned').textContent = '48';
+        document.getElementById('statInProgress').textContent = '0';
+        // Add 3 new Cloud PCs
+        const ct = document.getElementById('cloudPcTbody');
+        ['tanaka','sato','suzuki'].forEach((u, i) => {
+          const row = document.createElement('tr');
+          row.innerHTML = `<td class="link" style="color:var(--green);font-weight:600;">CPC-${u}-NEW${i}</td><td>${u}@contoso.com</td><td>4c/16GB/128GB</td><td class="status-ok">●プロビジョニング済み</td><td>2026-04-03</td>`;
+          row.style.background = 'rgba(16,124,16,.08)';
+          ct.insertBefore(row, ct.firstChild);
+        });
+        showToast('✅ 3 台の Cloud PC が正常にプロビジョニングされました！');
+        if (currentStep === 15) completeStep(15);
+      }, 800);
+    }
+    idx++;
+  }, 1100);
+}
+
+// Step 16: Final - auto-complete when user scrolls to top of cloudpc tab or stays on success screen
+setTimeout(() => {
+  // Observe when user views cloud PC tab after provisioning
+  document.addEventListener('click', function(e) {
+    if (e.target.textContent && e.target.textContent.includes('すべての Cloud PC') && currentStep === 16) {
+      completeStep(16);
+    }
+  });
+  // Alternatively auto complete after step 15
+  const autoCompleter = setInterval(() => {
+    if (currentStep === 16) {
+      completeStep(16);
+      clearInterval(autoCompleter);
+    }
+  }, 2000);
+}, 1000);
+</script>
+</body>
+</html>
