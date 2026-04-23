@@ -1,0 +1,1075 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>番外編 Lab: Azure Portal フル機能体験 (Cost Management / Advisor / Reservations)</title>
+<style>
+:root{
+  --bg:#1e1e1e;--panel:#252526;--sidebar-bg:#1b1b1f;--border:#3e3e3e;
+  --fg:#cccccc;--fg-bright:#ffffff;--fg-muted:#858585;
+  --blue:#0078D4;--blue-hover:#1a8ad4;--blue-bg:rgba(0,120,212,.12);--blue-light:#50e6ff;
+  --green:#107C10;--green-bg:rgba(16,124,16,.15);
+  --yellow:#FFB900;--yellow-bg:rgba(255,185,0,.12);
+  --red:#D13438;--red-bg:rgba(209,52,56,.15);
+  --purple:#742774;--purple-bg:rgba(116,39,116,.15);
+  --teal:#008272;
+  --input-bg:#3c3c3c;--input-border:#555;
+  --selected-bg:rgba(0,120,212,.15);
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:"Segoe UI","Meiryo UI",system-ui,sans-serif;background:#09090b;color:#a1a1a1;line-height:1.5;height:100vh;overflow:hidden;}
+
+.lab-layout{display:flex;height:100vh;}
+
+/* Left: Guide panel */
+.guide{width:340px;background:#18181b;border-right:1px solid #27272a;display:flex;flex-direction:column;flex-shrink:0;}
+.guide-header{padding:16px 20px;border-bottom:1px solid #27272a;background:#09090b;}
+.guide-header h1{font-size:14px;color:#fff;font-weight:600;}
+.guide-header .badge{display:inline-block;background:rgba(255,185,0,.15);color:var(--yellow);font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;margin-left:8px;}
+.guide-body{flex:1;overflow-y:auto;padding:16px;}
+
+.back-btn{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;background:#0078D4;color:white;border-radius:6px;font-size:12px;font-weight:600;text-decoration:none;margin-bottom:14px;}
+
+.notice{padding:10px 12px;background:rgba(255,185,0,.08);border:1px solid rgba(255,185,0,.25);border-radius:6px;font-size:11px;color:#FFB900;line-height:1.5;margin-bottom:14px;}
+
+.guide-body h2{font-size:16px;color:#fff;margin-bottom:6px;}
+.guide-body .subtitle{font-size:12px;color:#858585;margin-bottom:14px;line-height:1.5;}
+
+.tour-section{margin-top:18px;}
+.tour-section h3{font-size:11px;font-weight:700;color:var(--fg-muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;padding-bottom:4px;border-bottom:1px solid #27272a;}
+
+.tour-item{display:flex;gap:8px;align-items:flex-start;padding:9px 12px;margin-bottom:4px;border-radius:6px;border:1px solid transparent;cursor:pointer;transition:all .12s;font-size:12px;color:var(--fg);}
+.tour-item:hover{background:rgba(255,255,255,.04);border-color:#3f3f46;}
+.tour-item.active{background:var(--blue-bg);border-color:var(--blue);color:#fff;}
+.tour-item .num{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:#27272a;font-size:10px;font-weight:700;flex-shrink:0;margin-top:1px;}
+.tour-item.active .num{background:var(--blue);color:#fff;}
+.tour-item .tour-text{flex:1;line-height:1.4;}
+.tour-item .tour-text .t-title{font-weight:600;}
+.tour-item .tour-text .t-desc{font-size:10px;color:var(--fg-muted);margin-top:1px;}
+
+.guide-tip{padding:10px 12px;background:rgba(0,120,212,.08);border-left:3px solid var(--blue);border-radius:4px;font-size:11px;color:var(--fg);line-height:1.5;margin-top:8px;display:none;}
+.guide-tip.show{display:block;}
+.guide-tip strong{color:var(--blue-light);}
+
+/* Right: Azure Portal simulator */
+.portal{flex:1;display:flex;flex-direction:column;background:var(--bg);overflow:hidden;}
+
+/* Top header (Azure Portal style) */
+.az-top{display:flex;align-items:center;padding:0 16px;background:#0078D4;color:white;height:44px;flex-shrink:0;}
+.az-top .az-logo{font-size:14px;font-weight:600;margin-right:12px;}
+.az-top .az-search{flex:1;max-width:520px;padding:6px 12px;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.2);border-radius:4px;color:#fff;font-size:12px;font-family:inherit;}
+.az-top .az-search::placeholder{color:rgba(255,255,255,.7);}
+.az-top .az-icons{margin-left:auto;display:flex;gap:14px;font-size:14px;}
+.az-top .az-tenant{font-size:11px;padding:4px 10px;background:rgba(255,255,255,.1);border-radius:4px;margin-left:12px;}
+.az-top .az-user{display:flex;align-items:center;gap:6px;font-size:12px;margin-left:12px;}
+.az-top .az-user .av{width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;}
+
+/* Service launcher bar */
+.az-services{display:flex;background:#1b1b1f;border-bottom:1px solid var(--border);padding:0 16px;overflow-x:auto;flex-shrink:0;}
+.az-svc-tab{padding:9px 14px;font-size:12px;color:var(--fg-muted);cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;transition:all .12s;background:transparent;border-left:none;border-right:none;border-top:none;font-family:inherit;}
+.az-svc-tab:hover{color:var(--fg);background:rgba(255,255,255,.03);}
+.az-svc-tab.active{color:#fff;border-bottom-color:var(--blue);background:rgba(0,120,212,.08);}
+.az-svc-tab .icon{margin-right:4px;}
+
+/* Main content area */
+.az-content{flex:1;overflow-y:auto;background:var(--bg);padding:0;}
+
+.page{display:none;padding:24px;}
+.page.active{display:block;}
+
+.az-breadcrumb{font-size:12px;color:var(--fg-muted);margin-bottom:8px;}
+.az-breadcrumb a{color:var(--blue-light);text-decoration:none;}
+.page h2{font-size:22px;color:var(--fg-bright);font-weight:600;margin-bottom:4px;}
+.page .desc{font-size:13px;color:var(--fg-muted);margin-bottom:20px;}
+
+/* Cards */
+.kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px;}
+.kpi-card{padding:16px;background:var(--panel);border:1px solid var(--border);border-radius:8px;}
+.kpi-card .kpi-label{font-size:11px;color:var(--fg-muted);text-transform:uppercase;letter-spacing:.5px;}
+.kpi-card .kpi-value{font-size:24px;font-weight:700;color:var(--fg-bright);margin-top:4px;}
+.kpi-card .kpi-sub{font-size:11px;color:var(--fg-muted);margin-top:2px;}
+.kpi-card .kpi-trend{font-size:11px;font-weight:600;margin-top:6px;}
+.kpi-card .kpi-trend.up{color:var(--red);}
+.kpi-card .kpi-trend.down{color:var(--green);}
+
+.card{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:18px;margin-bottom:16px;}
+.card h3{font-size:14px;font-weight:600;color:var(--fg-bright);margin-bottom:12px;display:flex;align-items:center;gap:8px;}
+.card .icon{font-size:16px;}
+.card .more-link{margin-left:auto;font-size:11px;color:var(--blue-light);text-decoration:none;font-weight:400;}
+
+/* Tables */
+.az-table{width:100%;border-collapse:collapse;font-size:12px;}
+.az-table th{text-align:left;padding:10px 12px;color:var(--fg-muted);font-weight:600;border-bottom:1px solid var(--border);background:rgba(255,255,255,.02);text-transform:uppercase;letter-spacing:.3px;font-size:11px;}
+.az-table td{padding:9px 12px;border-bottom:1px solid var(--border);color:var(--fg);}
+.az-table tr:hover{background:rgba(255,255,255,.03);}
+.az-table .link{color:var(--blue-light);cursor:pointer;text-decoration:none;}
+.az-table .link:hover{text-decoration:underline;}
+.az-table .num{text-align:right;font-variant-numeric:tabular-nums;}
+
+/* Bar chart (CSS only) */
+.bar-chart{display:flex;align-items:flex-end;gap:6px;height:200px;padding:10px 0;}
+.bar-col{flex:1;display:flex;flex-direction:column;align-items:center;}
+.bar-col .bar{width:80%;background:linear-gradient(180deg,var(--blue) 0%,#005a9e 100%);border-radius:3px 3px 0 0;transition:opacity .15s;cursor:pointer;}
+.bar-col .bar:hover{opacity:.8;}
+.bar-col .label{font-size:10px;color:var(--fg-muted);margin-top:4px;}
+.bar-col .value{font-size:10px;color:var(--fg);font-weight:600;margin-bottom:2px;}
+
+/* Line chart */
+.line-chart{position:relative;height:200px;padding:10px;}
+.line-chart svg{width:100%;height:100%;overflow:visible;}
+
+/* Pie/donut chart */
+.donut-row{display:grid;grid-template-columns:200px 1fr;gap:24px;align-items:center;}
+.donut{position:relative;width:180px;height:180px;}
+.donut svg{transform:rotate(-90deg);width:100%;height:100%;}
+.donut-center{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;}
+.donut-center .total{font-size:22px;font-weight:700;color:var(--fg-bright);}
+.donut-center .label{font-size:10px;color:var(--fg-muted);text-transform:uppercase;}
+
+.legend{display:flex;flex-direction:column;gap:8px;}
+.legend-item{display:flex;align-items:center;gap:8px;font-size:12px;}
+.legend-color{width:12px;height:12px;border-radius:2px;}
+
+/* Badges */
+.badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700;}
+.badge.high{background:var(--red-bg);color:var(--red);}
+.badge.medium{background:var(--yellow-bg);color:var(--yellow);}
+.badge.low{background:rgba(120,120,120,.2);color:var(--fg-muted);}
+.badge.success{background:var(--green-bg);color:var(--green);}
+.badge.info{background:var(--blue-bg);color:var(--blue-light);}
+
+/* Recommendation cards */
+.rec-card{background:var(--panel);border:1px solid var(--border);border-left:3px solid var(--yellow);border-radius:8px;padding:14px 18px;margin-bottom:10px;cursor:pointer;transition:border-color .15s;}
+.rec-card:hover{border-color:var(--blue);}
+.rec-card.high{border-left-color:var(--red);}
+.rec-card.medium{border-left-color:var(--yellow);}
+.rec-card.low{border-left-color:#666;}
+.rec-card .rec-title{font-size:13px;font-weight:600;color:var(--fg-bright);margin-bottom:4px;display:flex;align-items:center;gap:8px;}
+.rec-card .rec-desc{font-size:12px;color:var(--fg-muted);margin-bottom:8px;}
+.rec-card .rec-meta{display:flex;gap:14px;font-size:11px;}
+.rec-card .rec-meta .meta-item{color:var(--fg-muted);}
+.rec-card .rec-meta .meta-item b{color:var(--fg);}
+.rec-card .saving{color:var(--green);font-weight:700;}
+
+/* Progress bars */
+.progress{height:8px;background:#27272a;border-radius:4px;overflow:hidden;margin:6px 0;}
+.progress-fill{height:100%;background:var(--blue);border-radius:4px;}
+.progress-fill.green{background:var(--green);}
+.progress-fill.yellow{background:var(--yellow);}
+.progress-fill.red{background:var(--red);}
+
+/* Status dot */
+.status-dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;}
+.status-dot.green{background:var(--green);}
+.status-dot.red{background:var(--red);}
+.status-dot.yellow{background:var(--yellow);}
+.status-dot.gray{background:#666;}
+
+/* Filter bar */
+.filter-bar{display:flex;gap:10px;margin-bottom:16px;align-items:center;flex-wrap:wrap;}
+.filter-btn{padding:6px 12px;background:var(--panel);border:1px solid var(--border);border-radius:4px;color:var(--fg);font-size:12px;cursor:pointer;font-family:inherit;}
+.filter-btn:hover{border-color:var(--blue);}
+.filter-btn.active{background:var(--blue);color:#fff;border-color:var(--blue);}
+
+/* Two column layout */
+.col-2{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+
+/* Score circle */
+.score-circle{width:120px;height:120px;border-radius:50%;background:conic-gradient(var(--green) 0deg 234deg,#27272a 234deg 360deg);display:flex;align-items:center;justify-content:center;position:relative;}
+.score-circle::before{content:'';position:absolute;width:90px;height:90px;border-radius:50%;background:var(--panel);}
+.score-circle .score-text{position:relative;z-index:1;text-align:center;}
+.score-circle .score-text .num{font-size:30px;font-weight:700;color:var(--fg-bright);}
+.score-circle .score-text .lbl{font-size:10px;color:var(--fg-muted);}
+</style>
+</head>
+<body>
+
+<div class="lab-layout">
+  <!-- Guide Panel -->
+  <div class="guide">
+    <div class="guide-header">
+      <h1>番外編 Lab <span class="badge">フル機能</span></h1>
+    </div>
+    <div class="guide-body">
+      <a class="back-btn" href="../index.html">← トレーニングに戻る</a>
+
+      <h2>Azure Portal フル機能体験</h2>
+      <div class="subtitle">仮データで Cost Management / Advisor / Reservations の全機能を体験できます。デモテナントでは見られない機能も豊富に再現。</div>
+
+      <div class="notice">
+        ⚠️ これはシミュレーター（イメージラボ）です。実際の操作は <b>Azure Portal (portal.azure.com)</b> で試してみてください。本ラボではデモテナントでは表示されにくい機能を体験できます。
+      </div>
+
+      <!-- Quick navigation -->
+      <div class="tour-section">
+        <h3>🔍 探索ツアー (クリックで移動)</h3>
+
+        <div class="tour-item active" onclick="showPage('home', this, 'home-tip')">
+          <span class="num">1</span>
+          <div class="tour-text">
+            <div class="t-title">ホームダッシュボード</div>
+            <div class="t-desc">サブスクリプション全体の概要</div>
+          </div>
+        </div>
+
+        <div class="tour-item" onclick="showPage('cost', this, 'cost-tip')">
+          <span class="num">2</span>
+          <div class="tour-text">
+            <div class="t-title">Cost Management</div>
+            <div class="t-desc">コスト分析・予算・予測</div>
+          </div>
+        </div>
+
+        <div class="tour-item" onclick="showPage('advisor', this, 'advisor-tip')">
+          <span class="num">3</span>
+          <div class="tour-text">
+            <div class="t-title">Azure Advisor</div>
+            <div class="t-desc">コスト推奨事項とスコア</div>
+          </div>
+        </div>
+
+        <div class="tour-item" onclick="showPage('reservations', this, 'res-tip')">
+          <span class="num">4</span>
+          <div class="tour-text">
+            <div class="t-title">Reservations</div>
+            <div class="t-desc">RI 推奨と購入済み利用率</div>
+          </div>
+        </div>
+
+        <div class="tour-item" onclick="showPage('savings', this, 'savings-tip')">
+          <span class="num">5</span>
+          <div class="tour-text">
+            <div class="t-title">Savings Plans</div>
+            <div class="t-desc">柔軟なコミットメント割引</div>
+          </div>
+        </div>
+
+        <div class="tour-item" onclick="showPage('avd', this, 'avd-tip')">
+          <span class="num">6</span>
+          <div class="tour-text">
+            <div class="t-title">AVD Insights</div>
+            <div class="t-desc">セッションホスト稼働状況</div>
+          </div>
+        </div>
+
+        <div class="tour-item" onclick="showPage('resources', this, 'res2-tip')">
+          <span class="num">7</span>
+          <div class="tour-text">
+            <div class="t-title">リソース一覧</div>
+            <div class="t-desc">VM/Disk/IP の管理</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="guide-tip show" id="home-tip">
+        💡 <strong>ホーム画面の見方:</strong> 月次コスト合計・前月比・Advisor スコア・予算残額が一目で把握できます。経営層への報告にも使える画面です。
+      </div>
+      <div class="guide-tip" id="cost-tip">
+        💡 <strong>Cost Management のポイント:</strong> 「グループ化」を切り替えて、サービス別・リソース別・タグ別など多角的にコストを可視化できます。「予測」線で月末着地が分かります。
+      </div>
+      <div class="guide-tip" id="advisor-tip">
+        💡 <strong>Advisor の見方:</strong> 推奨事項は Impact (High/Medium/Low) で優先順位が付き、各推奨に年間削減額が表示されます。High から順に対応しましょう。
+      </div>
+      <div class="guide-tip" id="res-tip">
+        💡 <strong>RI の確認ポイント:</strong> 「推奨」タブで購入候補と削減額、「購入済み」タブで現在の RI 利用率が分かります。利用率 80% 以下は要対応です。
+      </div>
+      <div class="guide-tip" id="savings-tip">
+        💡 <strong>Savings Plan vs RI:</strong> Savings Plan は SKU を跨いで自動適用されるため、変動が多い環境向き。RI は固定 SKU での最大割引を提供します。
+      </div>
+      <div class="guide-tip" id="avd-tip">
+        💡 <strong>AVD Insights:</strong> セッションホスト別の稼働率と接続数を可視化。Autoscale が機能しているかの確認に必須です。
+      </div>
+      <div class="guide-tip" id="res2-tip">
+        💡 <strong>リソース一覧:</strong> VM/Disk/IP の状態と推定月額を一覧表示。停止状態が「VM stopped」だと課金継続。「VM deallocated」が課金なしです。
+      </div>
+    </div>
+  </div>
+
+  <!-- Azure Portal Simulator -->
+  <div class="portal">
+    <!-- Top header -->
+    <div class="az-top">
+      <span class="az-logo">≡ Microsoft Azure</span>
+      <input class="az-search" type="text" placeholder="🔍 リソース、サービス、ドキュメントの検索 (G+/)" readonly>
+      <div class="az-icons">⚙️ 🔔 ❓ 📁</div>
+      <div class="az-tenant">Contoso Production</div>
+      <div class="az-user">
+        <div class="av">A</div>
+      </div>
+    </div>
+
+    <!-- Service tabs -->
+    <div class="az-services">
+      <button class="az-svc-tab active" onclick="showPage('home', null, 'home-tip')"><span class="icon">🏠</span>ホーム</button>
+      <button class="az-svc-tab" onclick="showPage('cost', null, 'cost-tip')"><span class="icon">💰</span>Cost Management</button>
+      <button class="az-svc-tab" onclick="showPage('advisor', null, 'advisor-tip')"><span class="icon">🎯</span>Advisor</button>
+      <button class="az-svc-tab" onclick="showPage('reservations', null, 'res-tip')"><span class="icon">📋</span>Reservations</button>
+      <button class="az-svc-tab" onclick="showPage('savings', null, 'savings-tip')"><span class="icon">💡</span>Savings Plans</button>
+      <button class="az-svc-tab" onclick="showPage('avd', null, 'avd-tip')"><span class="icon">🖥️</span>AVD Insights</button>
+      <button class="az-svc-tab" onclick="showPage('resources', null, 'res2-tip')"><span class="icon">📦</span>すべてのリソース</button>
+    </div>
+
+    <!-- Content area -->
+    <div class="az-content">
+
+      <!-- ===================== HOME ===================== -->
+      <div class="page active" id="page-home">
+        <div class="az-breadcrumb">ホーム</div>
+        <h2>Microsoft Azure</h2>
+        <div class="desc">Contoso Production サブスクリプション (12345678-1234-1234-1234-123456789012)</div>
+
+        <!-- KPI cards -->
+        <div class="kpi-row">
+          <div class="kpi-card">
+            <div class="kpi-label">今月のコスト</div>
+            <div class="kpi-value">¥4,825,300</div>
+            <div class="kpi-sub">予算: ¥5,000,000</div>
+            <div class="kpi-trend up">▲ 前月比 +12.3%</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">月末予測</div>
+            <div class="kpi-value">¥5,180,000</div>
+            <div class="kpi-sub">予算超過予測</div>
+            <div class="kpi-trend up">予算 +3.6%</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Advisor スコア</div>
+            <div class="kpi-value">68 / 100</div>
+            <div class="kpi-sub">改善余地あり</div>
+            <div class="kpi-trend down">▼ 前月比 +5</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">削減可能額/年</div>
+            <div class="kpi-value">¥18,420,000</div>
+            <div class="kpi-sub">Advisor 推奨ベース</div>
+            <div class="kpi-trend down">推奨 47 件</div>
+          </div>
+        </div>
+
+        <div class="col-2">
+          <div class="card">
+            <h3><span class="icon">📊</span>過去 12 ヶ月のコスト推移<a class="more-link" onclick="showPage('cost', null, 'cost-tip')">詳細を表示 →</a></h3>
+            <div class="bar-chart">
+              <div class="bar-col"><div class="value">¥3.2M</div><div class="bar" style="height:50%"></div><div class="label">5月</div></div>
+              <div class="bar-col"><div class="value">¥3.5M</div><div class="bar" style="height:55%"></div><div class="label">6月</div></div>
+              <div class="bar-col"><div class="value">¥3.8M</div><div class="bar" style="height:60%"></div><div class="label">7月</div></div>
+              <div class="bar-col"><div class="value">¥4.1M</div><div class="bar" style="height:64%"></div><div class="label">8月</div></div>
+              <div class="bar-col"><div class="value">¥4.0M</div><div class="bar" style="height:62%"></div><div class="label">9月</div></div>
+              <div class="bar-col"><div class="value">¥4.2M</div><div class="bar" style="height:66%"></div><div class="label">10月</div></div>
+              <div class="bar-col"><div class="value">¥4.3M</div><div class="bar" style="height:68%"></div><div class="label">11月</div></div>
+              <div class="bar-col"><div class="value">¥4.0M</div><div class="bar" style="height:62%"></div><div class="label">12月</div></div>
+              <div class="bar-col"><div class="value">¥4.2M</div><div class="bar" style="height:66%"></div><div class="label">1月</div></div>
+              <div class="bar-col"><div class="value">¥4.5M</div><div class="bar" style="height:70%"></div><div class="label">2月</div></div>
+              <div class="bar-col"><div class="value">¥4.3M</div><div class="bar" style="height:68%"></div><div class="label">3月</div></div>
+              <div class="bar-col"><div class="value">¥4.8M</div><div class="bar" style="height:75%;background:linear-gradient(180deg,#FFB900 0%,#cc9400 100%);"></div><div class="label">4月</div></div>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3><span class="icon">🎯</span>Advisor サマリー<a class="more-link" onclick="showPage('advisor', null, 'advisor-tip')">詳細を表示 →</a></h3>
+            <div style="display:flex;align-items:center;gap:24px;">
+              <div class="score-circle">
+                <div class="score-text">
+                  <div class="num">68</div>
+                  <div class="lbl">SCORE</div>
+                </div>
+              </div>
+              <div style="flex:1;">
+                <div style="margin-bottom:10px;">
+                  <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:3px;">
+                    <span style="color:var(--fg-muted);">High Impact</span><span style="color:var(--red);font-weight:700;">12 件</span>
+                  </div>
+                  <div class="progress"><div class="progress-fill red" style="width:25%"></div></div>
+                </div>
+                <div style="margin-bottom:10px;">
+                  <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:3px;">
+                    <span style="color:var(--fg-muted);">Medium Impact</span><span style="color:var(--yellow);font-weight:700;">23 件</span>
+                  </div>
+                  <div class="progress"><div class="progress-fill yellow" style="width:49%"></div></div>
+                </div>
+                <div>
+                  <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:3px;">
+                    <span style="color:var(--fg-muted);">Low Impact</span><span style="color:var(--fg-muted);font-weight:700;">12 件</span>
+                  </div>
+                  <div class="progress"><div class="progress-fill" style="width:26%;background:#666"></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3><span class="icon">🏆</span>サービス別コスト TOP 5 (今月)</h3>
+          <table class="az-table">
+            <thead><tr><th>サービス</th><th>今月コスト</th><th>前月比</th><th>シェア</th><th></th></tr></thead>
+            <tbody>
+              <tr><td>Virtual Machines</td><td class="num">¥2,418,500</td><td class="num" style="color:var(--red);">+18.2%</td><td class="num">50.1%</td><td><div class="progress"><div class="progress-fill" style="width:100%"></div></div></td></tr>
+              <tr><td>Storage</td><td class="num">¥820,000</td><td class="num" style="color:var(--green);">-3.1%</td><td class="num">17.0%</td><td><div class="progress"><div class="progress-fill" style="width:34%"></div></div></td></tr>
+              <tr><td>Azure Files</td><td class="num">¥585,000</td><td class="num" style="color:var(--red);">+22.5%</td><td class="num">12.1%</td><td><div class="progress"><div class="progress-fill" style="width:24%"></div></div></td></tr>
+              <tr><td>Networking</td><td class="num">¥412,800</td><td class="num" style="color:var(--green);">-1.8%</td><td class="num">8.6%</td><td><div class="progress"><div class="progress-fill" style="width:17%"></div></div></td></tr>
+              <tr><td>Log Analytics</td><td class="num">¥289,000</td><td class="num" style="color:var(--red);">+45.3%</td><td class="num">6.0%</td><td><div class="progress"><div class="progress-fill" style="width:12%"></div></div></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ===================== COST MANAGEMENT ===================== -->
+      <div class="page" id="page-cost">
+        <div class="az-breadcrumb"><a>ホーム</a> &gt; Cost Management + Billing &gt; <b style="color:var(--fg-bright)">コスト分析</b></div>
+        <h2>コスト分析</h2>
+        <div class="desc">Contoso Production - 期間: 2026年4月 (現在)</div>
+
+        <div class="filter-bar">
+          <span style="font-size:11px;color:var(--fg-muted);">表示:</span>
+          <button class="filter-btn active">エリア</button>
+          <button class="filter-btn">縦棒</button>
+          <button class="filter-btn">折れ線</button>
+          <button class="filter-btn">ドーナツ</button>
+          <button class="filter-btn">テーブル</button>
+          <span style="margin-left:16px;font-size:11px;color:var(--fg-muted);">グループ化:</span>
+          <button class="filter-btn active">サービス名</button>
+          <button class="filter-btn">リソース</button>
+          <button class="filter-btn">RG</button>
+          <button class="filter-btn">タグ</button>
+          <button class="filter-btn">場所</button>
+          <button class="filter-btn">予約</button>
+          <span style="margin-left:16px;font-size:11px;color:var(--fg-muted);">期間:</span>
+          <button class="filter-btn">過去 7 日</button>
+          <button class="filter-btn active">過去 30 日</button>
+          <button class="filter-btn">過去 90 日</button>
+          <button class="filter-btn">カスタム</button>
+        </div>
+
+        <div class="card">
+          <h3><span class="icon">📈</span>日次コスト推移 (予測線付き)</h3>
+          <div class="line-chart">
+            <svg viewBox="0 0 600 200" preserveAspectRatio="none">
+              <!-- Grid lines -->
+              <line x1="0" y1="50" x2="600" y2="50" stroke="#27272a" stroke-width="1"/>
+              <line x1="0" y1="100" x2="600" y2="100" stroke="#27272a" stroke-width="1"/>
+              <line x1="0" y1="150" x2="600" y2="150" stroke="#27272a" stroke-width="1"/>
+
+              <!-- Cost line (actual) -->
+              <polyline fill="rgba(0,120,212,.15)" stroke="#0078D4" stroke-width="2"
+                points="0,160 30,155 60,150 90,145 120,140 150,135 180,128 210,125 240,118 270,112 300,108 330,100 360,95 390,90 420,82 450,80"/>
+              <!-- Forecast (dashed) -->
+              <polyline fill="none" stroke="#FFB900" stroke-width="2" stroke-dasharray="5,3"
+                points="450,80 480,72 510,68 540,62 570,55 600,48"/>
+
+              <!-- Budget line -->
+              <line x1="0" y1="40" x2="600" y2="40" stroke="#D13438" stroke-width="1.5" stroke-dasharray="4,2"/>
+              <text x="5" y="35" font-size="10" fill="#D13438">予算上限 ¥5,000,000</text>
+
+              <!-- Today marker -->
+              <line x1="450" y1="0" x2="450" y2="200" stroke="#666" stroke-width="1" stroke-dasharray="2,2"/>
+              <text x="455" y="15" font-size="10" fill="#999">今日</text>
+              <text x="455" y="30" font-size="9" fill="#FFB900">↓ 予測</text>
+            </svg>
+          </div>
+          <div style="display:flex;justify-content:space-around;margin-top:12px;font-size:12px;">
+            <div><span style="color:var(--fg-muted);">月初〜今日:</span> <b style="color:var(--fg-bright);">¥4,825,300</b></div>
+            <div><span style="color:var(--fg-muted);">日平均:</span> <b style="color:var(--fg-bright);">¥160,843</b></div>
+            <div><span style="color:var(--fg-muted);">予算進捗:</span> <b style="color:var(--yellow);">96.5%</b></div>
+            <div><span style="color:var(--fg-muted);">月末予測:</span> <b style="color:var(--red);">¥5,180,000 (超過)</b></div>
+          </div>
+        </div>
+
+        <div class="col-2">
+          <div class="card">
+            <h3><span class="icon">🍩</span>サービス別内訳</h3>
+            <div class="donut-row">
+              <div class="donut">
+                <svg viewBox="0 0 100 100">
+                  <circle cx="50" cy="50" r="40" fill="none" stroke="#0078D4" stroke-width="20" stroke-dasharray="125 251"/>
+                  <circle cx="50" cy="50" r="40" fill="none" stroke="#742774" stroke-width="20" stroke-dasharray="42 251" stroke-dashoffset="-125"/>
+                  <circle cx="50" cy="50" r="40" fill="none" stroke="#107C10" stroke-width="20" stroke-dasharray="30 251" stroke-dashoffset="-167"/>
+                  <circle cx="50" cy="50" r="40" fill="none" stroke="#FFB900" stroke-width="20" stroke-dasharray="22 251" stroke-dashoffset="-197"/>
+                  <circle cx="50" cy="50" r="40" fill="none" stroke="#666" stroke-width="20" stroke-dasharray="32 251" stroke-dashoffset="-219"/>
+                </svg>
+                <div class="donut-center">
+                  <div class="total">¥4.8M</div>
+                  <div class="label">合計</div>
+                </div>
+              </div>
+              <div class="legend">
+                <div class="legend-item"><div class="legend-color" style="background:#0078D4;"></div>VM 50.1% (¥2.4M)</div>
+                <div class="legend-item"><div class="legend-color" style="background:#742774;"></div>Storage 17.0% (¥820K)</div>
+                <div class="legend-item"><div class="legend-color" style="background:#107C10;"></div>Azure Files 12.1% (¥585K)</div>
+                <div class="legend-item"><div class="legend-color" style="background:#FFB900;"></div>Network 8.6% (¥413K)</div>
+                <div class="legend-item"><div class="legend-color" style="background:#666;"></div>その他 12.2% (¥587K)</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3><span class="icon">🏷️</span>タグ別コスト配分 (CostCenter)</h3>
+            <table class="az-table">
+              <thead><tr><th>部門</th><th>今月</th><th>シェア</th></tr></thead>
+              <tbody>
+                <tr><td>営業部 (Sales)</td><td class="num">¥1,650,000</td><td class="num">34.2%</td></tr>
+                <tr><td>情報システム (IT)</td><td class="num">¥1,380,000</td><td class="num">28.6%</td></tr>
+                <tr><td>製造部 (Manufacturing)</td><td class="num">¥820,000</td><td class="num">17.0%</td></tr>
+                <tr><td>研究開発 (R&D)</td><td class="num">¥520,000</td><td class="num">10.8%</td></tr>
+                <tr><td>管理部 (Admin)</td><td class="num">¥285,000</td><td class="num">5.9%</td></tr>
+                <tr><td><span style="color:var(--red);">⚠️ タグ未設定</span></td><td class="num" style="color:var(--red);">¥170,300</td><td class="num">3.5%</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3><span class="icon">💸</span>高コストリソース TOP 10 (今月)</h3>
+          <table class="az-table">
+            <thead><tr><th>リソース名</th><th>種類</th><th>RG</th><th>SKU</th><th>今月コスト</th><th>前月比</th></tr></thead>
+            <tbody>
+              <tr><td class="link">vm-avd-host-001</td><td>VM</td><td>rg-avd-prod</td><td>D8s_v5</td><td class="num">¥285,000</td><td class="num" style="color:var(--green);">-2.1%</td></tr>
+              <tr><td class="link">vm-avd-host-002</td><td>VM</td><td>rg-avd-prod</td><td>D8s_v5</td><td class="num">¥285,000</td><td class="num" style="color:var(--green);">-2.1%</td></tr>
+              <tr><td class="link">vm-avd-host-003</td><td>VM</td><td>rg-avd-prod</td><td>D8s_v5</td><td class="num">¥282,500</td><td class="num" style="color:var(--green);">-1.8%</td></tr>
+              <tr><td class="link">vm-sql-prod-01</td><td>VM</td><td>rg-database</td><td>E16ds_v5</td><td class="num">¥245,000</td><td class="num" style="color:var(--red);">+8.5%</td></tr>
+              <tr><td class="link">stor-fslogix-prod</td><td>Storage</td><td>rg-avd-storage</td><td>Files Premium</td><td class="num">¥185,000</td><td class="num" style="color:var(--red);">+22.5%</td></tr>
+              <tr><td class="link">vm-app-server-01</td><td>VM</td><td>rg-app-prod</td><td>D4s_v5</td><td class="num">¥152,000</td><td class="num" style="color:var(--red);">+5.2%</td></tr>
+              <tr><td class="link">vm-test-data-01</td><td>VM</td><td>rg-test</td><td>D8s_v5</td><td class="num">¥148,000</td><td class="num" style="color:var(--yellow);">⚠️ 要確認</td></tr>
+              <tr><td class="link">law-prod-monitor</td><td>Log Analytics</td><td>rg-monitor</td><td>Pay-As-You-Go</td><td class="num">¥125,000</td><td class="num" style="color:var(--red);">+45.3%</td></tr>
+              <tr><td class="link">vnet-gw-prod</td><td>VPN Gateway</td><td>rg-network</td><td>VpnGw2</td><td class="num">¥98,000</td><td class="num" style="color:var(--green);">-0.5%</td></tr>
+              <tr><td class="link">vm-dev-build-01</td><td>VM</td><td>rg-dev</td><td>D4s_v5</td><td class="num">¥85,000</td><td class="num" style="color:var(--yellow);">⚠️ 要確認</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ===================== ADVISOR ===================== -->
+      <div class="page" id="page-advisor">
+        <div class="az-breadcrumb"><a>ホーム</a> &gt; <b style="color:var(--fg-bright)">Advisor</b></div>
+        <h2>Advisor</h2>
+        <div class="desc">パーソナライズされたベスト プラクティスの推奨事項</div>
+
+        <div class="filter-bar">
+          <button class="filter-btn">概要</button>
+          <button class="filter-btn active">コスト</button>
+          <button class="filter-btn">セキュリティ</button>
+          <button class="filter-btn">信頼性</button>
+          <button class="filter-btn">運用の優秀性</button>
+          <button class="filter-btn">パフォーマンス</button>
+        </div>
+
+        <div class="kpi-row">
+          <div class="kpi-card">
+            <div class="kpi-label">Advisor スコア (コスト)</div>
+            <div class="kpi-value" style="color:var(--yellow)">68 / 100</div>
+            <div class="kpi-trend down">▼ 前月比 +5</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">推奨事項</div>
+            <div class="kpi-value">47 件</div>
+            <div class="kpi-sub">Impact: H 12 / M 23 / L 12</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">推定削減額/年</div>
+            <div class="kpi-value" style="color:var(--green)">¥18,420,000</div>
+            <div class="kpi-sub">$122,800/year</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">対象リソース</div>
+            <div class="kpi-value">186</div>
+            <div class="kpi-sub">うち未対応 152</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3><span class="icon">🎯</span>コスト推奨事項一覧 (削減額順)</h3>
+
+          <div class="rec-card high">
+            <div class="rec-title"><span class="badge high">High</span>予約インスタンスを購入する (Virtual Machines)</div>
+            <div class="rec-desc">過去 7 日間の使用状況に基づき、D4s v5 (Japan East) 8 台、D8s v5 (Japan East) 6 台の購入を推奨します。1 年予約で適用可能。</div>
+            <div class="rec-meta">
+              <span class="meta-item">対象: <b>14 リソース</b></span>
+              <span class="meta-item">削減率: <b>38%</b></span>
+              <span class="meta-item">年間削減額: <b class="saving">¥6,250,000</b></span>
+            </div>
+          </div>
+
+          <div class="rec-card high">
+            <div class="rec-title"><span class="badge high">High</span>Azure Hybrid Benefit を使用する</div>
+            <div class="rec-desc">対象の 18 個の VM で Azure Hybrid Benefit を有効化すると、Windows Server コストを最大 49% 削減できます。Software Assurance 付き Windows Server ライセンスが必要です。</div>
+            <div class="rec-meta">
+              <span class="meta-item">対象: <b>18 VM</b></span>
+              <span class="meta-item">削減率: <b>最大 49%</b></span>
+              <span class="meta-item">年間削減額: <b class="saving">¥3,820,000</b></span>
+            </div>
+          </div>
+
+          <div class="rec-card high">
+            <div class="rec-title"><span class="badge high">High</span>使用率の低い仮想マシンをサイズ変更またはシャットダウン</div>
+            <div class="rec-desc">過去 14 日間の CPU/Memory が 5% 未満の VM が 9 台あります。1 段階小さい SKU への変更を推奨します。</div>
+            <div class="rec-meta">
+              <span class="meta-item">対象: <b>9 VM</b></span>
+              <span class="meta-item">削減率: <b>30-50%</b></span>
+              <span class="meta-item">年間削減額: <b class="saving">¥2,840,000</b></span>
+            </div>
+          </div>
+
+          <div class="rec-card high">
+            <div class="rec-title"><span class="badge high">High</span>Savings Plan の購入</div>
+            <div class="rec-desc">Compute コストを最大 32% 削減できます。1 時間あたり $1.50 の 1 年 Savings Plan を推奨。</div>
+            <div class="rec-meta">
+              <span class="meta-item">対象: <b>Compute 全般</b></span>
+              <span class="meta-item">削減率: <b>32%</b></span>
+              <span class="meta-item">年間削減額: <b class="saving">¥2,180,000</b></span>
+            </div>
+          </div>
+
+          <div class="rec-card medium">
+            <div class="rec-title"><span class="badge medium">Medium</span>関連付けされていないパブリック IP アドレスを削除</div>
+            <div class="rec-desc">VNet/VM に関連付けられていない Standard SKU の Public IP が 23 個検出されました。即削除可能です。</div>
+            <div class="rec-meta">
+              <span class="meta-item">対象: <b>23 IP</b></span>
+              <span class="meta-item">削減率: <b>100%</b></span>
+              <span class="meta-item">年間削減額: <b class="saving">¥1,520,000</b></span>
+            </div>
+          </div>
+
+          <div class="rec-card medium">
+            <div class="rec-title"><span class="badge medium">Medium</span>Log Analytics ワークスペースの保管期間最適化</div>
+            <div class="rec-desc">law-prod-monitor の保管期間が 730 日に設定されていますが、過去 90 日以前のクエリ実績がありません。90 日に短縮を推奨。</div>
+            <div class="rec-meta">
+              <span class="meta-item">対象: <b>1 ワークスペース</b></span>
+              <span class="meta-item">削減率: <b>87%</b></span>
+              <span class="meta-item">年間削減額: <b class="saving">¥920,000</b></span>
+            </div>
+          </div>
+
+          <div class="rec-card medium">
+            <div class="rec-title"><span class="badge medium">Medium</span>未接続の Managed Disk を削除</div>
+            <div class="rec-desc">VM から切り離された Premium SSD ディスクが 14 個 (合計 2.4TB) 検出されました。30 日以上未接続です。</div>
+            <div class="rec-meta">
+              <span class="meta-item">対象: <b>14 Disk</b></span>
+              <span class="meta-item">削減率: <b>100%</b></span>
+              <span class="meta-item">年間削減額: <b class="saving">¥685,000</b></span>
+            </div>
+          </div>
+
+          <div class="rec-card medium">
+            <div class="rec-title"><span class="badge medium">Medium</span>古いスナップショットを削除</div>
+            <div class="rec-desc">90 日以上前のディスクスナップショットが 87 個検出されました。バックアップポリシーの見直しを推奨。</div>
+            <div class="rec-meta">
+              <span class="meta-item">対象: <b>87 Snapshots</b></span>
+              <span class="meta-item">削減率: <b>100%</b></span>
+              <span class="meta-item">年間削減額: <b class="saving">¥208,000</b></span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===================== RESERVATIONS ===================== -->
+      <div class="page" id="page-reservations">
+        <div class="az-breadcrumb"><a>ホーム</a> &gt; <b style="color:var(--fg-bright)">Reservations</b></div>
+        <h2>Reservations</h2>
+        <div class="desc">予約インスタンス (RI) で最大 72% のコスト削減</div>
+
+        <div class="filter-bar">
+          <button class="filter-btn active">推奨</button>
+          <button class="filter-btn">購入</button>
+          <button class="filter-btn">購入済み (12)</button>
+          <button class="filter-btn">使用率レポート</button>
+        </div>
+
+        <div class="kpi-row">
+          <div class="kpi-card">
+            <div class="kpi-label">推奨数</div>
+            <div class="kpi-value">8 件</div>
+            <div class="kpi-sub">対象 SKU 別</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">推定削減額/年</div>
+            <div class="kpi-value" style="color:var(--green)">¥6,250,000</div>
+            <div class="kpi-sub">1 年 RI ベース</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">3 年 RI なら</div>
+            <div class="kpi-value" style="color:var(--green)">¥9,820,000</div>
+            <div class="kpi-sub">追加 ¥3.5M 削減</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">既存 RI 利用率</div>
+            <div class="kpi-value">87%</div>
+            <div class="kpi-sub">12 件中 9 件は良好</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3><span class="icon">🎯</span>RI 購入推奨一覧</h3>
+          <table class="az-table">
+            <thead><tr><th>サービス</th><th>SKU</th><th>リージョン</th><th>推奨数量</th><th>期間</th><th>1年削減額</th><th>3年削減額</th><th>削減率</th></tr></thead>
+            <tbody>
+              <tr>
+                <td>Virtual Machines</td>
+                <td><b>Standard_D8s_v5</b></td>
+                <td>Japan East</td>
+                <td class="num">6 台</td>
+                <td>1年 / 3年</td>
+                <td class="num" style="color:var(--green);">¥2,180,000</td>
+                <td class="num" style="color:var(--green);">¥3,420,000</td>
+                <td><span class="badge success">42%</span></td>
+              </tr>
+              <tr>
+                <td>Virtual Machines</td>
+                <td><b>Standard_D4s_v5</b></td>
+                <td>Japan East</td>
+                <td class="num">8 台</td>
+                <td>1年 / 3年</td>
+                <td class="num" style="color:var(--green);">¥1,420,000</td>
+                <td class="num" style="color:var(--green);">¥2,250,000</td>
+                <td><span class="badge success">38%</span></td>
+              </tr>
+              <tr>
+                <td>Virtual Machines</td>
+                <td><b>Standard_E16ds_v5</b></td>
+                <td>Japan East</td>
+                <td class="num">2 台</td>
+                <td>1年 / 3年</td>
+                <td class="num" style="color:var(--green);">¥980,000</td>
+                <td class="num" style="color:var(--green);">¥1,540,000</td>
+                <td><span class="badge success">40%</span></td>
+              </tr>
+              <tr>
+                <td>SQL Database</td>
+                <td><b>vCore - General Purpose</b></td>
+                <td>Japan East</td>
+                <td class="num">8 vCore</td>
+                <td>1年 / 3年</td>
+                <td class="num" style="color:var(--green);">¥620,000</td>
+                <td class="num" style="color:var(--green);">¥1,180,000</td>
+                <td><span class="badge success">35%</span></td>
+              </tr>
+              <tr>
+                <td>Cosmos DB</td>
+                <td><b>10K RU/s</b></td>
+                <td>Japan East</td>
+                <td class="num">1 unit</td>
+                <td>1年 / 3年</td>
+                <td class="num" style="color:var(--green);">¥520,000</td>
+                <td class="num" style="color:var(--green);">¥920,000</td>
+                <td><span class="badge success">37%</span></td>
+              </tr>
+              <tr>
+                <td>Storage</td>
+                <td><b>Blob Storage Reserved</b></td>
+                <td>Japan East</td>
+                <td class="num">100 TB</td>
+                <td>1年 / 3年</td>
+                <td class="num" style="color:var(--green);">¥320,000</td>
+                <td class="num" style="color:var(--green);">¥510,000</td>
+                <td><span class="badge success">22%</span></td>
+              </tr>
+              <tr>
+                <td>App Service</td>
+                <td><b>P2v3</b></td>
+                <td>Japan East</td>
+                <td class="num">3 台</td>
+                <td>1年 / 3年</td>
+                <td class="num" style="color:var(--green);">¥210,000</td>
+                <td class="num" style="color:var(--green);">¥320,000</td>
+                <td><span class="badge success">35%</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="card">
+          <h3><span class="icon">📊</span>購入済み RI 利用率</h3>
+          <table class="az-table">
+            <thead><tr><th>RI 名</th><th>SKU</th><th>数量</th><th>残り期間</th><th>使用率 (過去30日)</th><th>状態</th></tr></thead>
+            <tbody>
+              <tr>
+                <td class="link">RI-D4sv5-Prod-2025</td><td>D4s_v5</td><td class="num">10 台</td><td class="num">8 ヶ月</td>
+                <td><div class="progress"><div class="progress-fill green" style="width:98%"></div></div><span style="font-size:11px;color:var(--green);">98%</span></td>
+                <td><span class="badge success">理想的</span></td>
+              </tr>
+              <tr>
+                <td class="link">RI-D8sv5-Prod-2025</td><td>D8s_v5</td><td class="num">5 台</td><td class="num">7 ヶ月</td>
+                <td><div class="progress"><div class="progress-fill green" style="width:95%"></div></div><span style="font-size:11px;color:var(--green);">95%</span></td>
+                <td><span class="badge success">良好</span></td>
+              </tr>
+              <tr>
+                <td class="link">RI-E16dsv5-Prod-2025</td><td>E16ds_v5</td><td class="num">2 台</td><td class="num">5 ヶ月</td>
+                <td><div class="progress"><div class="progress-fill green" style="width:100%"></div></div><span style="font-size:11px;color:var(--green);">100%</span></td>
+                <td><span class="badge success">理想的</span></td>
+              </tr>
+              <tr>
+                <td class="link">RI-D2sv4-Test-2025</td><td>D2s_v4</td><td class="num">8 台</td><td class="num">3 ヶ月</td>
+                <td><div class="progress"><div class="progress-fill yellow" style="width:62%"></div></div><span style="font-size:11px;color:var(--yellow);">62%</span></td>
+                <td><span class="badge medium">改善余地</span></td>
+              </tr>
+              <tr>
+                <td class="link">RI-D4sv4-Legacy</td><td>D4s_v4</td><td class="num">3 台</td><td class="num">2 ヶ月</td>
+                <td><div class="progress"><div class="progress-fill red" style="width:35%"></div></div><span style="font-size:11px;color:var(--red);">35%</span></td>
+                <td><span class="badge high">要対応</span></td>
+              </tr>
+              <tr>
+                <td class="link">RI-SQL-Prod-2024</td><td>SQL DB GP</td><td class="num">8 vCore</td><td class="num">10 ヶ月</td>
+                <td><div class="progress"><div class="progress-fill green" style="width:88%"></div></div><span style="font-size:11px;color:var(--green);">88%</span></td>
+                <td><span class="badge success">良好</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ===================== SAVINGS PLANS ===================== -->
+      <div class="page" id="page-savings">
+        <div class="az-breadcrumb"><a>ホーム</a> &gt; <b style="color:var(--fg-bright)">Savings Plans</b></div>
+        <h2>Savings Plans</h2>
+        <div class="desc">柔軟なコミットメント割引で Compute コストを最適化</div>
+
+        <div class="filter-bar">
+          <button class="filter-btn active">推奨</button>
+          <button class="filter-btn">購入済み (3)</button>
+          <button class="filter-btn">使用率レポート</button>
+        </div>
+
+        <div class="kpi-row">
+          <div class="kpi-card">
+            <div class="kpi-label">推奨単価 (1年)</div>
+            <div class="kpi-value">$1.50/h</div>
+            <div class="kpi-sub">$13,140/year</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">削減率 (1年)</div>
+            <div class="kpi-value" style="color:var(--green)">27%</div>
+            <div class="kpi-sub">対 PAYG</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">削減率 (3年)</div>
+            <div class="kpi-value" style="color:var(--green)">52%</div>
+            <div class="kpi-sub">$1.20/h で購入</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">推定削減額/年</div>
+            <div class="kpi-value" style="color:var(--green)">¥2,180,000</div>
+            <div class="kpi-sub">1 年 Plan</div>
+          </div>
+        </div>
+
+        <div class="col-2">
+          <div class="card">
+            <h3><span class="icon">⚖️</span>RI vs Savings Plan 比較</h3>
+            <table class="az-table">
+              <thead><tr><th>観点</th><th>RI</th><th>Savings Plan</th></tr></thead>
+              <tbody>
+                <tr><td>最大割引率</td><td>72%</td><td>65%</td></tr>
+                <tr><td>SKU 柔軟性</td><td>限定的</td><td><b style="color:var(--green);">高い</b></td></tr>
+                <tr><td>リージョン変更</td><td>範囲変更要</td><td><b style="color:var(--green);">自動追従</b></td></tr>
+                <tr><td>対象</td><td>VM/SQL/Cosmos 個別</td><td>Compute 全般</td></tr>
+                <tr><td>購入単位</td><td>SKU 数量</td><td>時間単価 ($)</td></tr>
+                <tr><td>適合</td><td>SKU 固定</td><td>SKU 変動あり</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="card">
+            <h3><span class="icon">💡</span>使い分け推奨</h3>
+            <div style="font-size:12px;line-height:1.7;color:var(--fg);">
+              <p style="margin-bottom:12px;"><b style="color:var(--blue-light);">▶ RI を選ぶケース:</b></p>
+              <ul style="padding-left:20px;color:var(--fg-muted);margin-bottom:14px;">
+                <li>AVD セッションホスト (SKU 固定)</li>
+                <li>本番 SQL Database</li>
+                <li>3 年継続が確実</li>
+              </ul>
+              <p style="margin-bottom:12px;"><b style="color:var(--yellow);">▶ Savings Plan を選ぶケース:</b></p>
+              <ul style="padding-left:20px;color:var(--fg-muted);margin-bottom:14px;">
+                <li>Dev/Test 環境 (SKU 変動)</li>
+                <li>新規プロジェクト (規模未確定)</li>
+                <li>マルチリージョン展開</li>
+              </ul>
+              <p style="color:var(--green);font-weight:600;">💡 多くの組織は両方併用 (ベース=RI、変動=Savings Plan)</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3><span class="icon">📊</span>購入済み Savings Plan 利用状況</h3>
+          <table class="az-table">
+            <thead><tr><th>名前</th><th>時間単価</th><th>期間</th><th>残り</th><th>利用率 (30日)</th><th>状態</th></tr></thead>
+            <tbody>
+              <tr>
+                <td class="link">SP-Compute-Prod-1Y</td><td>$2.00/h</td><td>1年</td><td class="num">8 ヶ月</td>
+                <td><div class="progress"><div class="progress-fill green" style="width:96%"></div></div><span style="font-size:11px;color:var(--green);">96%</span></td>
+                <td><span class="badge success">理想的</span></td>
+              </tr>
+              <tr>
+                <td class="link">SP-Compute-Dev-1Y</td><td>$0.80/h</td><td>1年</td><td class="num">5 ヶ月</td>
+                <td><div class="progress"><div class="progress-fill yellow" style="width:75%"></div></div><span style="font-size:11px;color:var(--yellow);">75%</span></td>
+                <td><span class="badge medium">良好</span></td>
+              </tr>
+              <tr>
+                <td class="link">SP-Compute-Burst-1Y</td><td>$0.50/h</td><td>1年</td><td class="num">2 ヶ月</td>
+                <td><div class="progress"><div class="progress-fill green" style="width:92%"></div></div><span style="font-size:11px;color:var(--green);">92%</span></td>
+                <td><span class="badge success">理想的</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ===================== AVD INSIGHTS ===================== -->
+      <div class="page" id="page-avd">
+        <div class="az-breadcrumb"><a>ホーム</a> &gt; AVD &gt; <b style="color:var(--fg-bright)">Insights</b></div>
+        <h2>Azure Virtual Desktop Insights</h2>
+        <div class="desc">セッションホストの稼働状況とユーザー体験を可視化</div>
+
+        <div class="kpi-row">
+          <div class="kpi-card">
+            <div class="kpi-label">アクティブセッション</div>
+            <div class="kpi-value">42</div>
+            <div class="kpi-sub">最大同時 87</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">セッションホスト</div>
+            <div class="kpi-value">12</div>
+            <div class="kpi-sub">利用中 8 / 待機 4</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">平均接続時間</div>
+            <div class="kpi-value">4.2h</div>
+            <div class="kpi-sub">過去 7 日</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">接続成功率</div>
+            <div class="kpi-value" style="color:var(--green)">98.7%</div>
+            <div class="kpi-sub">SLA: 99.9%</div>
+          </div>
+        </div>
+
+        <div class="col-2">
+          <div class="card">
+            <h3><span class="icon">📊</span>時間帯別接続数 (平日平均)</h3>
+            <div class="bar-chart">
+              <div class="bar-col"><div class="value">2</div><div class="bar" style="height:5%"></div><div class="label">0時</div></div>
+              <div class="bar-col"><div class="value">1</div><div class="bar" style="height:3%"></div><div class="label">3時</div></div>
+              <div class="bar-col"><div class="value">3</div><div class="bar" style="height:8%"></div><div class="label">6時</div></div>
+              <div class="bar-col"><div class="value">28</div><div class="bar" style="height:42%;background:linear-gradient(180deg,#FFB900 0%,#cc9400 100%);"></div><div class="label">8時</div></div>
+              <div class="bar-col"><div class="value">82</div><div class="bar" style="height:95%;background:linear-gradient(180deg,#D13438 0%,#a02528 100%);"></div><div class="label">10時</div></div>
+              <div class="bar-col"><div class="value">78</div><div class="bar" style="height:90%;background:linear-gradient(180deg,#D13438 0%,#a02528 100%);"></div><div class="label">12時</div></div>
+              <div class="bar-col"><div class="value">85</div><div class="bar" style="height:100%;background:linear-gradient(180deg,#D13438 0%,#a02528 100%);"></div><div class="label">14時</div></div>
+              <div class="bar-col"><div class="value">75</div><div class="bar" style="height:88%;background:linear-gradient(180deg,#D13438 0%,#a02528 100%);"></div><div class="label">16時</div></div>
+              <div class="bar-col"><div class="value">42</div><div class="bar" style="height:50%;background:linear-gradient(180deg,#FFB900 0%,#cc9400 100%);"></div><div class="label">18時</div></div>
+              <div class="bar-col"><div class="value">12</div><div class="bar" style="height:18%"></div><div class="label">20時</div></div>
+              <div class="bar-col"><div class="value">5</div><div class="bar" style="height:8%"></div><div class="label">22時</div></div>
+              <div class="bar-col"><div class="value">3</div><div class="bar" style="height:5%"></div><div class="label">24時</div></div>
+            </div>
+            <p style="font-size:11px;color:var(--fg-muted);margin-top:8px;">💡 ピーク時間帯: 10-16 時。Autoscale を 9-18 時に設定すると最適</p>
+          </div>
+
+          <div class="card">
+            <h3><span class="icon">🖥️</span>セッションホスト稼働率</h3>
+            <table class="az-table">
+              <thead><tr><th>ホスト</th><th>セッション</th><th>CPU</th><th>状態</th></tr></thead>
+              <tbody>
+                <tr><td class="link">vm-avd-host-001</td><td class="num">8/10</td><td><div class="progress"><div class="progress-fill yellow" style="width:72%"></div></div></td><td><span class="status-dot green"></span>稼働中</td></tr>
+                <tr><td class="link">vm-avd-host-002</td><td class="num">9/10</td><td><div class="progress"><div class="progress-fill yellow" style="width:78%"></div></div></td><td><span class="status-dot green"></span>稼働中</td></tr>
+                <tr><td class="link">vm-avd-host-003</td><td class="num">7/10</td><td><div class="progress"><div class="progress-fill yellow" style="width:65%"></div></div></td><td><span class="status-dot green"></span>稼働中</td></tr>
+                <tr><td class="link">vm-avd-host-004</td><td class="num">6/10</td><td><div class="progress"><div class="progress-fill" style="width:55%"></div></div></td><td><span class="status-dot green"></span>稼働中</td></tr>
+                <tr><td class="link">vm-avd-host-005</td><td class="num">4/10</td><td><div class="progress"><div class="progress-fill" style="width:38%"></div></div></td><td><span class="status-dot green"></span>稼働中</td></tr>
+                <tr><td class="link">vm-avd-host-006</td><td class="num">5/10</td><td><div class="progress"><div class="progress-fill" style="width:42%"></div></div></td><td><span class="status-dot green"></span>稼働中</td></tr>
+                <tr><td class="link">vm-avd-host-007</td><td class="num">3/10</td><td><div class="progress"><div class="progress-fill" style="width:25%"></div></div></td><td><span class="status-dot green"></span>稼働中</td></tr>
+                <tr><td class="link">vm-avd-host-008</td><td class="num">0/10</td><td><div class="progress"><div class="progress-fill" style="width:5%"></div></div></td><td><span class="status-dot yellow"></span>排出中</td></tr>
+                <tr><td class="link">vm-avd-host-009</td><td class="num">0/10</td><td><div class="progress"><div class="progress-fill" style="width:0%"></div></div></td><td><span class="status-dot gray"></span>停止</td></tr>
+                <tr><td class="link">vm-avd-host-010</td><td class="num">0/10</td><td><div class="progress"><div class="progress-fill" style="width:0%"></div></div></td><td><span class="status-dot gray"></span>停止</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3><span class="icon">⚠️</span>接続エラー TOP 5 (過去 7 日)</h3>
+          <table class="az-table">
+            <thead><tr><th>エラーコード</th><th>説明</th><th>発生数</th><th>影響ユーザー</th><th>最終発生</th></tr></thead>
+            <tbody>
+              <tr><td>ConnectionFailedClientProxyCantConnectToRdAgent</td><td>セッションホスト接続失敗</td><td class="num">23</td><td class="num">12 名</td><td>2 時間前</td></tr>
+              <tr><td>ConnectionFailedRdGatewayAccessDenied</td><td>権限/ネットワーク問題</td><td class="num">15</td><td class="num">8 名</td><td>5 時間前</td></tr>
+              <tr><td>ReverseConnectFailureNoCapacity</td><td>キャパシティ不足</td><td class="num">8</td><td class="num">6 名</td><td>1 日前</td></tr>
+              <tr><td>SessionHostNotReady</td><td>ドメイン参加問題</td><td class="num">5</td><td class="num">2 名</td><td>2 日前</td></tr>
+              <tr><td>FSLogixVHDMountFailed</td><td>プロファイルマウント失敗</td><td class="num">3</td><td class="num">3 名</td><td>3 日前</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ===================== RESOURCES ===================== -->
+      <div class="page" id="page-resources">
+        <div class="az-breadcrumb"><a>ホーム</a> &gt; <b style="color:var(--fg-bright)">すべてのリソース</b></div>
+        <h2>すべてのリソース</h2>
+        <div class="desc">186 個のリソース (Contoso Production)</div>
+
+        <div class="filter-bar">
+          <button class="filter-btn active">すべて (186)</button>
+          <button class="filter-btn">VM (45)</button>
+          <button class="filter-btn">Disk (62)</button>
+          <button class="filter-btn">Public IP (28)</button>
+          <button class="filter-btn">Storage (12)</button>
+          <button class="filter-btn">Network (15)</button>
+          <button class="filter-btn">その他 (24)</button>
+          <span style="margin-left:16px;font-size:11px;color:var(--fg-muted);">フィルタ:</span>
+          <button class="filter-btn">未使用</button>
+          <button class="filter-btn">タグ未設定</button>
+        </div>
+
+        <div class="card">
+          <h3><span class="icon">📦</span>リソース一覧 (高コスト順)</h3>
+          <table class="az-table">
+            <thead><tr><th>名前</th><th>種類</th><th>RG</th><th>場所</th><th>状態</th><th>推定月額</th><th>タグ</th></tr></thead>
+            <tbody>
+              <tr><td class="link">vm-avd-host-001</td><td>VM (D8s_v5)</td><td>rg-avd-prod</td><td>Japan East</td><td><span class="status-dot green"></span>稼働中</td><td class="num">¥285,000</td><td><span class="badge info">Sales</span></td></tr>
+              <tr><td class="link">vm-sql-prod-01</td><td>VM (E16ds_v5)</td><td>rg-database</td><td>Japan East</td><td><span class="status-dot green"></span>稼働中</td><td class="num">¥245,000</td><td><span class="badge info">IT</span></td></tr>
+              <tr><td class="link">stor-fslogix-prod</td><td>Azure Files Premium</td><td>rg-avd-storage</td><td>Japan East</td><td><span class="status-dot green"></span>稼働中</td><td class="num">¥185,000</td><td><span class="badge info">Sales</span></td></tr>
+              <tr><td class="link" style="color:var(--yellow);">vm-test-data-01</td><td>VM (D8s_v5)</td><td>rg-test</td><td>Japan East</td><td><span class="status-dot yellow"></span>VM stopped (課金中!)</td><td class="num" style="color:var(--red);">¥148,000</td><td><span class="badge low">タグなし</span></td></tr>
+              <tr><td class="link">vm-app-server-01</td><td>VM (D4s_v5)</td><td>rg-app-prod</td><td>Japan East</td><td><span class="status-dot green"></span>稼働中</td><td class="num">¥152,000</td><td><span class="badge info">Sales</span></td></tr>
+              <tr><td class="link">law-prod-monitor</td><td>Log Analytics</td><td>rg-monitor</td><td>Japan East</td><td><span class="status-dot green"></span>稼働中</td><td class="num">¥125,000</td><td><span class="badge info">IT</span></td></tr>
+              <tr><td class="link" style="color:var(--red);">disk-old-test-01</td><td>Disk (P30 1024GB)</td><td>rg-test</td><td>Japan East</td><td><span class="status-dot red"></span>未接続 (90日)</td><td class="num" style="color:var(--red);">¥18,200</td><td><span class="badge low">タグなし</span></td></tr>
+              <tr><td class="link" style="color:var(--red);">disk-archive-2024-01</td><td>Disk (P40 2048GB)</td><td>rg-archive</td><td>Japan East</td><td><span class="status-dot red"></span>未接続 (180日)</td><td class="num" style="color:var(--red);">¥36,400</td><td><span class="badge low">タグなし</span></td></tr>
+              <tr><td class="link" style="color:var(--red);">pip-old-vm-001</td><td>Public IP (Standard)</td><td>rg-network</td><td>Japan East</td><td><span class="status-dot red"></span>関連付けなし</td><td class="num" style="color:var(--red);">¥500</td><td><span class="badge low">タグなし</span></td></tr>
+              <tr><td class="link" style="color:var(--red);">pip-old-vm-002</td><td>Public IP (Standard)</td><td>rg-network</td><td>Japan East</td><td><span class="status-dot red"></span>関連付けなし</td><td class="num" style="color:var(--red);">¥500</td><td><span class="badge low">タグなし</span></td></tr>
+              <tr><td class="link" style="color:var(--red);">pip-old-vm-003</td><td>Public IP (Standard)</td><td>rg-network</td><td>Japan East</td><td><span class="status-dot red"></span>関連付けなし</td><td class="num" style="color:var(--red);">¥500</td><td><span class="badge low">タグなし</span></td></tr>
+            </tbody>
+          </table>
+          <p style="font-size:11px;color:var(--fg-muted);margin-top:10px;">💡 赤色の行は要対応リソース (未使用または課金継続中)。即削除で月額 ¥56,100 (年間 ¥673,200) 削減可能</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+function showPage(pageId, navItem, tipId) {
+  // Hide all pages
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-' + pageId).classList.add('active');
+
+  // Update service tabs
+  document.querySelectorAll('.az-svc-tab').forEach((t, i) => {
+    const targets = ['home', 'cost', 'advisor', 'reservations', 'savings', 'avd', 'resources'];
+    t.classList.toggle('active', targets[i] === pageId);
+  });
+
+  // Update guide nav
+  document.querySelectorAll('.tour-item').forEach(t => t.classList.remove('active'));
+  if (navItem) navItem.classList.add('active');
+  else {
+    const tourItems = document.querySelectorAll('.tour-item');
+    const targets = ['home', 'cost', 'advisor', 'reservations', 'savings', 'avd', 'resources'];
+    const idx = targets.indexOf(pageId);
+    if (idx >= 0 && tourItems[idx]) tourItems[idx].classList.add('active');
+  }
+
+  // Update tip
+  document.querySelectorAll('.guide-tip').forEach(t => t.classList.remove('show'));
+  if (tipId) document.getElementById(tipId).classList.add('show');
+
+  // Scroll content area to top
+  document.querySelector('.az-content').scrollTop = 0;
+}
+</script>
+</body>
+</html>
